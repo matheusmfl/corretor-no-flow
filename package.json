@@ -1,0 +1,23 @@
+{
+  "name": "corretor-no-flow",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:dashboard": "turbo run dev --filter=@corretor/dashboard",
+    "dev:web": "turbo run dev --filter=@corretor/web",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "^5"
+  },
+  "packageManager": "npm@10.9.2",
+  "overrides": {
+    "postcss": "^8.5.6"
+  }
+}

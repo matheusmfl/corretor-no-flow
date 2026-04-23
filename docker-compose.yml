@@ -1,0 +1,66 @@
+networks:
+  db:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: corretor_postgres
+    restart: unless-stopped
+    networks:
+      - db
+    environment:
+      POSTGRES_USER: ${DB_USER:-corretor}
+      POSTGRES_PASSWORD: ${DB_PASS:-corretor}
+      POSTGRES_DB: ${DB_NAME:-corretor_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-corretor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: corretor_redis
+    restart: unless-stopped
+    networks:
+      - db
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+    container_name: corretor_api
+    restart: unless-stopped
+    networks:
+      - db
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages/types/src:/app/packages/types/src
+    env_file:
+      - apps/api/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
