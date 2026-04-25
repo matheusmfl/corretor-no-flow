@@ -40,23 +40,25 @@
 }
 
 /* ── Base ── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  background-color: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-body), 'DM Sans', sans-serif;
-  -webkit-font-smoothing: antialiased;
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-body), 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 /* ── Marquee ── */

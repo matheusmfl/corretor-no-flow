@@ -9,6 +9,7 @@
     "dev": "turbo run dev",
     "dev:dashboard": "turbo run dev --filter=@corretor/dashboard",
     "dev:web": "turbo run dev --filter=@corretor/web",
+    "dev:api": "turbo run dev --filter=@corretor/api",
     "build": "turbo run build",
     "lint": "turbo run lint"
   },
