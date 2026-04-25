@@ -1,5 +1,5 @@
 import {
-  Body, Controller, HttpCode, HttpStatus,
+  Body, Controller, Get, HttpCode, HttpStatus,
   Post, Req, Res,
 } from '@nestjs/common';
 import {
@@ -18,13 +18,26 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 
 const REFRESH_COOKIE = 'refresh_token';
-const cookieOptions = (maxAge: number) => ({
+const ACCESS_COOKIE  = 'access_token';
+
+const refreshCookieOptions = (maxAge: number) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
   path: '/api/auth',
   maxAge,
 });
+
+const accessCookieOptions = (maxAge: number) => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  path: '/',
+  maxAge,
+});
+
+const ACCESS_MAX_AGE = 15 * 60 * 1000;        // 15 min
+const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -48,8 +61,9 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Credenciais inválidas' })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { accessToken, rawRefreshToken, user } = await this.authService.login(dto);
-    res.cookie(REFRESH_COOKIE, rawRefreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
-    return { accessToken, user };
+    res.cookie(ACCESS_COOKIE,   accessToken,     accessCookieOptions(ACCESS_MAX_AGE));
+    res.cookie(REFRESH_COOKIE,  rawRefreshToken, refreshCookieOptions(REFRESH_MAX_AGE));
+    return { user };
   }
 
   @Public()
@@ -60,8 +74,16 @@ export class AuthController {
   @ApiOkResponse({ schema: { properties: { accessToken: { type: 'string' } } } })
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const { accessToken, rawRefreshToken } = await this.authService.refresh(req.cookies?.[REFRESH_COOKIE]);
-    res.cookie(REFRESH_COOKIE, rawRefreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
+    res.cookie(ACCESS_COOKIE,   accessToken,     accessCookieOptions(ACCESS_MAX_AGE));
+    res.cookie(REFRESH_COOKIE,  rawRefreshToken, refreshCookieOptions(REFRESH_MAX_AGE));
     return { accessToken };
+  }
+
+  @Get('me')
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Retorna o usuário autenticado' })
+  me(@CurrentUser() user: { id: string; email: string; name: string; companyId: string | null }) {
+    return user;
   }
 
   @Post('logout')
@@ -71,6 +93,7 @@ export class AuthController {
   @ApiNoContentResponse()
   async logout(@CurrentUser() user: { id: string }, @Res({ passthrough: true }) res: Response) {
     await this.authService.logout(user.id);
+    res.clearCookie(ACCESS_COOKIE,  { path: '/' });
     res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
   }
 

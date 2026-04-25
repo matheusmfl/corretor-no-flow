@@ -8,8 +8,9 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
+import type { CreateCompanyDto as ICreateCompanyDto } from '@corretor/types';
 
-export class CreateCompanyDto {
+export class CreateCompanyDto implements ICreateCompanyDto {
   @ApiProperty({ enum: AccountType, example: AccountType.INDIVIDUAL })
   @IsEnum(AccountType)
   accountType: AccountType;

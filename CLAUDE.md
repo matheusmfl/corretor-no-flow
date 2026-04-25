@@ -142,6 +142,38 @@ cp apps/api/.env.example apps/api/.env
 - **Processamento assíncrono obrigatório** — PDF pode levar 10–30s para processar
 - **`.env` por app** (nunca na raiz do monorepo) — segue boas práticas Turborepo e evita acoplamento implícito
 
+## Contrato de tipos (`@corretor/types` como fonte de verdade)
+
+`packages/types` é a **única fonte de verdade** para os contratos entre API e frontend. O fluxo é:
+
+```
+Prisma schema muda
+  → atualiza @corretor/types manualmente
+  → NestJS DTOs quebram compilação (implements garante)
+  → Frontend quebra compilação (usa os mesmos tipos)
+```
+
+**Regra obrigatória:** todo DTO do NestJS deve implementar a interface correspondente de `@corretor/types`:
+
+```ts
+import type { CreateCompanyDto as ICreateCompanyDto } from '@corretor/types';
+
+export class CreateCompanyDto implements ICreateCompanyDto {
+  // se divergir de ICreateCompanyDto → erro de compilação
+}
+```
+
+Isso garante que mudanças no contrato sejam detectadas em compile-time, não em runtime.
+
+**O que NÃO fazer:** usar `@prisma/client` diretamente no frontend — Prisma é uma dependência de backend.
+
+## Dashboard — arquitetura frontend
+
+- **Gestão de sessão:** httpOnly cookies + Next.js Middleware (sem localStorage)
+- **HTTP client:** fetch com `credentials: 'include'` — cookies enviados automaticamente
+- **Data fetching:** React Query (TanStack Query) para Client Components
+- **Tipagem dos hooks:** todos os hooks usam os tipos de `@corretor/types` para entrada e saída
+
 ## Desenvolvimento da API
 - **Todo desenvolvimento deve ser feito seguindo modelo TDD** - Inicialmente iremos fazer tudo com testes unitários no desenvolvimento do backend, leia as skills de teste e tdd, isso deve ajudar na hora de construir os mocks
 

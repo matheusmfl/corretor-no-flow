@@ -1,4 +1,4 @@
-// Shared types between dashboard, web and api
-export * from './quote'
-export * from './company'
-export * from './user'
+export * from './auth.types'
+export * from './user.types'
+export * from './company.types'
+export * from './quote.types'

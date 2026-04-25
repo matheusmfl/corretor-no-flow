@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
+import type { RegisterDto as IRegisterDto } from '@corretor/types';
 
-export class RegisterDto {
+export class RegisterDto implements IRegisterDto {
   @ApiProperty({ example: 'João Ramos' })
   @IsString()
   name: string;

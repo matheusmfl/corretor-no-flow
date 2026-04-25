@@ -1,11 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { InsuranceProduct } from '@prisma/client';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import type { UploadQuoteDto as IUploadQuoteDto } from '@corretor/types';
 
-export class UploadQuoteDto {
-  @ApiProperty({ enum: ['AUTO'], description: 'Tipo de produto da cotação' })
-  @IsString()
-  @IsIn(['AUTO'])
-  product: string;
+export class UploadQuoteDto implements IUploadQuoteDto {
+  @ApiProperty({ enum: InsuranceProduct, description: 'Tipo de produto da cotação' })
+  @IsEnum(InsuranceProduct)
+  product: InsuranceProduct;
 
   @ApiPropertyOptional({ description: 'Nome do cliente (preenchido manualmente ou extraído)' })
   @IsOptional()

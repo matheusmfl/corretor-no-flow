@@ -19,7 +19,8 @@
       "Bash(python -c \"import sys,json; lock=json.load\\(sys.stdin\\); pkgs=lock.get\\('packages',{}\\); next_pkg = pkgs.get\\('apps/dashboard/node_modules/next'\\) or pkgs.get\\('node_modules/next'\\); print\\('next location:', 'apps/dashboard/node_modules/next' if 'apps/dashboard/node_modules/next' in pkgs else 'node_modules/next' if 'node_modules/next' in pkgs else 'NOT FOUND'\\)\")",
       "Bash(npx tsc *)",
       "Bash(awk -F/ '{ *)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(node *)"
     ]
   }
 }

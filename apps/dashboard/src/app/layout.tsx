@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, DM_Sans } from "next/font/google";
+import { Providers } from "@/providers";
 import "./globals.css";
 
 const sora = Sora({
@@ -15,9 +16,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Corretor no Flow — Cotações que encantam",
-  description:
-    "Plataforma para corretores de seguros que transforma PDFs técnicos em propostas elegantes com link dinâmico.",
+  title: "Corretor no Flow — Dashboard",
+  description: "Gerencie suas cotações e personalize sua identidade visual.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${sora.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
