@@ -59,6 +59,8 @@ services:
       - ./packages/types/src:/app/packages/types/src
     env_file:
       - apps/api/.env
+    environment:
+      DATABASE_URL: postgresql://corretor:corretor@postgres:5432/corretor_db?schema=public
     depends_on:
       postgres:
         condition: service_healthy

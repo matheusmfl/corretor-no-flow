@@ -141,3 +141,8 @@ cp apps/api/.env.example apps/api/.env
 - **Node/TypeScript** para o backend — ecossistema de PDF mais maduro em JS, e o gargalo é a IA, não a linguagem
 - **Processamento assíncrono obrigatório** — PDF pode levar 10–30s para processar
 - **`.env` por app** (nunca na raiz do monorepo) — segue boas práticas Turborepo e evita acoplamento implícito
+
+## Desenvolvimento da API
+- **Todo desenvolvimento deve ser feito seguindo modelo TDD** - Inicialmente iremos fazer tudo com testes unitários no desenvolvimento do backend, leia as skills de teste e tdd, isso deve ajudar na hora de construir os mocks
+
+- **Design DDD** - Devemos fazer o desenvolvimento utilizando o design DDD e uma arquitetura com SOLID usando inversão e injeção de dependências.

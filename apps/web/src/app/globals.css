@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   Design System — Corretor no Flow
+   Palette: canvas (warm cream) + ink (dark maroon)
+   ───────────────────────────────────────────── */
+
+@theme {
+  /* Canvas — backgrounds */
+  --color-canvas:          #FAF8F1;
+  --color-surface:         #EEEADB;
+  --color-surface-strong:  #E2DCC8;
+
+  /* Ink — text & borders */
+  --color-ink:             #2B0A0A;
+  --color-ink-muted:       #6B3030;
+  --color-ink-faint:       #A08080;
+
+  /* Mahogany — primary action */
+  --color-mahogany:        #3E1010;
+  --color-mahogany-light:  #5C1818;
+
+  /* Ember — accent */
+  --color-ember:           #C05020;
+  --color-ember-light:     #E07A3A;
+
+  /* Gold — text on dark */
+  --color-gold:            #C89558;
+  --color-gold-light:      #E0B878;
+
+  /* Neutral */
+  --color-white:           #FFFFFF;
+
+  /* Typography */
+  --font-display: var(--font-sora);
+  --font-body:    var(--font-dm-sans);
+
+  /* Easing */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body), 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Marquee ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* ── Fade in on load ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.7s var(--ease-smooth) both;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
