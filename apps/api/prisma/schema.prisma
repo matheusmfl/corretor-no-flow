@@ -7,14 +7,119 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Company {
+  id          String      @id @default(cuid())
+  accountType AccountType
+  legalName   String
+  tradeName   String?
+  document    String      @unique
+  susepNumber String      @unique
+
+  displayName  String
+  slug         String   @unique
+  logoUrl      String?
+  primaryColor String   @default("#003B0F")
+  bio          String?
+
+  whatsapp     String
+  contactEmail String?
+  instagram    String?
+  website      String?
+
+  city  String?
+  state String?
+
+  teamSize    TeamSize?
+  specialties InsuranceProduct[]
+
+  users            User[]
+  quotes           Quote[]
+  onboardingSurvey CompanyOnboardingSurvey?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("companies")
+}
+
+enum AccountType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum TeamSize {
+  SOLO
+  SMALL_2_5
+  MEDIUM_6_20
+  LARGE_21_PLUS
+}
+
+enum InsuranceProduct {
+  AUTO
+  HEALTH
+  LIFE
+  TRAVEL
+  HOME
+  BUSINESS
+  RURAL
+}
+
+enum QuoteStatus {
+  PENDING
+  PROCESSING
+  PENDING_REVIEW
+  READY
+  SENT
+  VIEWED
+  EXPIRED
+}
+
+model CompanyOnboardingSurvey {
+  id                 String   @id @default(cuid())
+  companyId          String   @unique
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  referralSource     String?
+  monthlyQuoteVolume String?
+  currentTool        String?
+  answeredAt         DateTime @default(now())
+
+  @@map("company_onboarding_surveys")
+}
+
+model Quote {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  product InsuranceProduct
+  status  QuoteStatus      @default(PENDING)
+
+  clientName  String?
+  clientPhone String?
+
+  publicToken     String? @unique
+  originalFileKey String?
+  extractedData   Json?
+
+  expiresAt DateTime?
+  openedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, createdAt])
+  @@map("quotes")
+}
+
 model User {
-  id           String  @id @default(cuid())
-  email        String  @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
   name         String
   companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
-  refreshTokens      RefreshToken[]
+  refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())

@@ -1,0 +1,9 @@
+export enum QuoteStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  READY = 'READY',
+  SENT = 'SENT',
+  VIEWED = 'VIEWED',
+  EXPIRED = 'EXPIRED',
+}
