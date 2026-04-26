@@ -8,40 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Company {
-  id          String      @id @default(cuid())
-  accountType AccountType
-  legalName   String
-  tradeName   String?
-  document    String      @unique
-  susepNumber String      @unique
-
-  displayName  String
-  slug         String   @unique
-  logoUrl      String?
-  primaryColor String   @default("#003B0F")
-  bio          String?
-
-  whatsapp     String
-  contactEmail String?
-  instagram    String?
-  website      String?
-
-  city  String?
-  state String?
-
-  teamSize    TeamSize?
-  specialties InsuranceProduct[]
-
-  users            User[]
-  quotes           Quote[]
-  onboardingSurvey CompanyOnboardingSurvey?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("companies")
-}
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum AccountType {
   INDIVIDUAL
@@ -65,52 +32,200 @@ enum InsuranceProduct {
   RURAL
 }
 
+enum Insurer {
+  BRADESCO
+  PORTO_SEGURO
+  TOKIO_MARINE
+  SULAMERICA
+  SUHAI
+  ALIRO
+  ALLIANZ
+  YELLOW
+}
+
+enum QuoteProcessStatus {
+  DRAFT           // criado, aguardando uploads
+  PROCESSING      // pelo menos um PDF sendo processado
+  PENDING_REVIEW  // todos processados, algum precisa de revisão manual
+  READY           // todos prontos, pode gerar
+  PUBLISHED       // link gerado e enviado ao segurado
+  ARCHIVED
+}
+
 enum QuoteStatus {
-  PENDING
-  PROCESSING
-  PENDING_REVIEW
-  READY
-  SENT
-  VIEWED
+  PENDING         // aguardando upload do PDF
+  PROCESSING      // PDF sendo processado pela IA
+  PENDING_REVIEW  // extração incompleta, aguarda revisão do corretor
+  READY           // dados confirmados
+  FAILED          // falha permanente na extração
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  CANCELED
   EXPIRED
 }
 
-model CompanyOnboardingSurvey {
-  id                 String   @id @default(cuid())
-  companyId          String   @unique
-  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  referralSource     String?
-  monthlyQuoteVolume String?
-  currentTool        String?
-  answeredAt         DateTime @default(now())
+// ─── Company ──────────────────────────────────────────────────────────────────
 
-  @@map("company_onboarding_surveys")
+model Company {
+  id          String      @id @default(cuid())
+  accountType AccountType
+  legalName   String
+  tradeName   String?
+  document    String      @unique
+  susepNumber String      @unique
+
+  displayName  String
+  slug         String   @unique
+  logoUrl      String?
+  primaryColor String   @default("#3E1010")
+  bio          String?
+
+  whatsapp     String
+  contactEmail String?
+  instagram    String?
+  website      String?
+
+  city  String?
+  state String?
+
+  teamSize    TeamSize?
+  specialties InsuranceProduct[]
+
+  users            User[]
+  quoteProcesses   QuoteProcess[]
+  subscription     Subscription?
+  onboardingSurvey CompanyOnboardingSurvey?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("companies")
 }
 
-model Quote {
+// ─── Quote Process ────────────────────────────────────────────────────────────
+
+model QuoteProcess {
   id        String  @id @default(cuid())
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   product InsuranceProduct
-  status  QuoteStatus      @default(PENDING)
+  status  QuoteProcessStatus @default(DRAFT)
 
+  // Identificação do cliente — opcional, preenchido pelo corretor
   clientName  String?
   clientPhone String?
 
-  publicToken     String? @unique
-  originalFileKey String?
-  extractedData   Json?
+  // Link público para o segurado
+  publicToken String?   @unique
+  expiresAt   DateTime?
+  openedAt    DateTime?
 
-  expiresAt DateTime?
-  openedAt  DateTime?
+  quotes Quote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId, createdAt])
+  @@map("quote_processes")
+}
+
+// ─── Quote (cotação individual por seguradora) ────────────────────────────────
+
+model Quote {
+  id        String       @id @default(cuid())
+  processId String
+  process   QuoteProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  insurer  Insurer
+  status   QuoteStatus @default(PENDING)
+
+  // Nome gerado automaticamente após extração, editável pelo corretor
+  // Ex: "Bradesco-Auto-Reduzida", "Porto-Auto-Completa"
+  name     String?
+  nameSlug String?
+
+  originalFileKey String?
+  rawText         String?
+  extractedData   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Slug único dentro do mesmo processo
+  @@unique([processId, nameSlug])
+  @@index([processId])
   @@map("quotes")
 }
+
+// ─── Comparison Schema ────────────────────────────────────────────────────────
+
+// Configuração de quais campos são comparáveis por ramo e como rankeá-los.
+// Populado via seed — não muda em runtime.
+model ComparisonSchema {
+  id      String           @id @default(cuid())
+  product InsuranceProduct @unique
+
+  // Array de ComparisonField — ver @corretor/types para a estrutura
+  // Ex: [{ key: "premium", label: "Prêmio anual", type: "LOWER_IS_BETTER" }, ...]
+  fields Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comparison_schemas")
+}
+
+// ─── Plans & Subscriptions ────────────────────────────────────────────────────
+
+model Plan {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  quotesPerMonth Int
+
+  // Arrays de InsuranceProduct e Insurer permitidos
+  products Json
+  insurers Json
+
+  // Feature flags: { customBranding, comparison, openTracking, ... }
+  features Json
+
+  isActive      Boolean        @default(true)
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model Subscription {
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  planId    String
+  plan      Plan    @relation(fields: [planId], references: [id])
+
+  status SubscriptionStatus @default(TRIAL)
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  // Resetado no primeiro dia de cada mês via job
+  quotesUsedThisMonth Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 model User {
   id           String   @id @default(cuid())
@@ -150,4 +265,18 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@map("password_reset_tokens")
+}
+
+// ─── Onboarding ───────────────────────────────────────────────────────────────
+
+model CompanyOnboardingSurvey {
+  id                 String   @id @default(cuid())
+  companyId          String   @unique
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  referralSource     String?
+  monthlyQuoteVolume String?
+  currentTool        String?
+  answeredAt         DateTime @default(now())
+
+  @@map("company_onboarding_surveys")
 }

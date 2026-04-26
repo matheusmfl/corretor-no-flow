@@ -56,11 +56,17 @@ services:
       - "3001:3001"
     volumes:
       - ./apps/api/src:/app/apps/api/src
+      - ./apps/api/prisma:/app/apps/api/prisma
+      - ./apps/api/tsconfig.json:/app/apps/api/tsconfig.json
+      - ./apps/api/tsconfig.build.json:/app/apps/api/tsconfig.build.json
+      - ./apps/api/package.json:/app/apps/api/package.json
       - ./packages/types/src:/app/packages/types/src
     env_file:
       - apps/api/.env
     environment:
       DATABASE_URL: postgresql://corretor:corretor@postgres:5432/corretor_db?schema=public
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
     depends_on:
       postgres:
         condition: service_healthy

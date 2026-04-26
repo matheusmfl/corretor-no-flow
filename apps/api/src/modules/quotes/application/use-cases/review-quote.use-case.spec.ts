@@ -21,16 +21,19 @@ describe('ReviewQuoteUseCase', () => {
   });
 
   it('lança ForbiddenException quando cotação pertence a outra empresa', async () => {
-    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', companyId: 'outra_empresa' } as any);
+    prisma.quote.findUnique.mockResolvedValue({
+      id: 'q1',
+      process: { companyId: 'outra_empresa' },
+    } as any);
 
     await expect(useCase.execute('c1', 'q1', {})).rejects.toThrow(ForbiddenException);
   });
 
   it('atualiza status para READY após revisão do corretor', async () => {
-    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', companyId: 'c1' } as any);
+    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', process: { companyId: 'c1' } } as any);
     prisma.quote.update.mockResolvedValue({ id: 'q1', status: 'READY' } as any);
 
-    await useCase.execute('c1', 'q1', { clientName: 'Maria' });
+    await useCase.execute('c1', 'q1', { name: 'Bradesco-Auto-Reduzida' });
 
     expect(prisma.quote.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -40,15 +43,15 @@ describe('ReviewQuoteUseCase', () => {
   });
 
   it('persiste dados corrigidos pelo corretor junto com a revisão', async () => {
-    const extractedData = { veiculo: 'Honda Civic', placa: 'ABC-1234' };
-    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', companyId: 'c1' } as any);
+    const extractedData = { totalPremium: 1240, deductible: 3000 };
+    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', process: { companyId: 'c1' } } as any);
     prisma.quote.update.mockResolvedValue({ id: 'q1' } as any);
 
-    await useCase.execute('c1', 'q1', { clientName: 'Maria', extractedData });
+    await useCase.execute('c1', 'q1', { name: 'Bradesco-Auto-Reduzida', extractedData });
 
     expect(prisma.quote.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ clientName: 'Maria', extractedData }),
+        data: expect.objectContaining({ name: 'Bradesco-Auto-Reduzida', extractedData }),
       }),
     );
   });

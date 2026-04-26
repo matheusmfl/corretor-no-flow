@@ -9,7 +9,7 @@ export class ListQuotesUseCase {
     const skip = (page - 1) * limit;
 
     const [items, total] = await this.prisma.$transaction([
-      this.prisma.quote.findMany({
+      this.prisma.quoteProcess.findMany({
         where: { companyId },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -24,7 +24,7 @@ export class ListQuotesUseCase {
           updatedAt: true,
         },
       }),
-      this.prisma.quote.count({ where: { companyId } }),
+      this.prisma.quoteProcess.count({ where: { companyId } }),
     ]);
 
     return { items, total, page, limit };

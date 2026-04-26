@@ -17,7 +17,9 @@ RUN npm install
 RUN npm run prisma:generate --workspace=apps/api
 COPY . .
 EXPOSE 3001
-CMD ["npm", "run", "dev", "--workspace=apps/api"]
+# Regenera o Prisma client ao iniciar — garante que o cliente está sempre
+# alinhado com o schema.prisma que chega pelo volume mount em dev.
+CMD ["sh", "-c", "npm run prisma:generate --workspace=apps/api && npm run dev --workspace=apps/api"]
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder

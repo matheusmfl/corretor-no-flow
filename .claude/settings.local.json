@@ -20,7 +20,15 @@
       "Bash(npx tsc *)",
       "Bash(awk -F/ '{ *)",
       "Bash(npx next *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(docker exec corretor_api *)",
+      "Bash(docker cp *)",
+      "Bash(docker restart *)",
+      "Bash(docker compose up *)",
+      "Bash(npm test *)",
+      "Bash(npx jest *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(npx prisma *)"
     ]
   }
 }

@@ -1,48 +1,40 @@
-import type { InsuranceProduct } from './company.types'
-
 // ─── Enums ────────────────────────────────────────────────────────────────────
+
+export type Insurer =
+  | 'BRADESCO'
+  | 'PORTO_SEGURO'
+  | 'TOKIO_MARINE'
+  | 'SULAMERICA'
+  | 'SUHAI'
+  | 'ALIRO'
+  | 'ALLIANZ'
+  | 'YELLOW'
 
 export type QuoteStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'PENDING_REVIEW'
   | 'READY'
-  | 'SENT'
-  | 'VIEWED'
-  | 'EXPIRED'
+  | 'FAILED'
 
 // ─── Entity ───────────────────────────────────────────────────────────────────
 
 export interface Quote {
   id: string
-  companyId: string
-  product: InsuranceProduct
+  processId: string
+  insurer: Insurer
   status: QuoteStatus
-  clientName: string | null
-  clientPhone: string | null
-  publicToken: string | null
+  name: string | null
+  nameSlug: string | null
   originalFileKey: string | null
-  extractedData: AutoQuoteData | null
-  expiresAt: string | null
-  openedAt: string | null
+  extractedData: Record<string, unknown> | null
   createdAt: string
   updatedAt: string
 }
 
-export interface QuoteListItem {
-  id: string
-  product: InsuranceProduct
-  status: QuoteStatus
-  clientName: string | null
-  publicToken: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-// ─── Extracted data ───────────────────────────────────────────────────────────
+// ─── Extracted data (AUTO) ────────────────────────────────────────────────────
 
 export interface AutoQuoteData {
-  insurer: string
   plate?: string
   vehicleModel?: string
   vehicleYear?: number
@@ -67,22 +59,7 @@ export interface Installment {
 
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
-export interface UploadQuoteDto {
-  product: InsuranceProduct
-  clientName?: string
-}
-
 export interface ReviewQuoteDto {
-  clientName?: string
-  clientPhone?: string
+  name?: string
   extractedData?: Record<string, unknown>
-}
-
-// ─── Response types ───────────────────────────────────────────────────────────
-
-export interface QuoteListResponse {
-  items: QuoteListItem[]
-  total: number
-  page: number
-  limit: number
 }

@@ -1,15 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { InsuranceProduct } from '@prisma/client';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import type { UploadQuoteDto as IUploadQuoteDto } from '@corretor/types';
+import { InsuranceProduct, Insurer } from '@prisma/client';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import type { CreateQuoteProcessDto as ICreateQuoteProcessDto } from '@corretor/types';
 
-export class UploadQuoteDto implements IUploadQuoteDto {
-  @ApiProperty({ enum: InsuranceProduct, description: 'Tipo de produto da cotação' })
+export class CreateQuoteProcessDto implements ICreateQuoteProcessDto {
+  @ApiProperty({ enum: InsuranceProduct, description: 'Ramo da cotação' })
   @IsEnum(InsuranceProduct)
   product: InsuranceProduct;
 
-  @ApiPropertyOptional({ description: 'Nome do cliente (preenchido manualmente ou extraído)' })
+  @ApiProperty({ enum: Insurer, isArray: true, description: 'Seguradoras selecionadas' })
+  @IsArray()
+  @IsEnum(Insurer, { each: true })
+  insurers: Insurer[];
+
+  @ApiPropertyOptional({ description: 'Nome do cliente' })
   @IsOptional()
   @IsString()
   clientName?: string;
+
+  @ApiPropertyOptional({ description: 'Telefone do cliente' })
+  @IsOptional()
+  @IsString()
+  clientPhone?: string;
 }

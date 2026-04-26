@@ -16,5 +16,6 @@
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0"
   },
-  "exclude": ["node_modules", "dist", "jest.config.ts", "**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

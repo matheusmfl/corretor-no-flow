@@ -5,10 +5,13 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class GetQuoteUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(companyId: string, quoteId: string) {
-    const quote = await this.prisma.quote.findUnique({ where: { id: quoteId } });
-    if (!quote) throw new NotFoundException('Cotação não encontrada.');
-    if (quote.companyId !== companyId) throw new ForbiddenException();
-    return quote;
+  async execute(companyId: string, processId: string) {
+    const process = await this.prisma.quoteProcess.findUnique({
+      where: { id: processId },
+      include: { quotes: true },
+    });
+    if (!process) throw new NotFoundException('Processo não encontrado.');
+    if (process.companyId !== companyId) throw new ForbiddenException();
+    return process;
   }
 }

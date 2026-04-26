@@ -13,24 +13,24 @@ describe('GetQuoteUseCase', () => {
     useCase = new GetQuoteUseCase(prisma as unknown as PrismaService);
   });
 
-  it('lança NotFoundException quando cotação não existe', async () => {
-    prisma.quote.findUnique.mockResolvedValue(null);
+  it('lança NotFoundException quando processo não existe', async () => {
+    prisma.quoteProcess.findUnique.mockResolvedValue(null);
 
-    await expect(useCase.execute('c1', 'q1')).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('c1', 'p1')).rejects.toThrow(NotFoundException);
   });
 
-  it('lança ForbiddenException quando cotação pertence a outra empresa', async () => {
-    prisma.quote.findUnique.mockResolvedValue({ id: 'q1', companyId: 'outra_empresa' } as any);
+  it('lança ForbiddenException quando processo pertence a outra empresa', async () => {
+    prisma.quoteProcess.findUnique.mockResolvedValue({ id: 'p1', companyId: 'outra_empresa' } as any);
 
-    await expect(useCase.execute('c1', 'q1')).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute('c1', 'p1')).rejects.toThrow(ForbiddenException);
   });
 
-  it('retorna a cotação quando empresa é a dona', async () => {
-    const quote = { id: 'q1', companyId: 'c1', status: 'PENDING' };
-    prisma.quote.findUnique.mockResolvedValue(quote as any);
+  it('retorna o processo quando empresa é a dona', async () => {
+    const process = { id: 'p1', companyId: 'c1', status: 'DRAFT', quotes: [] };
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
 
-    const result = await useCase.execute('c1', 'q1');
+    const result = await useCase.execute('c1', 'p1');
 
-    expect(result).toEqual(quote);
+    expect(result).toEqual(process);
   });
 });

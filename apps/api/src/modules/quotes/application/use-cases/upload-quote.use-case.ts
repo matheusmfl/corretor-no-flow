@@ -1,28 +1,30 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { InsuranceProduct } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { QuoteStatus } from '../../domain/value-objects/quote-status.vo';
-import { UploadQuoteDto } from '../dtos/upload-quote.dto';
+import { QuoteProcessStatus, QuoteStatus } from '../../domain/value-objects/quote-status.vo';
+import { CreateQuoteProcessDto } from '../dtos/upload-quote.dto';
 
 @Injectable()
 export class UploadQuoteUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(companyId: string, dto: UploadQuoteDto, file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('Arquivo PDF é obrigatório.');
-
-    const quote = await this.prisma.quote.create({
+  async execute(companyId: string, dto: CreateQuoteProcessDto) {
+    const process = await this.prisma.quoteProcess.create({
       data: {
         companyId,
-        product: dto.product as InsuranceProduct,
-        status: QuoteStatus.PENDING,
+        product: dto.product,
+        status: QuoteProcessStatus.DRAFT,
         clientName: dto.clientName ?? null,
-        originalFileKey: `originals/${companyId}/${Date.now()}.pdf`,
+        clientPhone: dto.clientPhone ?? null,
+        quotes: {
+          create: dto.insurers.map((insurer) => ({
+            insurer,
+            status: QuoteStatus.PENDING,
+          })),
+        },
       },
+      include: { quotes: true },
     });
 
-    // TODO: enqueue extract-pdf job with quote.id + file buffer
-
-    return quote;
+    return process;
   }
 }

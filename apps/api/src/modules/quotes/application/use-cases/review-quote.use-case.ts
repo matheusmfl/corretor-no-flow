@@ -9,15 +9,17 @@ export class ReviewQuoteUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(companyId: string, quoteId: string, dto: ReviewQuoteDto) {
-    const quote = await this.prisma.quote.findUnique({ where: { id: quoteId } });
+    const quote = await this.prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: { process: true },
+    });
     if (!quote) throw new NotFoundException('Cotação não encontrada.');
-    if (quote.companyId !== companyId) throw new ForbiddenException();
+    if (quote.process.companyId !== companyId) throw new ForbiddenException();
 
     return this.prisma.quote.update({
       where: { id: quoteId },
       data: {
-        clientName: dto.clientName,
-        clientPhone: dto.clientPhone,
+        name: dto.name,
         extractedData: dto.extractedData as Prisma.InputJsonValue,
         status: QuoteStatus.READY,
       },

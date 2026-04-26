@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class QuoteListItemDto {
+export class QuoteProcessListItemDto {
   @ApiProperty() id: string;
-  @ApiProperty({ enum: ['auto'] }) product: string;
+  @ApiProperty() product: string;
   @ApiProperty() status: string;
   @ApiPropertyOptional() clientName: string | null;
   @ApiPropertyOptional() publicToken: string | null;
@@ -10,8 +10,8 @@ export class QuoteListItemDto {
   @ApiProperty() updatedAt: Date;
 }
 
-export class QuoteListResponseDto {
-  @ApiProperty({ type: [QuoteListItemDto] }) items: QuoteListItemDto[];
+export class QuoteProcessListResponseDto {
+  @ApiProperty({ type: [QuoteProcessListItemDto] }) items: QuoteProcessListItemDto[];
   @ApiProperty() total: number;
   @ApiProperty() page: number;
   @ApiProperty() limit: number;

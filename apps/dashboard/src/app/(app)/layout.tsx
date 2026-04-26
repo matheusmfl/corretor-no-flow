@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/auth/use-current-user'
 import { useLogout } from '@/hooks/auth/use-logout'
 
@@ -157,8 +157,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: user, isSuccess } = useCurrentUser()
+
+  useEffect(() => {
+    if (isSuccess && !user?.companyId) {
+      router.replace('/onboarding')
+    }
+  }, [isSuccess, user, router])
 
   const currentPage = NAV_ITEMS.find((i) => i.href === pathname)?.label ?? 'Dashboard'
+
+  if (isSuccess && !user?.companyId) return null
 
   return (
     <div className="min-h-screen bg-canvas flex">
