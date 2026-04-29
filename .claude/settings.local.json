@@ -28,7 +28,10 @@
       "Bash(npm test *)",
       "Bash(npx jest *)",
       "Bash(grep -v \"^$\")",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(docker-compose build *)",
+      "PowerShell(\\(Get-Item \"C:\\\\Users\\\\mathe\\\\Desktop\\\\codigos 2026\\\\corretor-no-flow\\\\apps\\\\api\\\\src\\\\modules\\\\ai\\\\ai.service.ts\"\\).LastWriteTime = Get-Date)",
+      "Bash(docker-compose up *)"
     ]
   }
 }

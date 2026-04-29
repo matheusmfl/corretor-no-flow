@@ -2,8 +2,26 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { parseAutoQuoteData } from './auto-quote.schema';
 
 const validData = {
-  coverages: [{ name: 'Colisão', description: 'Danos por colisão' }],
-  totalPremium: 1200.5,
+  vehicle: { model: 'Jeep Compass Sport 1.3', plate: 'PCI4A59' },
+  driver: { name: 'Fabiano Alves da Silveira' },
+  insurer: 'Bradesco Auto/RE',
+  coverage: {
+    vehicle: { fipePercentage: 100, deductible: 3866.5, deductibleType: 'Reduzida' },
+    rcf: { propertyDamage: 100000, bodilyInjury: 100000, moralDamages: 10000 },
+    app: { death: 5000, disability: 5000, passengerCount: 5 },
+  },
+  deductibles: [
+    { item: 'Veículo', value: 3866.5, type: 'Reduzida' },
+    { item: 'Vidro Dianteiro', value: 721 },
+  ],
+  premium: { base: 2404.44, iof: 237, total: 3448.53 },
+  paymentMethods: [
+    {
+      type: 'debit' as const,
+      label: 'Débito',
+      installments: [{ number: 1, amount: 3448.5, total: 3448.5 }],
+    },
+  ],
 };
 
 describe('parseAutoQuoteData', () => {
@@ -15,50 +33,39 @@ describe('parseAutoQuoteData', () => {
   it('aceita campos opcionais quando presentes', () => {
     const data = {
       ...validData,
-      plate: 'ABC-1234',
-      vehicleModel: 'HB20',
-      vehicleYear: 2022,
-      validUntil: '2026-05-01',
-      installments: [{ number: 1, amount: 600.25, dueDate: '2026-05-01' }],
-      coverages: [
-        {
-          name: 'Colisão',
-          description: 'Danos por colisão',
-          limit: 'R$ 50.000',
-          deductible: 'R$ 2.000',
-        },
-      ],
+      quoteNumber: '0788270607/03',
+      validFrom: '11/03/2026',
+      validUntil: '18/03/2026',
+      bonusClass: '10% - Sem Sinistro',
+      vehicle: {
+        ...validData.vehicle,
+        yearManufacture: 2025,
+        yearModel: 2026,
+        chassis: '988675CA2TKV89231',
+        fipeCode: '13398',
+        fipeValue: 7866.5,
+      },
     };
     const result = parseAutoQuoteData(data);
     expect(result).toMatchObject(data);
   });
 
-  it('lança UnprocessableEntityException quando coverages está ausente', () => {
-    const { coverages: _, ...withoutCoverages } = validData as any;
-    expect(() => parseAutoQuoteData(withoutCoverages)).toThrow(UnprocessableEntityException);
+  it('lança UnprocessableEntityException quando vehicle está ausente', () => {
+    const { vehicle: _, ...withoutVehicle } = validData as any;
+    expect(() => parseAutoQuoteData(withoutVehicle)).toThrow(UnprocessableEntityException);
   });
 
-  it('lança UnprocessableEntityException quando totalPremium está ausente', () => {
-    const { totalPremium: _, ...withoutPremium } = validData as any;
-    expect(() => parseAutoQuoteData(withoutPremium)).toThrow(UnprocessableEntityException);
+  it('lança UnprocessableEntityException quando premium.total está ausente', () => {
+    const data = { ...validData, premium: { base: 2404 } };
+    expect(() => parseAutoQuoteData(data)).toThrow(UnprocessableEntityException);
   });
 
-  it('lança UnprocessableEntityException quando coverages não é array', () => {
-    expect(() => parseAutoQuoteData({ ...validData, coverages: 'invalido' })).toThrow(
-      UnprocessableEntityException,
-    );
-  });
-
-  it('lança UnprocessableEntityException quando totalPremium não é número', () => {
-    expect(() => parseAutoQuoteData({ ...validData, totalPremium: 'mil reais' })).toThrow(
-      UnprocessableEntityException,
-    );
-  });
-
-  it('lança UnprocessableEntityException quando coverage não tem name ou description', () => {
-    expect(() =>
-      parseAutoQuoteData({ ...validData, coverages: [{ name: 'Colisão' }] }),
-    ).toThrow(UnprocessableEntityException);
+  it('lança UnprocessableEntityException quando paymentMethods tem type inválido', () => {
+    const data = {
+      ...validData,
+      paymentMethods: [{ type: 'pix', label: 'Pix', installments: [] }],
+    };
+    expect(() => parseAutoQuoteData(data)).toThrow(UnprocessableEntityException);
   });
 
   it('lança UnprocessableEntityException quando o input não é objeto', () => {

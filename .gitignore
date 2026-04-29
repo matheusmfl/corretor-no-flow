@@ -37,3 +37,7 @@ coverage
 
 # prisma
 prisma/generated
+
+# uploads e PDFs gerados localmente
+apps/api/uploads/
+apps/api/generated/

@@ -8,11 +8,12 @@ FROM base AS development
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY apps/dashboard/package*.json ./apps/dashboard/
-COPY apps/web/package*.json ./apps/web/
 COPY packages/types/package*.json ./packages/types/
 # Copia o schema antes do install para o prisma generate funcionar
 COPY apps/api/prisma ./apps/api/prisma/
 RUN npm install
+# Garante que dependências do workspace api estejam no node_modules raiz
+RUN npm install --workspace=apps/api
 # O script "dev" não roda prisma generate — faz aqui explicitamente
 RUN npm run prisma:generate --workspace=apps/api
 COPY . .
@@ -26,7 +27,6 @@ FROM base AS builder
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY apps/dashboard/package*.json ./apps/dashboard/
-COPY apps/web/package*.json ./apps/web/
 COPY packages/types/package*.json ./packages/types/
 COPY apps/api/prisma ./apps/api/prisma/
 RUN npm ci
@@ -41,7 +41,6 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY apps/dashboard/package*.json ./apps/dashboard/
-COPY apps/web/package*.json ./apps/web/
 COPY packages/types/package*.json ./packages/types/
 COPY apps/api/prisma ./apps/api/prisma/
 RUN npm ci --omit=dev

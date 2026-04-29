@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Insurer } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { QUEUE_NAMES } from '../../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../../queue/queue.types';
@@ -32,7 +33,7 @@ export class SubmitQuoteForProcessingUseCase {
     if (!process) throw new NotFoundException('Processo de cotação não encontrado');
     if (process.companyId !== companyId) throw new ForbiddenException();
 
-    const quote = (process.quotes as { id: string; status: string }[]).find(
+    const quote = (process.quotes as { id: string; status: string; insurer: Insurer }[]).find(
       (q) => q.id === quoteId,
     );
     if (!quote) throw new NotFoundException('Cotação não encontrada neste processo');
@@ -45,8 +46,8 @@ export class SubmitQuoteForProcessingUseCase {
       data: { status: QuoteStatus.PROCESSING, originalFileKey: filePath },
     });
 
-    const jobData: ExtractPdfJobData = { quoteId, processId, filePath, product: process.product };
-    await this.extractPdfQueue.add('extract-pdf', jobData);
+    const jobData: ExtractPdfJobData = { quoteId, processId, filePath, product: process.product, insurer: quote.insurer };
+    await this.extractPdfQueue.add('extract-pdf', jobData, { attempts: 2, backoff: { type: 'fixed', delay: 5000 } });
 
     return { quoteId, processId, status: 'queued' };
   }

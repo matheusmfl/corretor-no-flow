@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
 import { LoginDto } from '../dtos/login.dto';
@@ -55,10 +55,14 @@ export class AuthService {
     return { accessToken, rawRefreshToken, user: userDto };
   }
 
+  private sha256(token: string) {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
   async refresh(rawRefreshToken: string) {
     if (!rawRefreshToken) throw new UnauthorizedException();
 
-    const tokenHash = await argon2.hash(rawRefreshToken);
+    const tokenHash = this.sha256(rawRefreshToken);
     const stored = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
       include: { user: { select: { id: true, email: true } } },
@@ -124,7 +128,7 @@ export class AuthService {
     });
 
     const rawRefreshToken = randomBytes(32).toString('hex');
-    const tokenHash = await argon2.hash(rawRefreshToken);
+    const tokenHash = this.sha256(rawRefreshToken);
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
     await this.prisma.refreshToken.create({ data: { tokenHash, userId, expiresAt } });

@@ -98,10 +98,9 @@ describe('AuthService', () => {
         passwordHash: 'hashed',
       } as any);
       argon2Mock.verify.mockResolvedValue(true as never);
-      argon2Mock.hash.mockResolvedValue('token_hash' as never);
       jwt.signAsync.mockResolvedValue('access_token' as never);
       config.getOrThrow.mockReturnValue('secret' as never);
-      config.get.mockReturnValue('15m' as never);
+      config.get.mockReturnValue('48h' as never);
       prisma.refreshToken.create.mockResolvedValue({} as any);
 
       const result = await service.login({ email: 'joao@teste.com', password: '123456' });
@@ -120,14 +119,12 @@ describe('AuthService', () => {
     });
 
     it('lança UnauthorizedException quando token não é encontrado no banco', async () => {
-      argon2Mock.hash.mockResolvedValue('token_hash' as never);
       prisma.refreshToken.findUnique.mockResolvedValue(null);
 
       await expect(service.refresh('token_invalido')).rejects.toThrow(UnauthorizedException);
     });
 
     it('lança UnauthorizedException quando token está expirado', async () => {
-      argon2Mock.hash.mockResolvedValue('token_hash' as never);
       prisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt1',
         expiresAt: new Date(Date.now() - 1000),
@@ -138,7 +135,6 @@ describe('AuthService', () => {
     });
 
     it('rotaciona o token e retorna novos tokens quando válido', async () => {
-      argon2Mock.hash.mockResolvedValue('token_hash' as never);
       prisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt1',
         expiresAt: new Date(Date.now() + 1000 * 60 * 60),
@@ -148,7 +144,7 @@ describe('AuthService', () => {
       prisma.refreshToken.create.mockResolvedValue({} as any);
       jwt.signAsync.mockResolvedValue('new_access_token' as never);
       config.getOrThrow.mockReturnValue('secret' as never);
-      config.get.mockReturnValue('15m' as never);
+      config.get.mockReturnValue('48h' as never);
 
       const result = await service.refresh('token_valido');
 
@@ -188,7 +184,6 @@ describe('AuthService', () => {
 
   describe('resetPassword', () => {
     it('lança BadRequestException quando token é inválido', async () => {
-      argon2Mock.hash.mockResolvedValue('token_hash' as never);
       prisma.passwordResetToken.findUnique.mockResolvedValue(null);
 
       await expect(

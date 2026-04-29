@@ -74,9 +74,9 @@ function IconX() {
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',  href: '/dashboard',         icon: <IconHome /> },
   { label: 'Cotações',   href: '/dashboard/quotes',   icon: <IconFiles /> },
   { label: 'Empresa',    href: '/dashboard/company',  icon: <IconBuilding /> },
+  { label: 'Dashboard',  href: '/dashboard',          icon: <IconHome /> },
 ]
 
 // ─── Sidebar content ──────────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isSuccess, user, router])
 
-  const currentPage = NAV_ITEMS.find((i) => i.href === pathname)?.label ?? 'Dashboard'
+  const currentPage = NAV_ITEMS.find((i) => pathname.startsWith(i.href))?.label ?? 'Dashboard'
 
   if (isSuccess && !user?.companyId) return null
 

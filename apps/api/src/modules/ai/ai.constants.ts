@@ -1,1 +1,1 @@
-export const ANTHROPIC_CLIENT = 'ANTHROPIC_CLIENT';
+export const GROQ_CLIENT = 'GROQ_CLIENT';

@@ -1,5 +1,5 @@
 import type { InsuranceProduct } from './company.types'
-import type { Insurer } from './quote.types'
+import type { Insurer, Quote } from './quote.types'
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -27,14 +27,28 @@ export interface QuoteProcess {
   updatedAt: string
 }
 
+export interface QuoteProcessDetail extends QuoteProcess {
+  quotes: Quote[]
+}
+
 export interface QuoteProcessListItem {
   id: string
   product: InsuranceProduct
   status: QuoteProcessStatus
   clientName: string | null
   publicToken: string | null
+  openedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+// ─── Query params ─────────────────────────────────────────────────────────────
+
+export interface ListProcessesQuery {
+  status?: QuoteProcessStatus
+  search?: string
+  page?: number
+  limit?: number
 }
 
 // ─── Request DTOs ─────────────────────────────────────────────────────────────

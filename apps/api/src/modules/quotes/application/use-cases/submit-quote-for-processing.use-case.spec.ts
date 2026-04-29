@@ -1,20 +1,23 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { PrismaClient } from '@prisma/client';
+import { Insurer, InsuranceProduct, PrismaClient } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SubmitQuoteForProcessingUseCase } from './submit-quote-for-processing.use-case';
 import { QuoteStatus } from '../../domain/value-objects/quote-status.vo';
 
-const COMPANY_ID = 'c1';
-const PROCESS_ID = 'p1';
-const QUOTE_ID = 'q1';
-const FILE_PATH = 'uploads/test.pdf';
+const COMPANY_ID  = 'c1';
+const PROCESS_ID  = 'p1';
+const QUOTE_ID    = 'q1';
+const FILE_PATH   = 'uploads/test.pdf';
+const INSURER     = Insurer.BRADESCO;
+const PRODUCT     = InsuranceProduct.AUTO;
 
 const makeProcess = (overrides: Record<string, unknown> = {}) => ({
   id: PROCESS_ID,
   companyId: COMPANY_ID,
-  quotes: [{ id: QUOTE_ID, status: QuoteStatus.PENDING }],
+  product: PRODUCT,
+  quotes: [{ id: QUOTE_ID, status: QuoteStatus.PENDING, insurer: INSURER }],
   ...overrides,
 });
 
@@ -45,7 +48,8 @@ describe('SubmitQuoteForProcessingUseCase', () => {
     });
     expect(queue.add).toHaveBeenCalledWith(
       'extract-pdf',
-      { quoteId: QUOTE_ID, processId: PROCESS_ID, filePath: FILE_PATH },
+      { quoteId: QUOTE_ID, processId: PROCESS_ID, filePath: FILE_PATH, product: PRODUCT, insurer: INSURER },
+      { attempts: 2, backoff: { type: 'fixed', delay: 5000 } },
     );
     expect(result).toEqual({ quoteId: QUOTE_ID, processId: PROCESS_ID, status: 'queued' });
   });
@@ -80,7 +84,7 @@ describe('SubmitQuoteForProcessingUseCase', () => {
 
   it('lança BadRequestException quando cotação não está em status PENDING', async () => {
     prisma.quoteProcess.findUnique.mockResolvedValue(
-      makeProcess({ quotes: [{ id: QUOTE_ID, status: QuoteStatus.PROCESSING }] }) as any,
+      makeProcess({ quotes: [{ id: QUOTE_ID, status: QuoteStatus.PROCESSING, insurer: INSURER }] }) as any,
     );
 
     await expect(

@@ -34,6 +34,8 @@ async function tryRefresh(): Promise<boolean> {
 
 // ─── Core request ─────────────────────────────────────────────────────────────
 
+const AUTH_PATHS = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh']
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -51,7 +53,8 @@ async function request<T>(
   })
 
   // 401 → tenta refresh uma vez e repete a requisição original
-  if (res.status === 401 && !isRetry) {
+  // (não aplica a endpoints de auth para não esconder erros de credencial)
+  if (res.status === 401 && !isRetry && !AUTH_PATHS.includes(path)) {
     const refreshed = await tryRefresh()
     if (refreshed) return request<T>(path, options, true)
     throw new ApiError(401, 'Sessão expirada. Faça login novamente.')

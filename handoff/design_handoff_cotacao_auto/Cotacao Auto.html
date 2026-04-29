@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotação Auto</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── VARIÁVEIS DE MARCA ─────────────────────────────── */
+:root {
+  --brand:        #1f2d3d;       /* cor principal — trocar pela seguradora */
+  --brand-light:  #e8ecf0;       /* versão clara do brand */
+  --brand-mid:    #3a5068;       /* intermediária */
+  --accent:       #f0a500;       /* destaque / amarelo quente neutro */
+
+  --bg:           #f4f2ee;
+  --surface:      #ffffff;
+  --surface-2:    #f9f8f6;
+  --border:       #e2dfd8;
+  --text-1:       #1a1814;
+  --text-2:       #5a5750;
+  --text-3:       #9a9590;
+
+  --radius:       6px;
+  --font:         'Plus Jakarta Sans', sans-serif;
+  --mono:         'Space Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text-1);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 64px;
+}
+
+/* ── CARD PRINCIPAL ─────────────────────────────────── */
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px var(--border);
+}
+
+/* ── TOPO LISTRADO ──────────────────────────────────── */
+.stripe-bar {
+  height: 10px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--brand) 0 20px,
+    var(--accent) 20px 26px,
+    var(--brand) 26px 46px,
+    var(--surface) 46px 52px
+  );
+}
+
+/* ── HEADER ─────────────────────────────────────────── */
+.header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.logo-placeholder {
+  background: var(--brand-light);
+  border: 1.5px dashed var(--brand-mid);
+  border-radius: 4px;
+  width: 80px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--brand-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.header-meta {
+  text-align: right;
+}
+.seguradora-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.02em;
+}
+.cotacao-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ── SAUDAÇÃO ───────────────────────────────────────── */
+.greeting {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.greeting strong { color: var(--text-1); font-weight: 700; }
+.vehicle-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.vtag {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-2);
+  padding: 3px 8px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* ── VALOR HERO ─────────────────────────────────────── */
+.valor-section {
+  background: var(--brand);
+  padding: 22px 20px 20px;
+  position: relative;
+}
+.valor-section::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 14px;
+  background: repeating-radial-gradient(
+    circle at 14px -2px,
+    var(--surface) 10px,
+    transparent 10px
+  ) var(--brand);
+  background-size: 28px 14px;
+}
+.valor-section::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 14px;
+  background: repeating-radial-gradient(
+    circle at 14px 16px,
+    var(--surface) 10px,
+    transparent 10px
+  ) var(--brand);
+  background-size: 28px 14px;
+}
+.valor-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.valor-main {
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.valor-main span { font-size: 24px; opacity: 0.7; }
+.valor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.valor-parcelado {
+  text-align: right;
+}
+.valor-parcelado .vp-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 2px;
+}
+.valor-parcelado .vp-val {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.franquia-badge {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.franquia-badge .fb-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+}
+.franquia-badge .fb-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── SEÇÃO GENÉRICA ─────────────────────────────────── */
+.section {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.section:last-child { border-bottom: none; }
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+/* ── COBERTURAS ─────────────────────────────────────── */
+.cob-group {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.cob-group:last-child { margin-bottom: 0; }
+.cob-group-header {
+  background: var(--brand-light);
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.cob-group-icon { font-size: 16px; }
+.cob-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--mono);
+  flex: 1;
+}
+.cob-group-badge {
+  display: inline-block;
+  background: #d4f0d4;
+  color: #1a6e1a;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 20px;
+}
+.cob-group-badge.highlight {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: #7a5200;
+  font-size: 13px;
+  padding: 2px 10px;
+}
+.cob-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.cob-row:last-child { border-bottom: none; }
+.cob-row .cr-label { color: var(--text-2); }
+.cob-row .cr-val {
+  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-1);
+}
+.cob-row .cr-zero {
+  font-weight: 400;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.fipe-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+.fipe-pct {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.fipe-desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+/* ── FRANQUIAS ──────────────────────────────────────── */
+.franquia-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.franquia-row:last-child { border-bottom: none; }
+.franquia-row .fr-label { color: var(--text-2); }
+.franquia-row .fr-val {
+  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+/* ── PAGAMENTO ABAS ─────────────────────────────────── */
+.tab-list {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-list::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.pgto-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.pgto-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  padding: 8px 6px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.pgto-table td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+}
+.pgto-table tbody tr:last-child td { border-bottom: none; }
+.pgto-table td:last-child {
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.pgto-table td:first-child {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text-3);
+  width: 28px;
+}
+.pgto-table tbody tr:nth-child(even) td { background: var(--surface-2); }
+.pgto-table .highlighted td {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text-1);
+}
+.pgto-table .highlighted td:last-child { color: var(--brand); }
+
+/* ── QUESTIONÁRIO ───────────────────────────────────── */
+.quest-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.quest-item {}
+.quest-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.quest-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.quest-item.full { grid-column: 1 / -1; }
+
+/* ── AVISO LEGAL ────────────────────────────────────── */
+.legal {
+  background: var(--surface-2);
+  border-top: 2px dashed var(--border);
+  padding: 16px 20px;
+}
+.legal-icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+.legal-text {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+.legal-text strong { color: var(--text-2); }
+
+/* ── FOOTER ─────────────────────────────────────────── */
+.footer {
+  background: var(--brand);
+  padding: 12px 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- TOPO LISTRADO -->
+  <div class="stripe-bar"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-placeholder">logo<br>corretora</div>
+    <div class="header-meta">
+      <div class="seguradora-name">Porto Seguro</div>
+      <div class="cotacao-num">Cotação nº 2024-PSA-00421</div>
+    </div>
+  </div>
+
+  <!-- SAUDAÇÃO + VEÍCULO -->
+  <div class="greeting">
+    Olá <strong>João Silva</strong>, aqui está a cotação do seu <strong>Toyota Corolla 2023</strong> na Porto Seguro.
+    <div class="vehicle-tags">
+      <span class="vtag">ABC-1D23</span>
+      <span class="vtag">ANO 2023</span>
+      <span class="vtag">9BWZZZ···4321</span>
+    </div>
+  </div>
+
+  <!-- VALOR HERO (ticket rasgado) -->
+  <div style="padding: 14px 0;">
+    <div class="valor-section">
+      <div class="valor-row">
+        <div>
+          <div class="valor-label">Valor anual do seguro</div>
+          <div class="valor-main">R$ 3.240<span>,00</span></div>
+        </div>
+        <div class="valor-parcelado">
+          <div class="vp-label">ou parcelado em</div>
+          <div class="vp-val">10× R$ 329,00</div>
+        </div>
+      </div>
+      <div class="franquia-badge">
+        <span class="fb-label">Franquia principal <span style="opacity:0.6;font-size:10px;">(Reduzida)</span></span>
+        <span class="fb-val">R$ 3.866,50</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COBERTURAS -->
+  <div class="section">
+    <div class="section-title">Coberturas contratadas</div>
+
+    <!-- Cobertura do Veículo -->
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🚗</span>
+        <span class="cob-group-title">Cobertura do Veículo</span>
+        <span class="cob-group-badge highlight">100% FIPE</span>
+      </div>
+      <div class="fipe-hero">
+        <div class="fipe-pct">100%</div>
+        <div class="fipe-desc">do valor da tabela FIPE está coberto em caso de perda total, roubo ou furto.</div>
+      </div>
+    </div>
+
+    <!-- RCF -->
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">⚖️</span>
+        <span class="cob-group-title">RCF — Responsabilidade Civil Facultativa</span>
+        <span class="cob-group-badge">Contratado</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Danos Materiais (D.M.)</span>
+        <span class="cr-val">R$ 100.000,00</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Danos Corporais (D.C.)</span>
+        <span class="cr-val">R$ 100.000,00</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Danos Morais</span>
+        <span class="cr-val">R$ 10.000,00</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Guarda e Uso (G.U.)</span>
+        <span class="cr-zero">Não contratado</span>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🏥</span>
+        <span class="cob-group-title">APP — Acidentes Pessoais de Passageiros</span>
+        <span class="cob-group-badge">Contratado</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Morte por Passageiro</span>
+        <span class="cr-val">R$ 5.000,00</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Invalidez por Passageiro</span>
+        <span class="cr-val">R$ 5.000,00</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Despesas Médicas</span>
+        <span class="cr-zero">Não contratado</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Lotação Oficial</span>
+        <span class="cr-val">5 passageiros</span>
+      </div>
+    </div>
+
+    <!-- Assistências -->
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🛠️</span>
+        <span class="cob-group-title">Assistências</span>
+        <span class="cob-group-badge">Contratado</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Guincho</span>
+        <span class="cr-val">300 km</span>
+      </div>
+      <div class="cob-row">
+        <span class="cr-label">Vidros</span>
+        <span class="cr-val">Incluso</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRANQUIAS POR ITEM -->
+  <div class="section">
+    <div class="section-title">Franquias por item (apenas itens cobertos)</div>
+    <p style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:12px;padding:8px 10px;background:var(--surface-2);border-radius:4px;border-left:3px solid var(--accent);">
+      💡 <strong style="color:var(--text-2);">O que é franquia?</strong> É o valor que <em>você</em> paga ao acionar o seguro para cada item. Por exemplo: arranhão no para-brisa, amassado (martelinho de ouro), vidro quebrado — cada um tem sua franquia específica.
+    </p>
+    <div class="franquia-row"><span class="fr-label">Veículo <span style="font-size:11px;color:var(--text-3);font-family:var(--mono);">(Reduzida)</span></span><span class="fr-val">R$ 3.866,50</span></div>
+    <div class="franquia-row"><span class="fr-label">Para-Brisa</span><span class="fr-val">R$ 721,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Vidros Laterais</span><span class="fr-val">R$ 300,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Vidro Traseiro</span><span class="fr-val">R$ 440,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Retrovisores</span><span class="fr-val">R$ 1.629,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Lanternas</span><span class="fr-val">R$ 440,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Lanternas Auxiliares</span><span class="fr-val">R$ 687,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Lanternas de LED</span><span class="fr-val">R$ 957,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Faróis</span><span class="fr-val">R$ 1.140,00</span></div>
+    <div class="franquia-row"><span class="fr-label">Faróis de Xenon</span><span class="fr-val">R$ 2.982,00</span></div>
+  </div>
+
+  <!-- PAGAMENTO -->
+  <div class="section">
+    <div class="section-title">Formas de pagamento (R$)</div>
+
+    <div class="tab-list" role="tablist">
+      <button class="tab-btn active" onclick="switchTab(this,'deb')" role="tab">Débito em Conta</button>
+      <button class="tab-btn" onclick="switchTab(this,'ccb')" role="tab">CC Bradesco</button>
+      <button class="tab-btn" onclick="switchTab(this,'cc')" role="tab">Cartão de Crédito</button>
+      <button class="tab-btn" onclick="switchTab(this,'carne')" role="tab">Carnê</button>
+    </div>
+
+    <!-- DÉBITO EM CONTA -->
+    <div class="tab-panel active" id="tab-deb">
+      <table class="pgto-table">
+        <thead><tr><th>Nº</th><th>Parcelas</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr class="highlighted"><td>1×</td><td>R$ 3.448,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>2×</td><td>R$ 1.724,25</td><td>R$ 3.448,50</td></tr>
+          <tr><td>3×</td><td>R$ 1.149,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>4×</td><td>R$ 862,12</td><td>R$ 3.448,50</td></tr>
+          <tr><td>5×</td><td>R$ 689,70</td><td>R$ 3.448,50</td></tr>
+          <tr><td>6×</td><td>R$ 574,75</td><td>R$ 3.448,50</td></tr>
+          <tr><td>7×</td><td>R$ 544,91</td><td>R$ 3.814,39</td></tr>
+          <tr><td>8×</td><td>R$ 484,71</td><td>R$ 3.877,70</td></tr>
+          <tr><td>9×</td><td>R$ 437,96</td><td>R$ 3.941,67</td></tr>
+          <tr><td>10×</td><td>R$ 400,63</td><td>R$ 4.006,30</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CC BRADESCO -->
+    <div class="tab-panel" id="tab-ccb">
+      <table class="pgto-table">
+        <thead><tr><th>Nº</th><th>Parcelas</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr class="highlighted"><td>1×</td><td>R$ 3.448,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>2×</td><td>R$ 1.724,25</td><td>R$ 3.448,50</td></tr>
+          <tr><td>3×</td><td>R$ 1.149,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>4×</td><td>R$ 862,13</td><td>R$ 3.448,52</td></tr>
+          <tr><td>5×</td><td>R$ 689,71</td><td>R$ 3.448,55</td></tr>
+          <tr><td>6×</td><td>R$ 574,75</td><td>R$ 3.448,50</td></tr>
+          <tr><td>7×</td><td>R$ 492,65</td><td>R$ 3.448,55</td></tr>
+          <tr><td>8×</td><td>R$ 431,07</td><td>R$ 3.448,56</td></tr>
+          <tr><td>9×</td><td>R$ 383,17</td><td>R$ 3.448,53</td></tr>
+          <tr><td>10×</td><td>R$ 344,86</td><td>R$ 3.448,60</td></tr>
+          <tr><td>11×</td><td>R$ 313,50</td><td>R$ 3.448,50</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CARTÃO DE CRÉDITO -->
+    <div class="tab-panel" id="tab-cc">
+      <table class="pgto-table">
+        <thead><tr><th>Nº</th><th>Parcelas</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr class="highlighted"><td>1×</td><td>R$ 3.448,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>2×</td><td>R$ 1.724,25</td><td>R$ 3.448,50</td></tr>
+          <tr><td>3×</td><td>R$ 1.149,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>4×</td><td>R$ 862,13</td><td>R$ 3.448,52</td></tr>
+          <tr><td>5×</td><td>R$ 689,71</td><td>R$ 3.448,55</td></tr>
+          <tr><td>6×</td><td>R$ 574,75</td><td>R$ 3.448,50</td></tr>
+          <tr><td>7×</td><td>R$ 492,65</td><td>R$ 3.448,55</td></tr>
+          <tr><td>8×</td><td>R$ 431,07</td><td>R$ 3.448,56</td></tr>
+          <tr><td>9×</td><td>R$ 383,17</td><td>R$ 3.448,53</td></tr>
+          <tr><td>10×</td><td>R$ 344,86</td><td>R$ 3.448,60</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CARNÊ -->
+    <div class="tab-panel" id="tab-carne">
+      <table class="pgto-table">
+        <thead><tr><th>Nº</th><th>Parcelas</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr class="highlighted"><td>1×</td><td>R$ 3.448,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>2×</td><td>R$ 1.724,25</td><td>R$ 3.448,50</td></tr>
+          <tr><td>3×</td><td>R$ 1.149,50</td><td>R$ 3.448,50</td></tr>
+          <tr><td>4×</td><td>R$ 862,12</td><td>R$ 3.448,50</td></tr>
+          <tr><td>5×</td><td>R$ 758,58</td><td>R$ 3.792,94</td></tr>
+          <tr><td>6×</td><td>R$ 647,05</td><td>R$ 3.882,35</td></tr>
+          <tr><td>7×</td><td>R$ 567,58</td><td>R$ 3.973,12</td></tr>
+          <tr><td>8×</td><td>R$ 508,15</td><td>R$ 4.065,20</td></tr>
+          <tr><td>9×</td><td>R$ 462,06</td><td>R$ 4.158,62</td></tr>
+          <tr><td>10×</td><td>R$ 425,33</td><td>R$ 4.253,31</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- QUESTIONÁRIO DO CONDUTOR -->
+  <div class="section">
+    <div class="section-title">Questionário — Condutor Principal</div>
+    <div class="quest-grid">
+      <div class="quest-item full">
+        <div class="quest-label">Nome</div>
+        <div class="quest-val">Fabiano Alves da Silveira</div>
+      </div>
+      <div class="quest-item">
+        <div class="quest-label">CPF / CNPJ</div>
+        <div class="quest-val">547.154.404-82</div>
+      </div>
+      <div class="quest-item">
+        <div class="quest-label">Data de Nascimento</div>
+        <div class="quest-val">21/07/1971</div>
+      </div>
+      <div class="quest-item">
+        <div class="quest-label">Sexo</div>
+        <div class="quest-val">Masculino</div>
+      </div>
+      <div class="quest-item">
+        <div class="quest-label">Estado Civil</div>
+        <div class="quest-val">Casado / União Estável</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVISO LEGAL -->
+  <div class="legal">
+    <div class="legal-icon">⚠️</div>
+    <p class="legal-text">
+      <strong>Este documento não tem valor legal</strong> e não substitui o PDF oficial gerado pela <strong>Porto Seguro</strong>. As informações aqui apresentadas são um resumo da cotação para facilitar a visualização pelo cliente. Por favor, consulte seu corretor de seguros e confirme se os dados exibidos estão de acordo com o documento oficial emitido pela seguradora.
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">COTAÇÃO GERADA PELO SISTEMA · VÁLIDA POR 30 DIAS</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  const card = btn.closest('.card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector('#tab-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>

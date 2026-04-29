@@ -1,6 +1,6 @@
 import { InternalServerErrorException, UnprocessableEntityException } from '@nestjs/common';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { InsuranceProduct, PrismaClient } from '@prisma/client';
+import { Insurer, InsuranceProduct, PrismaClient } from '@prisma/client';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PdfExtractorService } from '../application/services/pdf-extractor.service';
@@ -29,11 +29,12 @@ describe('ExtractPdfProcessor', () => {
     processId: 'p1',
     filePath: 'uploads/test.pdf',
     product: InsuranceProduct.AUTO,
+    insurer: Insurer.BRADESCO,
   };
 
   const rawText = 'texto extraído do pdf';
-  const rawAiData = { insurer: 'BRADESCO', totalPremium: 1200 };
-  const parsedData = { coverages: [], totalPremium: 1200 };
+  const rawAiData = { insurer: 'Bradesco Auto/RE', vehicle: { model: 'X' }, premium: { total: 1200 } };
+  const parsedData = { vehicle: { model: 'X' }, premium: { total: 1200 } };
 
   beforeEach(() => {
     prisma = mockDeep<PrismaClient>();
@@ -47,15 +48,17 @@ describe('ExtractPdfProcessor', () => {
     prisma.quote.update.mockResolvedValue({} as any);
   });
 
-  it('extrai texto, chama a IA, valida e persiste extractedData com status PENDING_REVIEW', async () => {
+  it('extrai texto (máx 3 páginas para Bradesco), chama a IA e persiste extractedData com status PENDING_REVIEW', async () => {
     pdfExtractor.extractText.mockResolvedValue(rawText);
     aiService.extractQuoteData.mockResolvedValue(rawAiData);
     mockParseAutoQuoteData.mockReturnValue(parsedData);
 
     await processor.process(makeJob(jobData));
 
-    expect(pdfExtractor.extractText).toHaveBeenCalledWith(jobData.filePath);
-    expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO);
+    // Bradesco limita a 3 páginas
+    expect(pdfExtractor.extractText).toHaveBeenCalledWith(jobData.filePath, 3);
+    // IA recebe rawText, product e insurer
+    expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.BRADESCO);
     expect(mockParseAutoQuoteData).toHaveBeenCalledWith(rawAiData);
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
@@ -63,7 +66,7 @@ describe('ExtractPdfProcessor', () => {
     });
   });
 
-  it('persiste rawText e vai para PENDING_REVIEW quando a IA lança erro', async () => {
+  it('vai para FAILED quando a IA lança erro irrecuperável', async () => {
     pdfExtractor.extractText.mockResolvedValue(rawText);
     aiService.extractQuoteData.mockRejectedValue(new InternalServerErrorException('AI falhou'));
 
@@ -71,22 +74,31 @@ describe('ExtractPdfProcessor', () => {
 
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
-      data: { rawText, status: QuoteStatus.PENDING_REVIEW },
+      data: { rawText, status: QuoteStatus.FAILED },
     });
   });
 
-  it('persiste rawText e vai para PENDING_REVIEW quando o Zod falha na validação', async () => {
+  it('tenta self-correction quando Zod falha e vai para FAILED se a correção também falha', async () => {
     pdfExtractor.extractText.mockResolvedValue(rawText);
     aiService.extractQuoteData.mockResolvedValue(rawAiData);
+    aiService.correctExtractedData.mockResolvedValue(rawAiData);
+    // Zod falha nas duas tentativas (original e corrigido)
     mockParseAutoQuoteData.mockImplementation(() => {
       throw new UnprocessableEntityException('Dados inválidos');
     });
 
     await processor.process(makeJob(jobData));
 
+    // Deve ter chamado correctExtractedData com product + insurer
+    expect(aiService.correctExtractedData).toHaveBeenCalledWith(
+      rawAiData,
+      expect.stringContaining('Dados inválidos'),
+      InsuranceProduct.AUTO,
+      Insurer.BRADESCO,
+    );
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
-      data: { rawText, status: QuoteStatus.PENDING_REVIEW },
+      data: { rawText, status: QuoteStatus.FAILED },
     });
   });
 

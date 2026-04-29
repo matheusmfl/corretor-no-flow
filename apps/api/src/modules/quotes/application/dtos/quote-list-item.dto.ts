@@ -6,6 +6,7 @@ export class QuoteProcessListItemDto {
   @ApiProperty() status: string;
   @ApiPropertyOptional() clientName: string | null;
   @ApiPropertyOptional() publicToken: string | null;
+  @ApiPropertyOptional() openedAt: Date | null;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }

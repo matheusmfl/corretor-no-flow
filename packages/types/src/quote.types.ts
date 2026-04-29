@@ -35,26 +35,74 @@ export interface Quote {
 // ─── Extracted data (AUTO) ────────────────────────────────────────────────────
 
 export interface AutoQuoteData {
-  plate?: string
-  vehicleModel?: string
-  vehicleYear?: number
-  coverages: Coverage[]
-  totalPremium: number
-  installments?: Installment[]
+  vehicle: {
+    plate?: string
+    model: string
+    yearManufacture?: number
+    yearModel?: number
+    chassis?: string
+    fipeCode?: string
+    fipeValue?: number
+  }
+  driver: {
+    name?: string
+    cpf?: string
+    birthDate?: string
+    gender?: string
+    maritalStatus?: string
+  }
+  quoteNumber?: string
+  insurer: string
+  validFrom?: string
   validUntil?: string
-}
-
-export interface Coverage {
-  name: string
-  description: string
-  limit?: string
-  deductible?: string
-}
-
-export interface Installment {
-  number: number
-  amount: number
-  dueDate?: string
+  bonusClass?: string
+  coverage: {
+    vehicle?: {
+      fipePercentage?: number
+      lmi?: string
+      deductible?: number
+      deductibleType?: string
+    }
+    rcf?: {
+      propertyDamage?: number
+      bodilyInjury?: number
+      moralDamages?: number
+      combinedSingle?: number
+    }
+    app?: {
+      death?: number
+      disability?: number
+      medical?: number
+      passengerCount?: number
+    }
+    assistance?: {
+      towing?: boolean
+      glassProtection?: boolean
+      replacementVehicle?: boolean
+      replacementDays?: number
+    }
+  }
+  deductibles: Array<{
+    item: string
+    value: number
+    type?: string
+  }>
+  premium: {
+    base?: number
+    rcfTotal?: number
+    appTotal?: number
+    iof?: number
+    total: number
+  }
+  paymentMethods: Array<{
+    type: 'debit' | 'credit_bradesco' | 'credit_card' | 'coupon'
+    label: string
+    installments: Array<{
+      number: number
+      amount: number
+      total?: number
+    }>
+  }>
 }
 
 // ─── Request DTOs ─────────────────────────────────────────────────────────────

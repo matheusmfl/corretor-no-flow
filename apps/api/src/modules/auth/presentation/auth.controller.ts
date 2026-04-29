@@ -36,8 +36,8 @@ const accessCookieOptions = (maxAge: number) => ({
   maxAge,
 });
 
-const ACCESS_MAX_AGE = 15 * 60 * 1000;        // 15 min
-const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+const ACCESS_MAX_AGE  = 48 * 60 * 60 * 1000;      // 48h
+const REFRESH_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 @ApiTags('Auth')
 @Controller('auth')

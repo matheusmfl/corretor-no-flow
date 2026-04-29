@@ -25,6 +25,115 @@ Entidade Plan/Subscription, guards de permissão nos uploads, contador mensal, t
 
 ---
 
+## Status das fases
+
+| Fase | Status |
+|------|--------|
+| Fase 1 — Schema e tipos | ✅ Concluído |
+| Fase 2 — Módulo de processos | ✅ Concluído |
+| Fase 3 — Upload e fila | ✅ Concluído |
+| Fase 4 — Interface de criação | ✅ Concluído |
+| Fase 5 — Revisão e geração | ✅ Concluído |
+| Fase 6 — Comparação e link público | ⏸ Adiado (ver abaixo) |
+| Fase 7 — Planos e permissões | ⏸ Adiado (ver abaixo) |
+
+---
+
+## Próximo foco — Fase 2.0 (qualidade e modelo de dados)
+
+### 🔧 Bug: nome do veículo no filename do PDF gerado
+
+**Problema:** a função `buildQuotePdfFilename` usa o nome completo do veículo extraído (ex: `Jeep Compass Turbo 4x4 Diesel`), resultando em filename `Bradesco_Turbo_reduzida` (pega só o último token).  
+**Correção:** truncar para Marca + Modelo (primeiras duas palavras), ex: `Bradesco_Jeep_Compass_Reduzida`.
+
+---
+
+### 🔧 Agrupamento e enriquecimento das cotações
+
+**Contexto:** corretores frequentemente cotam a mesma seguradora com 2 franquias diferentes (mesmas coberturas, dedutiveis distintos). O sistema hoje trata cada PDF como cotação independente, quebrando a comparação para o cliente.
+
+**Campos a garantir na extração (IA) e schema:**
+- `totalPremium` — valor total do prêmio (R$)
+- `franchiseValue` — valor em R$ da franquia
+- `franchiseType` — enum: `REDUZIDA` | `NORMAL` | `AMPLIADA` | `FRANQUIA_ZERO`
+- `label` — rótulo editável pelo corretor (ex: "Bradesco — Martelinho e Vidros Full")
+
+**Fluxo:**
+1. IA extrai `franchiseValue` e `franchiseType` automaticamente do PDF
+2. Corretor confirma/edita no step de revisão
+3. No link público e PDF, cotações da mesma seguradora agrupadas visualmente
+
+**Exemplo de exibição para o segurado:**
+```
+Bradesco Seguros
+  ├── Franquia Reduzida (R$ 1.500)  →  R$ 2.340/ano
+  └── Franquia Normal  (R$ 3.000)  →  R$ 1.980/ano
+
+Porto Seguro
+  └── Franquia Normal  (R$ 2.000)  →  R$ 2.100/ano
+```
+
+---
+
+### 📋 Expansão de seguradoras — Auto
+
+- **Porto Seguro Auto** — novo schema de extração, adaptação do parser
+- **Tokio Marine Auto** — idem
+
+> Implementar **após** o agrupamento resolvido para não gerar débito técnico no modelo de dados.
+
+---
+
+### 📋 Notificação: segurado abriu o link
+
+- Registrar `openedAt` no `QuoteProcess` ao acessar o token (campo já existe)
+- Enviar e-mail ao corretor: "Seu cliente acabou de abrir a cotação [nome]"
+
+Alta percepção de valor, baixo custo de implementação.
+
+---
+
+## Backlog — Polimento e completude
+
+### 📋 Recovery de senha
+Fluxo: e-mail com link temporário assinado → formulário de redefinição → invalidar token após uso.
+
+### 📋 Máscaras de input nos formulários
+- CPF: `000.000.000-00`
+- CNPJ: `00.000.000/0000-00`
+- Telefone: `(00) 00000-0000`
+
+### 📋 Busca de CEP automática
+No cadastro de endereço da empresa: preencher logradouro, bairro, cidade e estado via ViaCEP ao digitar o CEP.
+
+### 📋 Área de edição de perfil e dados da empresa
+Corretor deve poder editar: nome, e-mail, senha, nome fantasia, CNPJ, telefones, endereço, logo e cor primária.
+
+### 📋 Footer personalizado no PDF e no link público
+O corretor configura um rodapé que aparece tanto no PDF gerado quanto na página pública do segurado:
+- Endereço da corretora
+- Telefone(s) de contato
+- Frase personalizada (ex: "Proteção que cabe no seu bolso")
+- Logo e cor primária (já existem na entidade Company)
+
+---
+
+## Futuro — Não priorizado
+
+### 🔮 Botão "Compartilhar via WhatsApp" no link público
+Link `wa.me` pré-formatado com a URL da cotação. Zero backend. Alta percepção de valor para o corretor.  
+Aguarda o core estabilizado.
+
+### 🔮 CRM / Gestão de clientes e leads
+- Cadastro de clientes vinculados ao corretor
+- Associação de cotações a clientes
+- Lembretes automáticos: aniversário, renovação anual de apólice
+- Notificação por e-mail ou WhatsApp na data configurada
+
+É um produto dentro do produto. Implementar só após uma base de corretores usando o sistema core.
+
+---
+
 ## Fase 1 — Detalhamento
 
 ### Bloco 1.1 — Redesenho do schema Prisma

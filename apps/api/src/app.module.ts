@@ -7,6 +7,7 @@ import { CompanyModule } from './modules/companies/company.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { PublicModule } from './modules/public/public.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { QueueModule } from './modules/queue/queue.module';
     AuthModule,
     CompanyModule,
     QuotesModule,
+    PublicModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
