@@ -88,8 +88,11 @@ model Company {
   instagram    String?
   website      String?
 
-  city  String?
-  state String?
+  zipCode      String?
+  street       String?
+  neighborhood String?
+  city         String?
+  state        String?
 
   teamSize    TeamSize?
   specialties InsuranceProduct[]

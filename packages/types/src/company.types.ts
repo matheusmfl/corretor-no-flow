@@ -24,6 +24,9 @@ export interface Company {
   contactEmail: string | null
   instagram: string | null
   website: string | null
+  zipCode: string | null
+  street: string | null
+  neighborhood: string | null
   city: string | null
   state: string | null
   teamSize: TeamSize | null
@@ -58,6 +61,9 @@ export interface UpdateCompanyDto {
   contactEmail?: string
   instagram?: string
   website?: string
+  zipCode?: string
+  street?: string
+  neighborhood?: string
   city?: string
   state?: string
   teamSize?: TeamSize

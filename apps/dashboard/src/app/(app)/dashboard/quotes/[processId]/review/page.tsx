@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AutoQuoteData, Quote } from '@corretor/types'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
@@ -60,6 +60,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: string }) {
   const d = asAutoData(quote.extractedData)
   const review = useReviewQuote(processId)
+  const [name, setName] = useState(quote.name ?? INSURER_LABELS[quote.insurer] ?? quote.insurer)
 
   const isReady   = quote.status === 'READY'
   const isFailed  = quote.status === 'FAILED'
@@ -68,10 +69,7 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
   function handleConfirm() {
     review.mutate({
       quoteId: quote.id,
-      dto: {
-        name: INSURER_LABELS[quote.insurer] ?? quote.insurer,
-        extractedData: quote.extractedData ?? {},
-      },
+      dto: { name, extractedData: quote.extractedData ?? {} },
     })
   }
 
@@ -230,9 +228,26 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
             </div>
           )}
 
+          {/* Nome da cotação */}
+          {canReview && (
+            <div className="space-y-1 pt-1">
+              <label className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+                Nome para o segurado
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Bradesco — Reduzida (R$ 1.500,00)"
+                className="w-full rounded-lg border border-surface-strong bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-mahogany/50 focus:outline-none focus:ring-1 focus:ring-mahogany/20"
+              />
+              <p className="text-[11px] text-ink-faint">Gerado automaticamente. Edite se quiser personalizar.</p>
+            </div>
+          )}
+
           {/* Ações */}
           {canReview && (
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1">
               <button
                 onClick={handleConfirm}
                 disabled={review.isPending}

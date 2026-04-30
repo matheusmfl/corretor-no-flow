@@ -12,3 +12,9 @@ export function updateCompanyFn(id: string, body: UpdateCompanyDto) {
 export function getMyCompanyFn() {
   return apiClient.get<Company>('/api/companies/me')
 }
+
+export function uploadLogoFn(companyId: string, file: File): Promise<{ logoUrl: string }> {
+  const form = new FormData()
+  form.append('logo', file)
+  return apiClient.post(`/api/companies/${companyId}/logo`, form)
+}

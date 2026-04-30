@@ -62,7 +62,8 @@ describe('ExtractPdfProcessor', () => {
     expect(mockParseAutoQuoteData).toHaveBeenCalledWith(rawAiData);
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
-      data: { rawText, extractedData: parsedData, status: QuoteStatus.PENDING_REVIEW },
+      data: { rawText, extractedData: parsedData, status: QuoteStatus.PENDING_REVIEW, name: 'Bradesco' },
+      select: { processId: true },
     });
   });
 

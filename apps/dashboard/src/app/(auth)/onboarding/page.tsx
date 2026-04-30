@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import type { AccountType, CreateCompanyDto } from '@corretor/types'
 import { useCreateCompany } from '@/hooks/company/use-create-company'
+import { useCep } from '@/hooks/use-cep'
 import { handleError } from '@/lib/handle-error'
+import { maskCpf, maskCnpj, maskPhone, maskCep, stripMask } from '@/lib/masks'
 
 // ─── Step indicators ─────────────────────────────────────────────────────────
 
@@ -173,8 +175,9 @@ function Step2({
           <input
             id="document"
             type="text"
+            inputMode="numeric"
             value={data.document}
-            onChange={(e) => onChange({ document: e.target.value })}
+            onChange={(e) => onChange({ document: isIndividual ? maskCpf(e.target.value) : maskCnpj(e.target.value) })}
             className={inputClass}
             placeholder={isIndividual ? '000.000.000-00' : '00.000.000/0000-00'}
           />
@@ -222,6 +225,18 @@ function Step3({
   onBack: () => void
   isPending: boolean
 }) {
+  const [cep, setCep] = useState('')
+  const { fetchCep, isLoading: cepLoading } = useCep()
+
+  async function handleCepChange(value: string) {
+    const masked = maskCep(value)
+    setCep(masked)
+    if (stripMask(masked).length === 8) {
+      const result = await fetchCep(masked)
+      if (result) onChange({ city: result.city, state: result.state })
+    }
+  }
+
   function valid() {
     return data.displayName.trim() && data.whatsapp.trim()
   }
@@ -250,8 +265,9 @@ function Step3({
           <input
             id="whatsapp"
             type="tel"
+            inputMode="numeric"
             value={data.whatsapp}
-            onChange={(e) => onChange({ whatsapp: e.target.value })}
+            onChange={(e) => onChange({ whatsapp: maskPhone(e.target.value) })}
             className={inputClass}
             placeholder="(11) 99999-9999"
           />
@@ -266,6 +282,26 @@ function Step3({
             className={inputClass}
             placeholder="contato@silvaseguros.com.br"
           />
+        </Field>
+
+        <Field label="CEP" id="cep">
+          <div className="relative">
+            <input
+              id="cep"
+              type="text"
+              inputMode="numeric"
+              value={cep}
+              onChange={(e) => handleCepChange(e.target.value)}
+              className={inputClass}
+              placeholder="00000-000"
+            />
+            {cepLoading && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint">
+                Buscando…
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-ink-faint mt-1">Preenche cidade e estado automaticamente.</p>
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
@@ -369,9 +405,9 @@ export default function OnboardingPage() {
       accountType:  form.accountType,
       legalName:    form.legalName.trim(),
       displayName:  form.displayName.trim(),
-      document:     form.document.trim(),
+      document:     stripMask(form.document),
       susepNumber:  form.susepNumber.trim(),
-      whatsapp:     form.whatsapp.trim(),
+      whatsapp:     stripMask(form.whatsapp),
       ...(form.tradeName?.trim()    && { tradeName:    form.tradeName.trim() }),
       ...(form.contactEmail?.trim() && { contactEmail: form.contactEmail.trim() }),
       ...(form.primaryColor         && { primaryColor:  form.primaryColor }),

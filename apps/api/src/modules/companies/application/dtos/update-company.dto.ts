@@ -58,6 +58,21 @@ export class UpdateCompanyDto implements IUpdateCompanyDto {
   @IsUrl()
   website?: string;
 
+  @ApiPropertyOptional({ example: '01310-100' })
+  @IsOptional()
+  @IsString()
+  zipCode?: string;
+
+  @ApiPropertyOptional({ example: 'Av. Paulista, 1000 — sala 12' })
+  @IsOptional()
+  @IsString()
+  street?: string;
+
+  @ApiPropertyOptional({ example: 'Bela Vista' })
+  @IsOptional()
+  @IsString()
+  neighborhood?: string;
+
   @ApiPropertyOptional({ example: 'São Paulo' })
   @IsOptional()
   @IsString()

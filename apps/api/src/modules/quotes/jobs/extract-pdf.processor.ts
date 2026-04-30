@@ -15,6 +15,31 @@ const INSURER_PAGE_LIMITS: Partial<Record<Insurer, number>> = {
   [Insurer.BRADESCO]: 3,
 };
 
+const INSURER_SHORT: Record<string, string> = {
+  BRADESCO:     'Bradesco',
+  PORTO_SEGURO: 'Porto Seguro',
+  TOKIO_MARINE: 'Tokio Marine',
+  SULAMERICA:   'SulAmérica',
+  SUHAI:        'Suhai',
+  ALIRO:        'Aliro',
+  ALLIANZ:      'Allianz',
+  YELLOW:       'Yellow',
+};
+
+function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQuoteData): string {
+  const base = INSURER_SHORT[insurer] ?? insurer;
+  const type  = data.coverage?.vehicle?.deductibleType;
+  const value = data.coverage?.vehicle?.deductible;
+
+  const parts = [base];
+  if (type) parts.push(type);
+  if (value != null) {
+    const formatted = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    parts.push(`(${formatted})`);
+  }
+  return parts.join(' — ');
+}
+
 @Processor(QUEUE_NAMES.EXTRACT_PDF)
 export class ExtractPdfProcessor extends WorkerHost {
   private readonly logger = new Logger(ExtractPdfProcessor.name);
@@ -72,9 +97,11 @@ export class ExtractPdfProcessor extends WorkerHost {
 
       const extractedData = await this.parseWithRetry(quoteId, raw, product, insurer);
 
+      const name = buildQuoteLabel(insurer, extractedData);
+
       const updated = await this.prisma.quote.update({
         where: { id: quoteId },
-        data: { rawText, extractedData: extractedData as object, status: QuoteStatus.PENDING_REVIEW },
+        data: { rawText, extractedData: extractedData as object, status: QuoteStatus.PENDING_REVIEW, name },
         select: { processId: true },
       });
 

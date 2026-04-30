@@ -116,10 +116,26 @@ function renderPaymentTable(method: AutoQuoteData['paymentMethods'][0]): string 
 
 // ── Tipos internos ────────────────────────────────────────────────────────────
 
+interface CompanyData {
+  displayName: string;
+  logoUrl: string | null;
+  primaryColor: string;
+  whatsapp: string;
+  bio?: string | null;
+  contactEmail?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  city?: string | null;
+  state?: string | null;
+  street?: string | null;
+  neighborhood?: string | null;
+}
+
 interface QuoteData {
   insurer: Insurer;
   name: string | null;
   extractedData: Record<string, unknown> | null;
+  company?: CompanyData | null;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -130,6 +146,9 @@ export class QuotePdfTemplateService {
     const config = INSURER_CONFIG[quote.insurer] ?? { label: String(quote.insurer), brand: '#1f2d3d' };
     const { light: brandLight, mid: brandMid } = deriveColors(config.brand);
     const d = (quote.extractedData ?? {}) as Partial<AutoQuoteData>;
+    const co = quote.company;
+    const corretorColor = co?.primaryColor ?? '#1f2d3d';
+    const { light: corretorLight } = deriveColors(corretorColor);
 
     const vehicle   = d.vehicle   ?? { model: '' };
     const driver    = d.driver    ?? {};
@@ -290,10 +309,12 @@ export class QuotePdfTemplateService {
 <style>
 /* ── VARIÁVEIS DE MARCA ─────────────────────────────── */
 :root {
-  --brand:       ${config.brand};
-  --brand-light: ${brandLight};
-  --brand-mid:   ${brandMid};
-  --accent:      #f0a500;
+  --brand:          ${config.brand};
+  --brand-light:    ${brandLight};
+  --brand-mid:      ${brandMid};
+  --accent:         #f0a500;
+  --corretor-color: ${corretorColor};
+  --corretor-light: ${corretorLight};
 
   --bg:          #f4f2ee;
   --surface:     #ffffff;
@@ -344,40 +365,36 @@ body {
 
 /* ── HEADER ──────────────────────────────────────────── */
 .header {
-  padding: 20px 20px 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-.logo-placeholder {
-  background: var(--brand-light);
-  border: 1.5px dashed var(--brand-mid);
-  border-radius: 4px;
-  width: 80px;
-  height: 36px;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-family: var(--mono);
-  color: var(--brand-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
+  gap: 12px;
+  background: var(--corretor-color);
+}
+.header-logo-img {
+  height: 32px;
+  max-width: 110px;
+  object-fit: contain;
+}
+.header-logo-initials {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
 }
 .header-meta { text-align: right; }
 .seguradora-name {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--brand);
-  letter-spacing: -0.02em;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: -0.01em;
 }
 .cotacao-num {
   font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-3);
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
   margin-top: 2px;
 }
 
@@ -666,15 +683,62 @@ body {
 .legal-text { font-size: 11px; color: var(--text-3); line-height: 1.6; }
 .legal-text strong { color: var(--text-2); }
 
-/* ── FOOTER ──────────────────────────────────────────── */
-.footer {
-  background: var(--brand);
-  padding: 12px 20px;
-  font-family: var(--mono);
+/* ── FOOTER CORRETOR ─────────────────────────────────── */
+.footer-corretor {
+  background: var(--corretor-color);
+  padding: 16px 20px 12px;
+  color: rgba(255,255,255,0.9);
+}
+.footer-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.footer-logo-img {
+  height: 28px;
+  max-width: 80px;
+  object-fit: contain;
+}
+.footer-corretor-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.footer-corretor-bio {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 1px;
+}
+.footer-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 6px;
+}
+.footer-contact-item {
   font-size: 10px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.footer-address {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+}
+.footer-powered {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
   text-align: center;
   letter-spacing: 0.05em;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 /* ── PRINT / PDF ─────────────────────────────────────── */
@@ -698,7 +762,12 @@ body {
 
   <!-- HEADER -->
   <div class="header">
-    <div class="logo-placeholder">logo<br>corretora</div>
+    <div>
+      ${co?.logoUrl
+        ? `<img src="${esc(co.logoUrl)}" alt="${esc(co?.displayName ?? '')}" class="header-logo-img" />`
+        : `<span class="header-logo-initials">${esc((co?.displayName ?? 'C').split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase())}</span>`
+      }
+    </div>
     <div class="header-meta">
       <div class="seguradora-name">${esc(config.label)}</div>
       ${d.quoteNumber ? `<div class="cotacao-num">Cotação nº ${esc(d.quoteNumber)}</div>` : ''}
@@ -791,8 +860,30 @@ body {
     </p>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer">COTAÇÃO GERADA PELO SISTEMA${d.validUntil ? ` · VÁLIDA ATÉ ${esc(d.validUntil)}` : ' · VÁLIDA POR 30 DIAS'}</div>
+  <!-- FOOTER CORRETOR -->
+  <div class="footer-corretor">
+    <div class="footer-logo-area">
+      ${co?.logoUrl
+        ? `<img src="${esc(co.logoUrl)}" alt="${esc(co?.displayName ?? '')}" class="footer-logo-img" />`
+        : ''
+      }
+      <div>
+        <div class="footer-corretor-name">${esc(co?.displayName ?? 'Seu Corretor')}</div>
+        ${co?.bio ? `<div class="footer-corretor-bio">${esc(co.bio)}</div>` : ''}
+      </div>
+    </div>
+    <div class="footer-contact-row">
+      ${co?.whatsapp ? `<span class="footer-contact-item">📱 ${esc(co.whatsapp)}</span>` : ''}
+      ${co?.contactEmail ? `<span class="footer-contact-item">✉ ${esc(co.contactEmail)}</span>` : ''}
+      ${co?.instagram ? `<span class="footer-contact-item">@ ${esc(co.instagram)}</span>` : ''}
+      ${co?.website ? `<span class="footer-contact-item">🌐 ${esc(co.website.replace(/^https?:\/\//, ''))}</span>` : ''}
+    </div>
+    ${(co?.street || co?.city)
+      ? `<div class="footer-address">${[co.street, co.neighborhood, co.city && co.state ? `${co.city} — ${co.state}` : (co.city || co.state)].filter(Boolean).map(esc).join(' · ')}</div>`
+      : ''
+    }
+    <div class="footer-powered">COTAÇÃO GERADA VIA CORRETOR NO FLOW${d.validUntil ? ` · VÁLIDA ATÉ ${esc(d.validUntil)}` : ''}</div>
+  </div>
 
 </div>
 

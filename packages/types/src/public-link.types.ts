@@ -11,6 +11,15 @@ export interface PublicCompany {
   logoUrl: string | null
   primaryColor: string
   whatsapp: string
+  bio: string | null
+  contactEmail: string | null
+  instagram: string | null
+  website: string | null
+  city: string | null
+  state: string | null
+  street: string | null
+  neighborhood: string | null
+  zipCode: string | null
 }
 
 export interface PublicProcessResponse {

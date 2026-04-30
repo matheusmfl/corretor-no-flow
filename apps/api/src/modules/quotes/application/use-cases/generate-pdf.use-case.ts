@@ -19,7 +19,25 @@ export class GeneratePdfUseCase {
   async execute(companyId: string, processId: string): Promise<{ quoteId: string; filePath: string }[]> {
     const process = await this.prisma.quoteProcess.findUnique({
       where: { id: processId },
-      include: { quotes: true },
+      include: {
+        quotes: true,
+        company: {
+          select: {
+            displayName:  true,
+            logoUrl:      true,
+            primaryColor: true,
+            whatsapp:     true,
+            bio:          true,
+            contactEmail: true,
+            instagram:    true,
+            website:      true,
+            city:         true,
+            state:        true,
+            street:       true,
+            neighborhood: true,
+          },
+        },
+      },
     });
 
     if (!process) throw new NotFoundException('Processo não encontrado');
@@ -39,6 +57,7 @@ export class GeneratePdfUseCase {
         insurer: quote.insurer,
         name: quote.name,
         extractedData: quote.extractedData as Record<string, unknown> | null,
+        company: process.company,
       });
 
       const pdfBuffer = await this.renderer.renderToPdf(html);
