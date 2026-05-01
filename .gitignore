@@ -41,3 +41,9 @@ prisma/generated
 # uploads e PDFs gerados localmente
 apps/api/uploads/
 apps/api/generated/
+
+# AI local lab artifacts
+.ai/pdf-lab/input/*
+.ai/pdf-lab/output/*
+!.ai/pdf-lab/input/.gitkeep
+!.ai/pdf-lab/output/.gitkeep

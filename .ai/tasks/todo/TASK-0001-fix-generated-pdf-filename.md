@@ -2,6 +2,8 @@
 id: TASK-0001
 title: Corrigir filename do PDF gerado
 status: todo
+kind: implementation
+lifecycle: open
 area: api
 owner: claude
 reviewer: codex
@@ -81,4 +83,3 @@ A broker downloads several generated PDFs and cannot identify which car or franc
 - [ ] Generate a PDF from a Bradesco Auto quote with vehicle `Jeep Compass Turbo 4x4 Diesel`.
 - [ ] Confirm the downloaded filename includes `Bradesco`, `Jeep`, `Compass`, and the franchise type.
 - [ ] Confirm the PDF content still renders normally.
-

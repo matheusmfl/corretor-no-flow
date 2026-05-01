@@ -77,7 +77,6 @@ npm run lint
 - `.ai/CODEX.md` - Codex strategist/reviewer role
 - `.ai/PRODUCT-MEMORY.md` - product memory
 - `.ai/DECISIONS.md` - decision log
+- `.ai/roadmap/PRE-SALE-V1.md` - active roadmap
 - `.ai/templates/task.template.md` - task format
 - `PRODUCT.md` - deeper product rules
-- `PLAN.md` - current roadmap and backlog
-

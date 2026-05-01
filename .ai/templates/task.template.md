@@ -2,6 +2,8 @@
 id: TASK-0000
 title: Task title
 status: todo
+kind: discovery|implementation|human|review|documentation
+lifecycle: open|closed
 area: api|dashboard|web|types|infra|product
 owner: claude
 reviewer: codex
@@ -55,4 +57,3 @@ Briefly describe how this could fail in production or confuse the user.
 
 - [ ] Step 1
 - [ ] Step 2
-
