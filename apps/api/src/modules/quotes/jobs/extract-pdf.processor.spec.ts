@@ -13,8 +13,15 @@ jest.mock('../domain/schemas/auto-quote.schema', () => ({
   parseAutoQuoteData: jest.fn(),
 }));
 
+jest.mock('../application/services/porto-payment-parser', () => ({
+  parsePortoPaymentTable: jest.fn(),
+}));
+
 import { parseAutoQuoteData } from '../domain/schemas/auto-quote.schema';
+import { parsePortoPaymentTable } from '../application/services/porto-payment-parser';
+
 const mockParseAutoQuoteData = parseAutoQuoteData as jest.Mock;
+const mockParsePortoPaymentTable = parsePortoPaymentTable as jest.Mock;
 
 const makeJob = (data: ExtractPdfJobData) => ({ data } as Job<ExtractPdfJobData>);
 
@@ -122,6 +129,61 @@ describe('ExtractPdfProcessor', () => {
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
       data: { status: QuoteStatus.FAILED },
+    });
+  });
+
+  describe('Porto Seguro', () => {
+    const portoJobData: ExtractPdfJobData = {
+      quoteId: 'q-porto',
+      processId: 'p-porto',
+      filePath: 'uploads/porto-test.pdf',
+      product: InsuranceProduct.AUTO,
+      insurer: Insurer.PORTO_SEGURO,
+    };
+
+    beforeEach(() => {
+      mockParsePortoPaymentTable.mockReturnValue(null);
+    });
+
+    it('extrai texto sem limite de páginas (Porto não tem restrição)', async () => {
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue(rawAiData);
+      mockParseAutoQuoteData.mockReturnValue(parsedData);
+
+      await processor.process(makeJob(portoJobData));
+
+      expect(pdfExtractor.extractText).toHaveBeenCalledWith(portoJobData.filePath, undefined);
+    });
+
+    it('chama IA com Insurer.PORTO_SEGURO e persiste PENDING_REVIEW', async () => {
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue(rawAiData);
+      mockParseAutoQuoteData.mockReturnValue(parsedData);
+
+      await processor.process(makeJob(portoJobData));
+
+      expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.PORTO_SEGURO);
+      expect(prisma.quote.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: QuoteStatus.PENDING_REVIEW }),
+        }),
+      );
+    });
+
+    it('substitui paymentMethods no payload antes de chamar parseAutoQuoteData', async () => {
+      const portoPayments = [{ id: 'debito', type: 'debit' as const, label: 'Débito', installments: [{ number: 1, amount: 100, hasInterest: false }] }];
+      mockParsePortoPaymentTable.mockReturnValue(portoPayments);
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue({ ...rawAiData });
+      mockParseAutoQuoteData.mockReturnValue(parsedData);
+
+      await processor.process(makeJob(portoJobData));
+
+      expect(mockParsePortoPaymentTable).toHaveBeenCalledWith(rawText);
+      // paymentMethods determinísticos devem chegar no parseAutoQuoteData
+      expect(mockParseAutoQuoteData).toHaveBeenCalledWith(
+        expect.objectContaining({ paymentMethods: portoPayments }),
+      );
     });
   });
 });

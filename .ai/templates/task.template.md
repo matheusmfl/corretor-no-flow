@@ -2,7 +2,7 @@
 id: TASK-0000
 title: Task title
 status: todo
-kind: discovery|implementation|human|review|documentation
+kind: discovery|implementation|qa|human|review|documentation
 lifecycle: open|closed
 area: api|dashboard|web|types|infra|product
 owner: claude

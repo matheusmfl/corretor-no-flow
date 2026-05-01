@@ -7,6 +7,7 @@ import { PdfExtractorService } from '../application/services/pdf-extractor.servi
 import { AiService } from '../../ai/ai.service';
 import { parseAutoQuoteData } from '../domain/schemas/auto-quote.schema';
 import { parseBradescoPaymentTable } from '../application/services/bradesco-payment-parser';
+import { parsePortoPaymentTable } from '../application/services/porto-payment-parser';
 import { QUEUE_NAMES } from '../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../queue/queue.types';
 import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
@@ -87,9 +88,9 @@ export class ExtractPdfProcessor extends WorkerHost {
       const raw = await this.aiService.extractQuoteData(rawText, product, insurer);
 
       // Parser determinístico sobrescreve paymentMethods (mais confiável que IA para tabelas)
-      const parsedPayments = insurer === Insurer.BRADESCO
-        ? parseBradescoPaymentTable(rawText)
-        : null;
+      let parsedPayments = null;
+      if (insurer === Insurer.BRADESCO) parsedPayments = parseBradescoPaymentTable(rawText);
+      else if (insurer === Insurer.PORTO_SEGURO) parsedPayments = parsePortoPaymentTable(rawText);
       if (parsedPayments) {
         this.logger.debug(`[${quoteId}] Pagamentos parseados deterministicamente: ${parsedPayments.map((m) => `${m.label}(${m.installments.length}x)`).join(', ')}`);
         raw.paymentMethods = parsedPayments as unknown as Record<string, unknown>[];

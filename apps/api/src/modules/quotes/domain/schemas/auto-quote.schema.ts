@@ -66,9 +66,12 @@ const PaymentInstallmentSchema = z.object({
   number: z.number(),
   amount: z.number(),
   total: z.number().optional(),
+  hasInterest: z.boolean().optional(),
+  discountLabel: z.string().optional(),
 });
 
 const PaymentMethodSchema = z.object({
+  id: z.string(),
   type: z.enum(['debit', 'credit_bradesco', 'credit_card', 'coupon']),
   label: z.string(),
   installments: z.array(PaymentInstallmentSchema),

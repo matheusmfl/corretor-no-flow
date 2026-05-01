@@ -1,7 +1,7 @@
 ---
 id: TASK-0013
 title: Criar fixtures Porto AUTO completo e incompleto
-status: todo
+status: done
 kind: implementation
 lifecycle: open
 area: api
@@ -48,11 +48,11 @@ Backend task. Add fixture-loading tests before parser implementation.
 
 ## Acceptance Criteria
 
-- [ ] Porto complete text fixture exists.
-- [ ] Porto incomplete text fixture exists.
-- [ ] Fixtures do not require raw PDFs.
-- [ ] A test confirms fixtures can be loaded.
-- [ ] No raw PDF is committed.
+- [x] Porto complete text fixture exists.
+- [x] Porto incomplete text fixture exists.
+- [x] Fixtures do not require raw PDFs.
+- [x] A test confirms fixtures can be loaded.
+- [x] No raw PDF is committed.
 
 ## Risks
 
@@ -64,6 +64,5 @@ Future parser tests depend on local ignored PDF lab files and fail on another ma
 
 ## Human QA Checklist
 
-- [ ] Confirm raw PDFs remain only in ignored PDF lab input.
-- [ ] Confirm fixture names clearly identify complete vs incomplete.
-
+- [x] Confirm raw PDFs remain only in ignored PDF lab input.
+- [x] Confirm fixture names clearly identify complete vs incomplete.

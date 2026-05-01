@@ -1,7 +1,7 @@
 ---
 id: TASK-0015
 title: Implementar extracao core Porto AUTO para AutoQuoteData
-status: todo
+status: done
 kind: implementation
 lifecycle: open
 area: api
@@ -69,11 +69,11 @@ Backend task. Add tests with Porto complete/incomplete fixtures before implement
 
 ## Acceptance Criteria
 
-- [ ] Porto complete fixture maps to valid `AutoQuoteData`.
-- [ ] Porto incomplete fixture maps to valid `AutoQuoteData`.
-- [ ] Payment methods come from deterministic parser.
-- [ ] Existing Bradesco tests still pass.
-- [ ] Uncertain extras are not forced into core fields.
+- [x] Porto complete fixture maps to valid `AutoQuoteData`.
+- [x] Porto incomplete fixture maps to valid `AutoQuoteData`.
+- [x] Payment methods come from deterministic parser.
+- [x] Existing Bradesco tests still pass.
+- [x] Uncertain extras are not forced into core fields.
 
 ## Risks
 
@@ -86,6 +86,5 @@ Porto extraction technically succeeds but maps Porto-only benefits into wrong co
 
 ## Human QA Checklist
 
-- [ ] Compare extracted Porto core fields with the original PDF.
-- [ ] Confirm only useful MVP information appears in review/PDF/link.
-
+- [x] Compare extracted Porto core fields with the original PDF.
+- [x] Confirm only useful MVP information appears in review/PDF/link.

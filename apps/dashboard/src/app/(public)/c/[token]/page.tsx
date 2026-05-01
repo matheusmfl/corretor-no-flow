@@ -116,7 +116,10 @@ function QuoteCard({
       d.paymentMethods.find((m) => m.type === 'credit_card'),
     ].filter(Boolean) as NonNullable<AutoQuoteData['paymentMethods'][0]>[]
     for (const m of ordered) {
-      const sj = m.installments.filter((i) => Math.abs((i.total ?? i.amount * i.number) - premiumTotal) <= tolerance)
+      const sj = m.installments.filter((i) => {
+        if (i.hasInterest != null) return !i.hasInterest
+        return Math.abs((i.total ?? i.amount * i.number) - premiumTotal) <= tolerance
+      })
       if (sj.length > 0) {
         const last = sj[sj.length - 1]
         return { count: last.number, amount: last.amount }

@@ -11,7 +11,7 @@ const kanbanFile = path.join(aiRoot, 'kanban', 'index.html');
 const buildScript = path.join(aiRoot, 'scripts', 'build-kanban.mjs');
 const port = Number(process.env.KANBAN_PORT || 4173);
 
-const allowedStatuses = new Set(['todo', 'in-progress', 'review', 'done', 'discarded']);
+const allowedStatuses = new Set(['todo', 'in-progress', 'review', 'qa', 'done', 'discarded']);
 
 function sendJson(res, status, data) {
   const body = JSON.stringify(data);

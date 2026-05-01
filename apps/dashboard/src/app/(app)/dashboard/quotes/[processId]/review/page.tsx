@@ -19,12 +19,6 @@ const INSURER_LABELS: Record<string, string> = {
   YELLOW:       'Yellow',
 }
 
-const PAYMENT_LABELS: Record<string, string> = {
-  debit:           'Débito',
-  credit_bradesco: 'Cartão Bradesco',
-  credit_card:     'Cartão de Crédito',
-  coupon:          'Boleto',
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -77,13 +71,14 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
   const vehicleLabel = [d.vehicle?.model, d.vehicle?.yearModel ?? d.vehicle?.yearManufacture]
     .filter(Boolean).join(' — ')
 
-  // Best installment per method (sem juros = total ≈ premium total)
+  // Best installment per method (sem juros first, falling back to max available)
   const premiumTotal = d.premium?.total
   function bestInstallment(method: NonNullable<AutoQuoteData['paymentMethods']>[number]) {
     if (!method.installments.length) return null
-    const semJuros = method.installments.filter(
-      (p) => premiumTotal != null && Math.abs((p.total ?? 0) - premiumTotal) / premiumTotal <= 0.02,
-    )
+    const semJuros = method.installments.filter((p) => {
+      if (p.hasInterest != null) return !p.hasInterest
+      return premiumTotal != null && Math.abs((p.total ?? 0) - premiumTotal) / premiumTotal <= 0.02
+    })
     const pool = semJuros.length ? semJuros : method.installments
     return pool.reduce((best, cur) => (cur.number > best.number ? cur : best), pool[0])
   }
@@ -199,11 +194,13 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
               {d.paymentMethods.map((method) => {
                 const best = bestInstallment(method)
                 if (!best) return null
-                const isSemJuros = premiumTotal != null && Math.abs((best.total ?? 0) - premiumTotal) / premiumTotal <= 0.02
+                const isSemJuros = best.hasInterest != null
+                  ? !best.hasInterest
+                  : premiumTotal != null && Math.abs((best.total ?? 0) - premiumTotal) / premiumTotal <= 0.02
                 return (
                   <DataRow
-                    key={method.type}
-                    label={PAYMENT_LABELS[method.type] ?? method.label}
+                    key={method.id}
+                    label={method.label}
                     value={
                       <span className="flex items-center gap-1.5">
                         {`até ${best.number}× ${fmt(best.amount)}`}

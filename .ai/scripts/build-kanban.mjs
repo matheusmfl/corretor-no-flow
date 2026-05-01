@@ -11,6 +11,7 @@ const columns = [
   { id: 'todo', title: 'Todo' },
   { id: 'in-progress', title: 'In Progress' },
   { id: 'review', title: 'Review' },
+  { id: 'qa', title: 'QA' },
   { id: 'done', title: 'Done' },
   { id: 'discarded', title: 'Discarded' },
 ];

@@ -46,13 +46,13 @@ function bestInstallment(
 
   for (const method of ordered) {
     const semJuros = method.installments.filter((inst) => {
+      if (inst.hasInterest != null) return !inst.hasInterest;
       const total = inst.total ?? inst.amount * inst.number;
       return Math.abs(total - premiumTotal) <= tolerance;
     });
     if (semJuros.length > 0) {
       const best = semJuros[semJuros.length - 1];
-      const label = method.type === 'credit_bradesco' ? 'Cartão Bradesco' : 'Cartão de Crédito';
-      return { count: best.number, amount: best.amount, label };
+      return { count: best.number, amount: best.amount, label: method.label };
     }
   }
 
@@ -60,8 +60,7 @@ function bestInstallment(
   for (const method of ordered) {
     if (method.installments.length > 0) {
       const last = method.installments[method.installments.length - 1];
-      const label = method.type === 'credit_bradesco' ? 'Cartão Bradesco' : 'Cartão de Crédito';
-      return { count: last.number, amount: last.amount, label };
+      return { count: last.number, amount: last.amount, label: method.label };
     }
   }
 
@@ -89,6 +88,7 @@ function bestInstallmentForMethod(
   if (method.installments.length === 0) return null;
   const tolerance = premiumTotal * 0.02;
   const semJuros = method.installments.filter((inst) => {
+    if (inst.hasInterest != null) return !inst.hasInterest;
     const total = inst.total ?? inst.amount * inst.number;
     return Math.abs(total - premiumTotal) <= tolerance;
   });
@@ -261,20 +261,13 @@ export class QuotePdfTemplateService {
 
     // ── Seção: pagamento ───────────────────────────────────────────────────
 
-    const TAB_IDS: Record<string, string> = {
-      debit:           'deb',
-      credit_bradesco: 'ccb',
-      credit_card:     'cc',
-      coupon:          'carne',
-    };
-
     const tabButtons = methods.map((m, i) => `
-      <button class="tab-btn${i === 0 ? ' active' : ''}" onclick="switchTab(this,'${TAB_IDS[m.type] ?? m.type}')" role="tab">
+      <button class="tab-btn${i === 0 ? ' active' : ''}" onclick="switchTab(this,'${m.id}')" role="tab">
         ${esc(m.label)}
       </button>`).join('');
 
     const tabPanels = methods.map((m, i) => `
-      <div class="tab-panel${i === 0 ? ' active' : ''}" id="tab-${TAB_IDS[m.type] ?? m.type}">
+      <div class="tab-panel${i === 0 ? ' active' : ''}" id="tab-${m.id}">
         ${renderPaymentTable(m)}
       </div>`).join('');
 

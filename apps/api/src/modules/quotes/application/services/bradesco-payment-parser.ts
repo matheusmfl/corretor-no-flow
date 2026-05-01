@@ -12,6 +12,15 @@ function parseBRL(s: string): number {
   return parseFloat(s.replace(/\./g, '').replace(',', '.'));
 }
 
+function toMethodId(label: string): string {
+  return label
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 /**
  * Parseia a tabela de formas de pagamento do Demonstrativo de Cálculo Bradesco AUTO.
  *
@@ -43,6 +52,7 @@ export function parseBradescoPaymentTable(
     }
 
     return {
+      id:           toMethodId(METHOD_DEFS[i].label),
       type:         METHOD_DEFS[i].type,
       label:        METHOD_DEFS[i].label,
       installments,

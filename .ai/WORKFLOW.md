@@ -19,8 +19,8 @@ This repo uses Markdown as the source of truth for product execution.
 5. Human asks Claude to execute a specific task.
 6. Claude reads the task, follows TDD when required, implements, tests, and moves it to `.ai/tasks/review`.
 7. Codex reviews the diff and task criteria.
-8. If approved, human performs the QA checklist.
-9. Task moves to `.ai/tasks/done`.
+8. If approved and no separate human validation is needed, the task moves to `.ai/tasks/done`.
+9. If the work changes a frontend screen, generated PDF, public link, or clickable workflow in a way that needs human eyes, Codex creates a separate `kind: qa` task in `.ai/tasks/qa`.
 
 Read `.ai/STRATEGIC-MATURATION.md` for the detailed brainstorm-to-task process.
 
@@ -44,6 +44,7 @@ Important decisions should also be copied into `.ai/DECISIONS.md` or `.ai/PRODUC
 - `.ai/tasks/todo`: approved and ready to execute.
 - `.ai/tasks/in-progress`: currently being implemented.
 - `.ai/tasks/review`: implemented and waiting for Codex review.
+- `.ai/tasks/qa`: human-facing validation needed before final acceptance.
 - `.ai/tasks/done`: reviewed and accepted.
 - `.ai/tasks/discarded`: intentionally abandoned.
 
@@ -54,7 +55,7 @@ Task folders show operational status. Frontmatter shows what kind of work it is 
 Use:
 
 ```yaml
-kind: discovery|implementation|human|review|documentation
+kind: discovery|implementation|qa|human|review|documentation
 lifecycle: open|closed
 ```
 
@@ -63,6 +64,7 @@ Examples:
 - `kind: discovery` + `lifecycle: open`: mapping or product question still needs work.
 - `kind: discovery` + `lifecycle: closed`: discovery question is answered; follow-up implementation tasks may exist.
 - `kind: implementation` + `lifecycle: open`: ready for Claude to build.
+- `kind: qa` + `lifecycle: open`: human should validate a frontend, PDF, public link, or clickable workflow.
 - `kind: human` + `lifecycle: open`: waiting for human action.
 
 When discovery is completed, either move it to `done` or set `lifecycle: closed` and create follow-up tasks.

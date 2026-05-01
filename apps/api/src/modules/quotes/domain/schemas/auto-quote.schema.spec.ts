@@ -17,6 +17,7 @@ const validData = {
   premium: { base: 2404.44, iof: 237, total: 3448.53 },
   paymentMethods: [
     {
+      id: 'debito',
       type: 'debit' as const,
       label: 'Débito',
       installments: [{ number: 1, amount: 3448.5, total: 3448.5 }],
@@ -63,7 +64,7 @@ describe('parseAutoQuoteData', () => {
   it('lança UnprocessableEntityException quando paymentMethods tem type inválido', () => {
     const data = {
       ...validData,
-      paymentMethods: [{ type: 'pix', label: 'Pix', installments: [] }],
+      paymentMethods: [{ id: 'pix', type: 'pix', label: 'Pix', installments: [] }],
     };
     expect(() => parseAutoQuoteData(data)).toThrow(UnprocessableEntityException);
   });

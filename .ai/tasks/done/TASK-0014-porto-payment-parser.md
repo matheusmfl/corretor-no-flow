@@ -1,7 +1,7 @@
 ---
 id: TASK-0014
 title: Implementar parser deterministico de pagamentos Porto
-status: todo
+status: done
 kind: implementation
 lifecycle: open
 area: api
@@ -70,10 +70,10 @@ Minimum tests:
 
 ## Acceptance Criteria
 
-- [ ] Payment parser returns valid `paymentMethods`.
-- [ ] Tests cover complete and incomplete Porto fixtures.
-- [ ] Parser fails safely or skips uncertain rows instead of inventing values.
-- [ ] Bradesco payment parser remains unchanged.
+- [x] Payment parser returns valid `paymentMethods`.
+- [x] Tests cover complete and incomplete Porto fixtures.
+- [x] Parser fails safely or skips uncertain rows instead of inventing values.
+- [x] Bradesco payment parser remains unchanged.
 
 ## Risks
 
@@ -86,6 +86,5 @@ The public link shows a wrong installment amount, causing the broker to quote in
 
 ## Human QA Checklist
 
-- [ ] Compare parsed payment values against the Porto PDF.
-- [ ] Confirm Porto Bank discount/payment options are understandable.
-
+- [x] Compare parsed payment values against the Porto PDF.
+- [x] Confirm Porto Bank discount/payment options are understandable.

@@ -107,6 +107,7 @@ Uma task pronta precisa ter:
 .ai/tasks/todo          pronta para executar
 .ai/tasks/in-progress   em execucao
 .ai/tasks/review        aguardando revisao do Codex
+.ai/tasks/qa            aguardando validacao humana de tela, PDF ou fluxo visual
 .ai/tasks/done          aceita e concluida
 .ai/tasks/discarded     descartada
 ```
@@ -162,4 +163,3 @@ Esses inputs e outputs nao devem ir para o Git, porque podem conter dados sensiv
 Se Claude precisar decidir produto, a task ainda nao esta madura.
 
 Nesse caso, volta para maturacao estrategica ou discovery antes de implementar.
-

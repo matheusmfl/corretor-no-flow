@@ -95,12 +95,15 @@ export interface AutoQuoteData {
     total: number
   }
   paymentMethods: Array<{
+    id: string
     type: 'debit' | 'credit_bradesco' | 'credit_card' | 'coupon'
     label: string
     installments: Array<{
       number: number
       amount: number
       total?: number
+      hasInterest?: boolean
+      discountLabel?: string
     }>
   }>
 }
