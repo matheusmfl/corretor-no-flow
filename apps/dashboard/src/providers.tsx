@@ -6,6 +6,16 @@ import { useState, type ReactNode } from 'react'
 import { toast, Toaster } from 'sonner'
 import { ApiError } from '@/lib/api/client'
 
+// Garante no máximo um redirect para /login por ciclo de página,
+// mesmo que várias queries falhem com 401 simultaneamente.
+let redirectingToLogin = false
+
+function redirectToLogin() {
+  if (redirectingToLogin) return
+  redirectingToLogin = true
+  window.location.replace('/login')
+}
+
 function toastFromError(error: unknown) {
   const message = error instanceof ApiError
     ? error.message
@@ -13,20 +23,25 @@ function toastFromError(error: unknown) {
   toast.error(message)
 }
 
+function isAuthMeQuery(queryKey: unknown): boolean {
+  return Array.isArray(queryKey) && queryKey[0] === 'auth' && queryKey[1] === 'me'
+}
+
 function makeQueryClient() {
   return new QueryClient({
     queryCache: new QueryCache({
-      onError(error) {
+      onError(error, query) {
         if (error instanceof ApiError && error.isUnauthorized) {
-          window.location.href = '/login'
+          redirectToLogin()
           return
         }
+        // Erros de auth/me (offline, 404, etc.) são exibidos pelo layout — não duplicar toast
+        if (isAuthMeQuery(query.queryKey)) return
         toastFromError(error)
       },
     }),
     mutationCache: new MutationCache({
       onError(error, _variables, _context, mutation) {
-        // Se a mutação já tem onError próprio, não duplica o toast
         if (mutation.options.onError) return
         toastFromError(error)
       },

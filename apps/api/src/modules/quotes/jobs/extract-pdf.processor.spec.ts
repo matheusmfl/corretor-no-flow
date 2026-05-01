@@ -64,8 +64,8 @@ describe('ExtractPdfProcessor', () => {
 
     // Bradesco limita a 3 páginas
     expect(pdfExtractor.extractText).toHaveBeenCalledWith(jobData.filePath, 3);
-    // IA recebe rawText, product e insurer
-    expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.BRADESCO);
+    // IA recebe rawText, product, insurer e contexto de correlação
+    expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.BRADESCO, { quoteId: jobData.quoteId });
     expect(mockParseAutoQuoteData).toHaveBeenCalledWith(rawAiData);
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
@@ -97,12 +97,13 @@ describe('ExtractPdfProcessor', () => {
 
     await processor.process(makeJob(jobData));
 
-    // Deve ter chamado correctExtractedData com product + insurer
+    // Deve ter chamado correctExtractedData com product + insurer + contexto de correlação
     expect(aiService.correctExtractedData).toHaveBeenCalledWith(
       rawAiData,
       expect.stringContaining('Dados inválidos'),
       InsuranceProduct.AUTO,
       Insurer.BRADESCO,
+      { quoteId: jobData.quoteId },
     );
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
@@ -162,7 +163,7 @@ describe('ExtractPdfProcessor', () => {
 
       await processor.process(makeJob(portoJobData));
 
-      expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.PORTO_SEGURO);
+      expect(aiService.extractQuoteData).toHaveBeenCalledWith(rawText, InsuranceProduct.AUTO, Insurer.PORTO_SEGURO, { quoteId: portoJobData.quoteId });
       expect(prisma.quote.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ status: QuoteStatus.PENDING_REVIEW }),

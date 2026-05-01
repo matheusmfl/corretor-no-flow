@@ -165,16 +165,25 @@ export class AiService {
 
   constructor(@Inject(GROQ_CLIENT) private readonly groq: Groq) {}
 
-  async extractQuoteData(rawText: string, product: InsuranceProduct, insurer: Insurer): Promise<Record<string, unknown>> {
+  async extractQuoteData(
+    rawText: string,
+    product: InsuranceProduct,
+    insurer: Insurer,
+    context?: { quoteId: string },
+  ): Promise<Record<string, unknown>> {
     if (!SUPPORTED_PRODUCTS.includes(product as (typeof SUPPORTED_PRODUCTS)[number])) {
       throw new BadRequestException(`Produto ${product} não suportado`);
     }
 
     const prompt = this.buildExtractionPrompt(product, insurer, rawText);
-    return this.callGroq([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ]);
+    return this.callGroq(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
+      'extraction',
+      context ? { ...context, insurer, product } : undefined,
+    );
   }
 
   async correctExtractedData(
@@ -182,17 +191,20 @@ export class AiService {
     zodError: string,
     product: InsuranceProduct,
     insurer: Insurer,
+    context?: { quoteId: string },
   ): Promise<Record<string, unknown>> {
-    this.logger.debug(`Tentando corrigir JSON inválido. Erro Zod: ${zodError}`);
-
     const basePrompt = this.buildExtractionPrompt(product, insurer, '');
-    return this.callGroq([
-      { role: 'system', content: SYSTEM_PROMPT },
-      {
-        role: 'user',
-        content: `${basePrompt}\n\nVocê retornou este JSON anteriormente:\n${JSON.stringify(invalidJson, null, 2)}\n\nPorém ele não satisfaz o formato esperado. Erro de validação: ${zodError}\n\nCorrija e retorne APENAS o JSON corrigido, sem markdown ou explicações.`,
-      },
-    ]);
+    return this.callGroq(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        {
+          role: 'user',
+          content: `${basePrompt}\n\nVocê retornou este JSON anteriormente:\n${JSON.stringify(invalidJson, null, 2)}\n\nPorém ele não satisfaz o formato esperado. Erro de validação: ${zodError}\n\nCorrija e retorne APENAS o JSON corrigido, sem markdown ou explicações.`,
+        },
+      ],
+      'correction',
+      context ? { ...context, insurer, product } : undefined,
+    );
   }
 
   private buildExtractionPrompt(product: InsuranceProduct, insurer: Insurer, rawText: string): string {
@@ -209,15 +221,26 @@ export class AiService {
     return rawText ? `${prompt}\n\nTexto da cotação:\n${rawText}` : prompt;
   }
 
-  private async callGroq(messages: { role: 'system' | 'user'; content: string }[]): Promise<Record<string, unknown>> {
+  private async callGroq(
+    messages: { role: 'system' | 'user'; content: string }[],
+    label: 'extraction' | 'correction' = 'extraction',
+    ctx?: { quoteId: string; insurer: Insurer; product: InsuranceProduct },
+  ): Promise<Record<string, unknown>> {
+    const t0 = Date.now();
     const response = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages,
       temperature: 0,
     });
+    const durationMs = Date.now() - t0;
+
+    const usage = response.usage;
+    const ctxStr = ctx ? ` quoteId=${ctx.quoteId} insurer=${ctx.insurer} product=${ctx.product}` : '';
+    this.logger.log(
+      `[Groq][${label}]${ctxStr} durationMs=${durationMs} tokens_in=${usage?.prompt_tokens ?? '?'} tokens_out=${usage?.completion_tokens ?? '?'}`,
+    );
 
     const text = response.choices[0]?.message?.content;
-    this.logger.debug(`Resposta bruta do Groq:\n${text}`);
 
     if (!text) {
       throw new InternalServerErrorException('Resposta da IA não contém texto');

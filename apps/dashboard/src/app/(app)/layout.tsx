@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/auth/use-current-user'
 import { useLogout } from '@/hooks/auth/use-logout'
+import { ApiError } from '@/lib/api/client'
 
 // ─── Icons (inline SVG) ───────────────────────────────────────────────────────
 
@@ -201,25 +202,104 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   )
 }
 
+// ─── Estado: carregando ───────────────────────────────────────────────────────
+
+function LoadingShell() {
+  return (
+    <div className="min-h-screen bg-canvas flex">
+      <aside className="hidden lg:flex w-64 shrink-0 fixed inset-y-0 left-0 bg-mahogany z-30" />
+      <div className="flex-1 lg:ml-64">
+        <div className="h-14 border-b border-surface-strong bg-white" />
+        <div className="p-6 space-y-4">
+          <div className="h-7 w-52 rounded-lg bg-surface animate-pulse" />
+          <div className="h-4 w-full rounded-lg bg-surface animate-pulse" />
+          <div className="h-4 w-3/4 rounded-lg bg-surface animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Estado: servidor indisponível ────────────────────────────────────────────
+
+function OfflineScreen({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-6">
+      <div className="max-w-sm w-full text-center space-y-4">
+        <p className="text-5xl">📡</p>
+        <h1 className="text-xl font-semibold text-ink">Servidor indisponível</h1>
+        <p className="text-sm text-ink-muted leading-relaxed">
+          Não foi possível conectar com o servidor.
+          Verifique se a API está rodando e tente novamente.
+        </p>
+        <button
+          onClick={onRetry}
+          className="rounded-lg bg-mahogany px-6 py-2.5 text-sm font-semibold text-gold hover:bg-mahogany-light transition-colors"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Estado: erro inesperado ──────────────────────────────────────────────────
+
+function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-6">
+      <div className="max-w-sm w-full text-center space-y-4">
+        <p className="text-5xl">⚠️</p>
+        <h1 className="text-xl font-semibold text-ink">Algo deu errado</h1>
+        <p className="text-sm text-ink-muted leading-relaxed">{message}</p>
+        <button
+          onClick={onRetry}
+          className="rounded-lg bg-mahogany px-6 py-2.5 text-sm font-semibold text-gold hover:bg-mahogany-light transition-colors"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { data: user, isSuccess, isError } = useCurrentUser()
+  const { data: user, isSuccess, isError, error, isLoading, refetch } = useCurrentUser()
+  const redirectedRef = useRef(false)
 
   useEffect(() => {
-    if (isError) {
-      window.location.href = '/login'
+    if (!isError || redirectedRef.current) return
+    if (error instanceof ApiError && error.isUnauthorized) {
+      redirectedRef.current = true
+      router.replace('/login')
     }
-  }, [isError])
+    // status 0 (offline) e outros erros: não redirecionar — renderizar tela de erro abaixo
+  }, [isError, error, router])
 
   useEffect(() => {
     if (isSuccess && !user?.companyId) {
       router.replace('/onboarding')
     }
   }, [isSuccess, user, router])
+
+  if (isLoading) return <LoadingShell />
+
+  if (isError) {
+    const isOffline = error instanceof ApiError && error.status === 0
+    if (isOffline) return <OfflineScreen onRetry={() => refetch()} />
+    // 401 → redirect em andamento via useEffect acima; 404/500 → tela de erro
+    const isUnauth = error instanceof ApiError && error.isUnauthorized
+    if (!isUnauth) {
+      const msg = error instanceof ApiError ? error.message : 'Erro inesperado.'
+      return <ErrorScreen message={msg} onRetry={() => refetch()} />
+    }
+    return null  // aguarda redirect
+  }
 
   const currentPage = NAV_ITEMS.find((i) => pathname.startsWith(i.href))?.label ?? 'Dashboard'
 

@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Quote, QuoteStatus } from '@corretor/types'
+import type { Quote, QuoteProcessDetail, QuoteStatus } from '@corretor/types'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -181,7 +181,14 @@ export default function ProcessingPage({ params }: { params: Promise<{ processId
   const { processId } = use(params)
   const router = useRouter()
 
-  const { data: process, isLoading } = useQuoteProcess(processId, { refetchInterval: 3000 })
+  const { data: process, isLoading } = useQuoteProcess(processId, {
+    refetchInterval: (query) => {
+      const data = query.state.data as QuoteProcessDetail | undefined
+      const quotes = data?.quotes ?? []
+      const done = quotes.length > 0 && quotes.every((q) => isTerminal(q.status))
+      return done ? false : 3000
+    },
+  })
 
   const quotes = process?.quotes ?? []
   const allDone = quotes.length > 0 && quotes.every((q) => isTerminal(q.status))
