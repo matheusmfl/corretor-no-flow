@@ -6,104 +6,921 @@
     <title>Corretor no Flow - Kanban</title>
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f6f7f9;
-        --panel: #ffffff;
-        --text: #17202a;
-        --muted: #64748b;
-        --line: #d9e0e8;
-        --accent: #0f766e;
+        --bg: #f2efe8;
+        --paper: #fffaf0;
+        --ink: #231f1a;
+        --muted: #71695e;
+        --line: #ded4c4;
+        --coal: #27302d;
+        --ember: #b5472f;
+        --gold: #d9a441;
+        --green: #2f7d5c;
+        --blue: #315d7d;
+        --red: #a33a32;
+        --shadow: 0 18px 45px rgba(63, 49, 35, 0.12);
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(35, 31, 26, 0.045) 1px, transparent 1px),
+          linear-gradient(rgba(35, 31, 26, 0.035) 1px, transparent 1px),
+          var(--bg);
+        background-size: 28px 28px;
+        color: var(--ink);
+        font-family: "Georgia", "Times New Roman", serif;
       }
 
       header {
-        padding: 24px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 24px;
+        align-items: end;
+        padding: 28px;
         border-bottom: 1px solid var(--line);
-        background: var(--panel);
+        background: rgba(255, 250, 240, 0.82);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 5;
       }
 
       h1 {
-        margin: 0 0 4px;
-        font-size: 24px;
+        margin: 0;
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 0.95;
+        letter-spacing: 0;
       }
 
-      p {
-        margin: 0;
+      .subtitle {
+        margin: 10px 0 0;
         color: var(--muted);
+        font: 14px/1.5 "Segoe UI", sans-serif;
       }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        max-width: 520px;
+      }
+
+      input,
+      select {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+        color: var(--ink);
+        padding: 8px 10px;
+        font: 13px "Segoe UI", sans-serif;
+      }
+
+      input { width: min(260px, 100%); }
 
       main {
         display: grid;
-        grid-template-columns: repeat(5, minmax(220px, 1fr));
-        gap: 16px;
-        padding: 24px;
+        grid-template-columns: repeat(5, minmax(250px, 1fr));
+        gap: 14px;
+        padding: 18px;
         overflow-x: auto;
       }
 
-      section {
-        min-height: 70vh;
+      .column {
+        min-height: calc(100vh - 180px);
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: var(--panel);
+        background: rgba(255, 250, 240, 0.72);
+        box-shadow: var(--shadow);
+      }
+
+      .column.is-drop-target {
+        outline: 2px solid rgba(181, 71, 47, 0.42);
+        outline-offset: 3px;
+      }
+
+      .column__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
       }
 
       h2 {
         margin: 0;
-        padding: 14px 16px;
-        font-size: 15px;
-        border-bottom: 1px solid var(--line);
+        font: 700 13px "Segoe UI", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
       }
+
+      .count {
+        min-width: 24px;
+        border-radius: 999px;
+        background: var(--coal);
+        color: var(--paper);
+        text-align: center;
+        font: 700 12px/24px "Segoe UI", sans-serif;
+      }
+
+      .column__body {
+        display: grid;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .task-card {
+        border: 1px solid rgba(39, 48, 45, 0.14);
+        border-radius: 7px;
+        background: var(--paper);
+        padding: 13px;
+        box-shadow: 0 8px 20px rgba(63, 49, 35, 0.08);
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+
+      .task-card.is-dragging {
+        opacity: 0.5;
+      }
+
+      .task-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(181, 71, 47, 0.36);
+        box-shadow: 0 14px 28px rgba(63, 49, 35, 0.14);
+      }
+
+      .task-card__topline,
+      .task-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .task-id {
+        color: var(--ember);
+        font: 800 11px "Segoe UI", sans-serif;
+        letter-spacing: 0.06em;
+      }
+
+      h3 {
+        margin: 8px 0 7px;
+        font-size: 18px;
+        line-height: 1.1;
+      }
+
+      .task-card p {
+        margin: 0;
+        color: var(--muted);
+        font: 13px/1.45 "Segoe UI", sans-serif;
+      }
+
+      .task-meta {
+        margin-top: 12px;
+      }
+
+      .task-meta span,
+      .pill {
+        border-radius: 999px;
+        padding: 3px 7px;
+        background: #eee4d5;
+        color: var(--muted);
+        font: 700 10px "Segoe UI", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .pill--medium { background: #f4dfba; color: #7b4b13; }
+      .pill--high { background: #f1c7bd; color: var(--red); }
+      .pill--low { background: #dce9df; color: var(--green); }
+      .pill--life-open { background: #e8edf2; color: var(--blue); }
+      .pill--life-closed { background: #e0eadf; color: var(--green); }
+
+      .task-card a {
+        display: inline-flex;
+        margin-top: 12px;
+        color: var(--ember);
+        font: 700 12px "Segoe UI", sans-serif;
+        text-decoration: none;
+      }
+
+      .task-card a:hover { text-decoration: underline; }
 
       .empty {
-        padding: 16px;
+        display: none;
+        padding: 18px 12px;
         color: var(--muted);
-        font-size: 14px;
+        font: 13px "Segoe UI", sans-serif;
       }
 
-      .note {
-        display: block;
-        margin-top: 6px;
-        color: var(--accent);
-        font-size: 13px;
+      .is-hidden { display: none; }
+
+      .server-note {
+        display: none;
+        grid-column: 1 / -1;
+        border: 1px solid rgba(163, 58, 50, 0.28);
+        border-radius: 8px;
+        background: #f9dfd8;
+        color: var(--red);
+        padding: 12px 14px;
+        font: 13px/1.4 "Segoe UI", sans-serif;
+      }
+
+      @media (max-width: 820px) {
+        header {
+          position: static;
+          grid-template-columns: 1fr;
+          padding: 20px;
+        }
+
+        .toolbar {
+          justify-content: stretch;
+        }
+
+        input,
+        select {
+          flex: 1 1 150px;
+        }
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Corretor no Flow - Kanban</h1>
-      <p>Visual simples. A fonte da verdade continua sendo `.ai/tasks/`.</p>
+      <div>
+        <h1>Kanban<br />Pré-Venda V1</h1>
+        <p class="subtitle">17 tasks lidas de <code>.ai/tasks</code>. Gerado em 01/05/2026, 01:38:11.</p>
+      </div>
+      <div class="toolbar" aria-label="Filtros">
+        <input id="search" type="search" placeholder="Buscar task..." />
+        <select id="area">
+          <option value="">Todas as areas</option>
+          <option value="api">api</option><option value="dashboard">dashboard</option><option value="product">product</option><option value="types">types</option>
+        </select>
+        <select id="risk">
+          <option value="">Todos os riscos</option>
+          <option value="low">low</option>
+          <option value="medium">medium</option>
+          <option value="high">high</option>
+        </select>
+        <select id="kind">
+          <option value="">Todos os tipos</option>
+          <option value="discovery">discovery</option><option value="documentation">documentation</option><option value="human">human</option><option value="implementation">implementation</option>
+        </select>
+        <select id="lifecycle">
+          <option value="">Open e closed</option>
+          <option value="open">open</option>
+          <option value="closed">closed</option>
+        </select>
+      </div>
     </header>
     <main>
-      <section>
-        <h2>Todo</h2>
-        <div class="empty">Abra `.ai/tasks/todo` para ver as tasks.</div>
-      </section>
-      <section>
-        <h2>In Progress</h2>
-        <div class="empty">Abra `.ai/tasks/in-progress` para ver as tasks.</div>
-      </section>
-      <section>
-        <h2>Review</h2>
-        <div class="empty">Abra `.ai/tasks/review` para ver as tasks.</div>
-      </section>
-      <section>
-        <h2>Done</h2>
-        <div class="empty">Abra `.ai/tasks/done` para ver as tasks.</div>
-      </section>
-      <section>
-        <h2>Discarded</h2>
-        <div class="empty">Abra `.ai/tasks/discarded` para ver as tasks.</div>
-      </section>
+      <div class="server-note" id="server-note">
+        Para mover cards entre pastas, abra este Kanban pelo servidor local:
+        <code>node .ai/scripts/kanban-server.mjs</code>.
+      </div>
+      
+        <section class="column" data-column="todo">
+          <div class="column__header">
+            <h2>Todo</h2>
+            <span class="count" data-count="todo">17</span>
+          </div>
+          <div class="column__body">
+            
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0001-fix-generated-pdf-filename.md"
+      data-status="todo"
+      data-title="task-0001 corrigir filename do pdf gerado"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="low"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0001</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Corrigir filename do PDF gerado</h3>
+      <p>Generate a predictable, broker-friendly filename using insurer, vehicle brand, vehicle model, and franchise type.
+Expected example:
+```txt
+Bradesco_Jeep_Compass_Redu</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>low</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0001-fix-generated-pdf-filename.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0002-map-porto-family-auto-extraction.md"
+      data-status="todo"
+      data-title="task-0002 mapear estrategia de extracao auto familia porto"
+      data-area="product"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0002</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Mapear estrategia de extracao AUTO familia Porto</h3>
+      <p>Create a technical/product mapping that defines what can be shared across Porto-family PDF extraction and what must be insurer-specific.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0002-map-porto-family-auto-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0003-implement-porto-seguro-auto-foundation.md"
+      data-status="todo"
+      data-title="task-0003 implementar base porto seguro auto"
+      data-area="api"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0003</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Implementar base Porto Seguro AUTO</h3>
+      <p>Support Porto Seguro AUTO extraction end-to-end using the existing quote process flow: upload, async extraction, review, PDF generation, and public link.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0003-implement-porto-seguro-auto-foundation.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0004-public-link-comparison-highlights.md"
+      data-status="todo"
+      data-title="task-0004 adicionar destaques de comparacao no link publico"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0004</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Adicionar destaques de comparacao no link publico</h3>
+      <p>Show a &quot;Destaques da comparacao&quot; section on the public quote page for AUTO processes.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0004-public-link-comparison-highlights.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0005-rule-based-commercial-score.md"
+      data-status="todo"
+      data-title="task-0005 criar score comercial por regras"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0005</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Criar score comercial por regras</h3>
+      <p>Compute a deterministic commercial score for each quote process: cold, warm, or hot.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0005-rule-based-commercial-score.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0006-sales-outcome-renewal-agenda-foundation.md"
+      data-status="todo"
+      data-title="task-0006 criar status comercial e base da agenda de renovacao"
+      data-area="api"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0006</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Criar status comercial e base da agenda de renovacao</h3>
+      <p>Add the backend foundation for manual sales outcome and internal agenda items.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0006-sales-outcome-renewal-agenda-foundation.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0007-health-human-mapping.md"
+      data-status="todo"
+      data-title="task-0007 completar mapeamento humano do ramo saude"
+      data-area="product"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="human"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0007</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Completar mapeamento humano do ramo Saude</h3>
+      <p>Fill `.ai/discovery/HEALTH-MAPPING.md` with real examples and rules.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>human</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0007-health-human-mapping.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0008-post-sale-prospecting-discovery-boundary.md"
+      data-status="todo"
+      data-title="task-0008 manter pos-venda e prospeccao como discovery separado"
+      data-area="product"
+      data-risk="low"
+      data-complexity="low"
+      data-kind="documentation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0008</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Manter pos-venda e prospeccao como discovery separado</h3>
+      <p>Keep post-sale and prospecting documented as future discovery tracks without creating implementation tasks yet.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>documentation</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0008-post-sale-prospecting-discovery-boundary.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0009-map-bradesco-renewal-bonus-usage-fields.md"
+      data-status="todo"
+      data-title="task-0009 mapear renovacao bonus e uso do veiculo no pdf bradesco"
+      data-area="product"
+      data-risk="medium"
+      data-complexity="low"
+      data-kind="discovery"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0009</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Mapear renovacao bonus e uso do veiculo no PDF Bradesco</h3>
+      <p>Use the PDF extraction lab to identify whether Bradesco PDFs expose renewal insurer, bonus class, and vehicle usage type, and document where/how these fields appear.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>discovery</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0009-map-bradesco-renewal-bonus-usage-fields.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0010-generate-porto-coverage-variation-quotes.md"
+      data-status="todo"
+      data-title="task-0010 gerar cotacoes porto com variacoes de cobertura"
+      data-area="product"
+      data-risk="low"
+      data-complexity="medium"
+      data-kind="human"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0010</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Gerar cotacoes Porto com variacoes de cobertura</h3>
+      <p>Generate Porto AUTO quotes with different coverage configurations and compare what changes in the printed PDFs.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>human</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0010-generate-porto-coverage-variation-quotes.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0011-design-autoquote-insurer-extras-contract.md"
+      data-status="todo"
+      data-title="task-0011 desenhar contrato modular para extras por seguradora no autoquotedata"
+      data-area="types"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0011</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Desenhar contrato modular para extras por seguradora no AutoQuoteData</h3>
+      <p>Design a small, safe contract proposal for insurer-specific extras in AUTO quotes without breaking the common AUTO core.</p>
+      <div class="task-meta">
+        <span>types</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0011-design-autoquote-insurer-extras-contract.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0012-map-porto-extras-backlog.md"
+      data-status="todo"
+      data-title="task-0012 mapear extras porto para backlog posterior"
+      data-area="product"
+      data-risk="low"
+      data-complexity="low"
+      data-kind="discovery"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0012</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Mapear extras Porto para backlog posterior</h3>
+      <p>Create a categori</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>discovery</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0012-map-porto-extras-backlog.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0013-create-porto-auto-fixtures.md"
+      data-status="todo"
+      data-title="task-0013 criar fixtures porto auto completo e incompleto"
+      data-area="api"
+      data-risk="low"
+      data-complexity="low"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0013</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Criar fixtures Porto AUTO completo e incompleto</h3>
+      <p>Create safe test fixtures from the Porto complete and incomplete extraction outputs so parser/extraction tests can run without depending on raw PDFs.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>low</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0013-create-porto-auto-fixtures.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0014-porto-payment-parser.md"
+      data-status="todo"
+      data-title="task-0014 implementar parser deterministico de pagamentos porto"
+      data-area="api"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0014</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Implementar parser deterministico de pagamentos Porto</h3>
+      <p>Parse Porto Seguro payment methods deterministically from extracted PDF text into `AutoQuoteData.paymentMethods`.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0014-porto-payment-parser.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0015-porto-core-auto-extraction.md"
+      data-status="todo"
+      data-title="task-0015 implementar extracao core porto auto para autoquotedata"
+      data-area="api"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0015</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Implementar extracao core Porto AUTO para AutoQuoteData</h3>
+      <p>Extract Porto Seguro AUTO core fields into the existing `AutoQuoteData` contract.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0015-porto-core-auto-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0016-integrate-porto-processing-flow.md"
+      data-status="todo"
+      data-title="task-0016 integrar porto seguro no fluxo de processamento"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0016</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Integrar Porto Seguro no fluxo de processamento</h3>
+      <p>Make `PORTO_SEGURO` work end-to-end in the existing async processing flow.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0016-integrate-porto-processing-flow.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0017-validate-porto-review-pdf-public-link.md"
+      data-status="todo"
+      data-title="task-0017 validar review pdf e link publico com porto"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0017</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Validar review PDF e link publico com Porto</h3>
+      <p>Validate and adjust the frontend/PDF/public-link surfaces for Porto Seguro AUTO core fields.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0017-validate-porto-review-pdf-public-link.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+            <div class="empty">Nenhuma task visivel com estes filtros.</div>
+          </div>
+        </section>
+      
+        <section class="column" data-column="in-progress">
+          <div class="column__header">
+            <h2>In Progress</h2>
+            <span class="count" data-count="in-progress">0</span>
+          </div>
+          <div class="column__body">
+            
+            <div class="empty">Nenhuma task visivel com estes filtros.</div>
+          </div>
+        </section>
+      
+        <section class="column" data-column="review">
+          <div class="column__header">
+            <h2>Review</h2>
+            <span class="count" data-count="review">0</span>
+          </div>
+          <div class="column__body">
+            
+            <div class="empty">Nenhuma task visivel com estes filtros.</div>
+          </div>
+        </section>
+      
+        <section class="column" data-column="done">
+          <div class="column__header">
+            <h2>Done</h2>
+            <span class="count" data-count="done">0</span>
+          </div>
+          <div class="column__body">
+            
+            <div class="empty">Nenhuma task visivel com estes filtros.</div>
+          </div>
+        </section>
+      
+        <section class="column" data-column="discarded">
+          <div class="column__header">
+            <h2>Discarded</h2>
+            <span class="count" data-count="discarded">0</span>
+          </div>
+          <div class="column__body">
+            
+            <div class="empty">Nenhuma task visivel com estes filtros.</div>
+          </div>
+        </section>
+      
     </main>
+    <script>
+      const search = document.querySelector('#search');
+      const area = document.querySelector('#area');
+      const risk = document.querySelector('#risk');
+      const kind = document.querySelector('#kind');
+      const lifecycle = document.querySelector('#lifecycle');
+      const servedByKanbanServer = location.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(location.hostname);
+      const serverNote = document.querySelector('#server-note');
+      let draggedCard = null;
+
+      if (!servedByKanbanServer) {
+        serverNote.style.display = 'block';
+      }
+
+      function applyFilters() {
+        const query = search.value.trim().toLowerCase();
+        const selectedArea = area.value;
+        const selectedRisk = risk.value;
+        const selectedKind = kind.value;
+        const selectedLifecycle = lifecycle.value;
+
+        document.querySelectorAll('.column').forEach((column) => {
+          let visible = 0;
+
+          column.querySelectorAll('.task-card').forEach((card) => {
+            const matchesQuery = !query || card.dataset.title.includes(query);
+            const matchesArea = !selectedArea || card.dataset.area === selectedArea;
+            const matchesRisk = !selectedRisk || card.dataset.risk === selectedRisk;
+            const matchesKind = !selectedKind || card.dataset.kind === selectedKind;
+            const matchesLifecycle = !selectedLifecycle || card.dataset.lifecycle === selectedLifecycle;
+            const show = matchesQuery && matchesArea && matchesRisk && matchesKind && matchesLifecycle;
+            card.classList.toggle('is-hidden', !show);
+            if (show) visible += 1;
+          });
+
+          column.querySelector('.empty').style.display = visible === 0 ? 'block' : 'none';
+          column.querySelector('.count').textContent = visible;
+        });
+      }
+
+      [search, area, risk, kind, lifecycle].forEach((control) => control.addEventListener('input', applyFilters));
+
+      document.querySelectorAll('.task-card').forEach((card) => {
+        card.addEventListener('dragstart', (event) => {
+          draggedCard = card;
+          card.classList.add('is-dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('application/json', JSON.stringify({
+            file: card.dataset.file,
+            from: card.dataset.status,
+          }));
+        });
+
+        card.addEventListener('dragend', () => {
+          card.classList.remove('is-dragging');
+          draggedCard = null;
+          document.querySelectorAll('.column').forEach((column) => column.classList.remove('is-drop-target'));
+        });
+      });
+
+      document.querySelectorAll('.column').forEach((column) => {
+        column.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          column.classList.add('is-drop-target');
+        });
+
+        column.addEventListener('dragleave', () => {
+          column.classList.remove('is-drop-target');
+        });
+
+        column.addEventListener('drop', async (event) => {
+          event.preventDefault();
+          column.classList.remove('is-drop-target');
+
+          const payload = JSON.parse(event.dataTransfer.getData('application/json'));
+          const to = column.dataset.column;
+          if (!payload.file || !payload.from || payload.from === to) return;
+
+          if (!servedByKanbanServer) {
+            alert('Abra pelo servidor local para mover arquivos: node .ai/scripts/kanban-server.mjs');
+            return;
+          }
+
+          if (draggedCard) {
+            column.querySelector('.column__body').prepend(draggedCard);
+            draggedCard.dataset.status = to;
+          }
+
+          const response = await fetch('/api/move-task', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ file: payload.file, from: payload.from, to }),
+          });
+
+          if (!response.ok) {
+            alert('Nao foi possivel mover a task.');
+            location.reload();
+            return;
+          }
+
+          applyFilters();
+        });
+      });
+    </script>
   </body>
 </html>

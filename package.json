@@ -10,6 +10,8 @@
     "dev:dashboard": "turbo run dev --filter=@corretor/dashboard",
     "dev:web": "turbo run dev --filter=@corretor/web",
     "dev:api": "turbo run dev --filter=@corretor/api",
+    "dev:kanban": "node .ai/scripts/kanban-server.mjs",
+    "pdf:extract": "node .ai/scripts/extract-pdf-lab.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint"
   },

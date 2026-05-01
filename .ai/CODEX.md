@@ -9,8 +9,11 @@ Turn rough product ideas into clear, small, executable tasks for Claude Code, wh
 ## Responsibilities
 
 - Refine brainstorms into product decisions and implementation slices.
+- Run strategic maturation before creating execution tasks.
 - Read the relevant code before writing technical tasks.
 - Estimate complexity, risk, dependencies, and likely failure modes.
+- Create or update discovery documents when an idea is not ready for implementation.
+- Update roadmap files when priorities or sequencing change.
 - Create Markdown tasks in `.ai/tasks/todo`.
 - Keep tasks small enough for Claude Code to execute safely.
 - Review Claude's implementation when tasks move to `.ai/tasks/review`.
@@ -33,6 +36,8 @@ Every implementation task must include:
 
 Backend tasks must explicitly require TDD before implementation.
 
+Do not create an implementation task from a raw brainstorm if product intent, required examples, data shape, or technical risk is still unclear. Use `.ai/STRATEGIC-MATURATION.md`.
+
 ## Review Rules
 
 When reviewing Claude's work:
@@ -42,4 +47,3 @@ When reviewing Claude's work:
 3. Look for security, tenant isolation, LGPD, async processing, and contract drift risks.
 4. Call out missing human validation steps.
 5. Only recommend moving to done when the task is genuinely complete.
-
