@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/auth/use-current-user'
@@ -67,6 +67,23 @@ function IconX() {
   )
 }
 
+function IconChevronUp() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="18 15 12 9 6 15" />
+    </svg>
+  )
+}
+
+function IconUserEdit() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -81,10 +98,22 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
   const { data: user } = useCurrentUser()
   const logout = useLogout()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
     : '?'
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="flex flex-col h-full">
@@ -124,24 +153,48 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         })}
       </nav>
 
-      {/* User + logout */}
-      <div className="px-3 py-4 border-t border-mahogany-light/30">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
+      {/* User avatar — dropdown */}
+      <div ref={menuRef} className="px-3 py-4 border-t border-mahogany-light/30 relative">
+        {/* Dropdown menu — abre acima do avatar */}
+        {menuOpen && (
+          <div className="absolute bottom-full left-3 right-3 mb-1 bg-mahogany-light border border-mahogany-light/60 rounded-xl shadow-lg overflow-hidden z-50">
+            <Link
+              href="/dashboard/settings"
+              onClick={() => { setMenuOpen(false); onClose?.() }}
+              className="flex items-center gap-2.5 px-4 py-3 text-sm text-gold/80 hover:text-gold hover:bg-white/5 transition-colors"
+            >
+              <IconUserEdit />
+              Editar perfil
+            </Link>
+            <div className="border-t border-mahogany-light/40 mx-2" />
+            <button
+              onClick={() => { setMenuOpen(false); logout.mutate() }}
+              disabled={logout.isPending}
+              className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-red-400/80 hover:text-red-300 hover:bg-white/5 disabled:opacity-50 transition-colors"
+            >
+              <IconLogOut />
+              {logout.isPending ? 'Saindo…' : 'Sair'}
+            </button>
+          </div>
+        )}
+
+        {/* Avatar trigger */}
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-mahogany-light/50 transition-colors group"
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+        >
           <div className="w-8 h-8 rounded-full bg-ember flex items-center justify-center text-xs font-bold text-white shrink-0">
             {initials}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-medium text-gold truncate">{user?.name ?? '…'}</p>
             <p className="text-xs text-gold/50 truncate">{user?.email ?? ''}</p>
           </div>
-        </div>
-        <button
-          onClick={() => logout.mutate()}
-          disabled={logout.isPending}
-          className="mt-1 flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs text-gold/60 hover:text-gold hover:bg-mahogany-light/50 disabled:opacity-50 transition-colors"
-        >
-          <IconLogOut />
-          Sair
+          <span className={`text-gold/40 group-hover:text-gold/70 transition-all duration-200 ${menuOpen ? 'rotate-180' : ''}`}>
+            <IconChevronUp />
+          </span>
         </button>
       </div>
     </div>
@@ -154,7 +207,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { data: user, isSuccess } = useCurrentUser()
+  const { data: user, isSuccess, isError } = useCurrentUser()
+
+  useEffect(() => {
+    if (isError) {
+      window.location.href = '/login'
+    }
+  }, [isError])
 
   useEffect(() => {
     if (isSuccess && !user?.companyId) {

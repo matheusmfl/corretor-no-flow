@@ -42,6 +42,7 @@ import { UploadQuoteUseCase } from '../application/use-cases/upload-quote.use-ca
 import { SubmitQuoteForProcessingUseCase } from '../application/use-cases/submit-quote-for-processing.use-case';
 import { GeneratePdfUseCase } from '../application/use-cases/generate-pdf.use-case';
 import { GenerateLinkUseCase } from '../application/use-cases/generate-link.use-case';
+import { GetProcessMetricsUseCase } from '../application/use-cases/get-process-metrics.use-case';
 
 const pdfStorage = diskStorage({
   destination: './uploads',
@@ -64,6 +65,7 @@ export class QuoteController {
     private readonly submitQuoteForProcessing: SubmitQuoteForProcessingUseCase,
     private readonly generatePdf: GeneratePdfUseCase,
     private readonly generateLink: GenerateLinkUseCase,
+    private readonly getProcessMetrics: GetProcessMetricsUseCase,
   ) {}
 
   @Post()
@@ -103,6 +105,12 @@ export class QuoteController {
   @ApiOkResponse({ type: QuoteProcessResponseDto })
   findOne(@CurrentUser() user: { companyId: string }, @Param('id') id: string) {
     return this.getQuote.execute(user.companyId, id);
+  }
+
+  @Get(':id/metrics')
+  @ApiOperation({ summary: 'Métricas de engajamento do link público do processo' })
+  metrics(@CurrentUser() _user: { companyId: string }, @Param('id') id: string) {
+    return this.getProcessMetrics.execute(id);
   }
 
   @Patch(':processId/quote/:quoteId/review')

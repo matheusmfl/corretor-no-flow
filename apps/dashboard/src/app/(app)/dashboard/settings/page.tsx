@@ -176,7 +176,14 @@ export default function SettingsPage() {
     patch({ cep: masked, zipCode: stripMask(masked) })
     if (stripMask(masked).length === 8) {
       const result = await fetchCep(masked)
-      if (result) patch({ city: result.city, state: result.state })
+      if (result) {
+        patch({
+          city:         result.city,
+          state:        result.state,
+          ...(result.street       && { street:       result.street }),
+          ...(result.neighborhood && { neighborhood: result.neighborhood }),
+        })
+      }
     }
   }
 

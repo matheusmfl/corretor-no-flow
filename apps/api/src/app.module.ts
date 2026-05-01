@@ -8,6 +8,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { PublicModule } from './modules/public/public.module';
+import { TrackingModule } from './modules/tracking/tracking.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PublicModule } from './modules/public/public.module';
     CompanyModule,
     QuotesModule,
     PublicModule,
+    TrackingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

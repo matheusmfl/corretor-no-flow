@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { PublicProcessResponse, AutoQuoteData } from '@corretor/types'
+import { QuoteTracker } from './quote-tracker'
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
@@ -211,6 +212,7 @@ export default async function PublicPage(
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
+      <QuoteTracker processId={process.id} />
 
       {/* Header da corretora */}
       <header className="px-5 py-4" style={{ background: brand }}>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useListProcesses } from '@/hooks/quotes/use-list-processes'
+import { MetricsDrawer } from './metrics-drawer'
 import type { InsuranceProduct, ListProcessesQuery, QuoteProcessListItem, QuoteProcessStatus } from '@corretor/types'
 
 // ─── Labels ───────────────────────────────────────────────────────────────────
@@ -55,7 +56,23 @@ function StatusBadge({ status }: { status: QuoteProcessStatus }) {
   )
 }
 
-function ProcessRow({ process }: { process: QuoteProcessListItem }) {
+function ViewerBadge({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 rounded-full px-2 py-0.5">
+      <IconEye size={10} />
+      {count}
+    </span>
+  )
+}
+
+function ProcessRow({
+  process,
+  onMetricsClick,
+}: {
+  process: QuoteProcessListItem
+  onMetricsClick: (id: string, name: string | null) => void
+}) {
   const href = processHref(process)
   const date = new Date(process.createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'short', year: 'numeric',
@@ -65,39 +82,54 @@ function ProcessRow({ process }: { process: QuoteProcessListItem }) {
     : null
 
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-4 px-5 py-4 hover:bg-surface/60 transition-colors group"
-    >
-      <span className="shrink-0 rounded-md bg-surface px-2.5 py-1 text-xs font-semibold text-ink-muted">
-        {PRODUCT_LABELS[process.product]}
-      </span>
-
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-ink truncate">
-          {process.clientName ?? 'Sem nome'}
-        </p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <p className="text-xs text-ink-faint">{date}</p>
-          {openedAt && (
-            <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
-              <IconEye size={11} />
-              Aberto em {openedAt}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <StatusBadge status={process.status} />
-
-      <svg
-        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className="shrink-0 text-ink-faint group-hover:text-ink-muted transition-colors"
+    <div className="flex items-center hover:bg-surface/60 transition-colors group">
+      {/* Main link — ocupa quase toda a row */}
+      <Link
+        href={href}
+        className="flex items-center gap-4 px-5 py-4 flex-1 min-w-0"
       >
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </Link>
+        <span className="shrink-0 rounded-md bg-surface px-2.5 py-1 text-xs font-semibold text-ink-muted">
+          {PRODUCT_LABELS[process.product]}
+        </span>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-ink truncate">
+              {process.clientName ?? 'Sem nome'}
+            </p>
+            <ViewerBadge count={process.viewerCount} />
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-ink-faint">{date}</p>
+            {openedAt && (
+              <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
+                <IconEye size={11} />
+                Aberto em {openedAt}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <StatusBadge status={process.status} />
+
+        <svg
+          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className="shrink-0 text-ink-faint group-hover:text-ink-muted transition-colors"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </Link>
+
+      {/* Botão de métricas — fora do Link */}
+      <button
+        onClick={() => onMetricsClick(process.id, process.clientName)}
+        title="Ver métricas"
+        className="shrink-0 mr-3 p-2 rounded-lg text-ink-faint hover:text-mahogany hover:bg-surface transition-colors opacity-0 group-hover:opacity-100"
+      >
+        <IconBarChart />
+      </button>
+    </div>
   )
 }
 
@@ -227,6 +259,18 @@ function IconX() {
   )
 }
 
+function IconBarChart() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6"  y1="20" x2="6"  y2="14" />
+      <line x1="2"  y1="20" x2="22" y2="20" />
+    </svg>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function QuotesPage() {
@@ -239,14 +283,13 @@ export default function QuotesPage() {
 
   const [searchInput, setSearchInput] = useState(searchParam)
   const [debouncedSearch, setDebouncedSearch] = useState(searchParam)
+  const [metricsTarget, setMetricsTarget] = useState<{ id: string; name: string | null } | null>(null)
 
-  // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput), 300)
     return () => clearTimeout(t)
   }, [searchInput])
 
-  // Sync filters to URL
   const setFilter = useCallback(
     (status: QuoteProcessStatus | undefined, search: string) => {
       const p = new URLSearchParams()
@@ -276,49 +319,72 @@ export default function QuotesPage() {
     router.replace(pathname)
   }
 
+  function openMetrics(id: string, name: string | null) {
+    setMetricsTarget({ id, name })
+  }
+
+  function closeMetrics() {
+    setMetricsTarget(null)
+  }
+
   return (
-    <div className="max-w-3xl space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold font-display text-ink">Cotações</h2>
-          {data && (
-            <p className="text-sm text-ink-muted mt-0.5">
-              {data.total} processo{data.total !== 1 ? 's' : ''} no total
-            </p>
+    <>
+      <div className="max-w-3xl space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold font-display text-ink">Cotações</h2>
+            {data && (
+              <p className="text-sm text-ink-muted mt-0.5">
+                {data.total} processo{data.total !== 1 ? 's' : ''} no total
+              </p>
+            )}
+          </div>
+          <Link
+            href="/dashboard/quotes/new"
+            className="rounded-lg bg-ember px-4 py-2 text-sm font-semibold text-white hover:bg-ember-light transition-colors"
+          >
+            Nova cotação
+          </Link>
+        </div>
+
+        {/* Filters */}
+        <div className="space-y-3">
+          <SearchInput value={searchInput} onChange={setSearchInput} />
+          <StatusTabs
+            active={statusParam ?? undefined}
+            onChange={(s) => setFilter(s, debouncedSearch)}
+          />
+        </div>
+
+        {/* List */}
+        <div className="rounded-xl border border-surface-strong bg-white overflow-hidden divide-y divide-surface-strong">
+          {isLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : items.length === 0 ? (
+            <EmptyState hasFilters={hasFilters} search={debouncedSearch} onClear={clearFilters} />
+          ) : (
+            items.map((p) => (
+              <ProcessRow
+                key={p.id}
+                process={p}
+                onMetricsClick={openMetrics}
+              />
+            ))
           )}
         </div>
-        <Link
-          href="/dashboard/quotes/new"
-          className="rounded-lg bg-ember px-4 py-2 text-sm font-semibold text-white hover:bg-ember-light transition-colors"
-        >
-          Nova cotação
-        </Link>
       </div>
 
-      {/* Filters */}
-      <div className="space-y-3">
-        <SearchInput value={searchInput} onChange={setSearchInput} />
-        <StatusTabs
-          active={statusParam ?? undefined}
-          onChange={(s) => setFilter(s, debouncedSearch)}
-        />
-      </div>
-
-      {/* List */}
-      <div className="rounded-xl border border-surface-strong bg-white overflow-hidden divide-y divide-surface-strong">
-        {isLoading ? (
-          <>
-            <SkeletonRow />
-            <SkeletonRow />
-            <SkeletonRow />
-          </>
-        ) : items.length === 0 ? (
-          <EmptyState hasFilters={hasFilters} search={debouncedSearch} onClear={clearFilters} />
-        ) : (
-          items.map((p) => <ProcessRow key={p.id} process={p} />)
-        )}
-      </div>
-    </div>
+      {/* Metrics drawer — rendered at root level to avoid clipping */}
+      <MetricsDrawer
+        processId={metricsTarget?.id ?? null}
+        clientName={metricsTarget?.name ?? null}
+        onClose={closeMetrics}
+      />
+    </>
   )
 }

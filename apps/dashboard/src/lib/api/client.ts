@@ -43,14 +43,19 @@ async function request<T>(
 ): Promise<T> {
   const isFormData = options.body instanceof FormData
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      ...(!isFormData && { 'Content-Type': 'application/json' }),
-      ...options.headers,
-    },
-  })
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        ...(!isFormData && { 'Content-Type': 'application/json' }),
+        ...options.headers,
+      },
+    })
+  } catch {
+    throw new ApiError(0, 'Sem conexão com o servidor. Verifique sua internet.')
+  }
 
   // 401 → tenta refresh uma vez e repete a requisição original
   // (não aplica a endpoints de auth para não esconder erros de credencial)

@@ -4,6 +4,8 @@ import { stripMask } from '@/lib/masks'
 interface CepResult {
   city: string
   state: string
+  street: string | null
+  neighborhood: string | null
 }
 
 interface UseCepReturn {
@@ -24,7 +26,12 @@ export function useCep(): UseCepReturn {
       if (!res.ok) return null
       const data = await res.json()
       if (data.erro) return null
-      return { city: data.localidade, state: data.uf }
+      return {
+        city: data.localidade,
+        state: data.uf,
+        street: data.logradouro || null,
+        neighborhood: data.bairro || null,
+      }
     } catch {
       return null
     } finally {

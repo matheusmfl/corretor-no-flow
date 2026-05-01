@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -10,6 +11,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { EMAIL_SERVICE } from '../../../email/email.constants';
+import { IEmailService } from '../../../email/domain/email.service.interface';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { RegisterDto } from '../dtos/register.dto';
@@ -28,6 +31,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    @Inject(EMAIL_SERVICE) private readonly emailService: IEmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -86,17 +90,21 @@ export class AuthService {
     if (!user) return;
 
     const rawToken = randomBytes(32).toString('hex');
-    const tokenHash = await argon2.hash(rawToken);
+    const tokenHash = this.sha256(rawToken);
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
     await this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
     await this.prisma.passwordResetToken.create({ data: { tokenHash, userId: user.id, expiresAt } });
+    this.logger.log(`[forgot-password] token gerado para ${user.email}`);
 
-    this.logger.log(`[RESET TOKEN] ${user.email} → ${rawToken}`);
+    const appUrl = this.config.getOrThrow<string>('APP_URL');
+    const resetUrl = `${appUrl}/auth/reset-password?token=${rawToken}`;
+
+    await this.emailService.sendPasswordReset({ to: user.email, name: user.name, resetUrl });
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const tokenHash = await argon2.hash(dto.token);
+    const tokenHash = this.sha256(dto.token);
     const resetToken = await this.prisma.passwordResetToken.findUnique({ where: { tokenHash } });
 
     if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {

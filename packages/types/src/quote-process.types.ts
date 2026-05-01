@@ -38,6 +38,7 @@ export interface QuoteProcessListItem {
   clientName: string | null
   publicToken: string | null
   openedAt: string | null
+  viewerCount: number
   createdAt: string
   updatedAt: string
 }

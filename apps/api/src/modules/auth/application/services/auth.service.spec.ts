@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { IEmailService } from '../../../email/domain/email.service.interface';
 import { AuthService } from './auth.service';
 
 jest.mock('argon2');
@@ -15,16 +16,22 @@ describe('AuthService', () => {
   let prisma: DeepMockProxy<PrismaClient>;
   let jwt: jest.Mocked<JwtService>;
   let config: jest.Mocked<ConfigService>;
+  let emailService: jest.Mocked<IEmailService>;
 
   beforeEach(() => {
     prisma = mockDeep<PrismaClient>();
     jwt = { signAsync: jest.fn() } as any;
     config = { getOrThrow: jest.fn(), get: jest.fn() } as any;
+    emailService = {
+      sendPasswordReset: jest.fn().mockResolvedValue(undefined),
+      sendQuoteOpened: jest.fn().mockResolvedValue(undefined),
+    };
 
     service = new AuthService(
       prisma as unknown as PrismaService,
       jwt,
       config,
+      emailService,
     );
   });
 
@@ -166,10 +173,10 @@ describe('AuthService', () => {
     });
 
     it('cria reset token quando e-mail existe', async () => {
-      prisma.user.findUnique.mockResolvedValue({ id: 'u1', email: 'joao@teste.com' } as any);
-      argon2Mock.hash.mockResolvedValue('reset_hash' as never);
+      prisma.user.findUnique.mockResolvedValue({ id: 'u1', email: 'joao@teste.com', name: 'João' } as any);
       prisma.passwordResetToken.deleteMany.mockResolvedValue({ count: 0 });
       prisma.passwordResetToken.create.mockResolvedValue({} as any);
+      config.getOrThrow.mockReturnValue('http://localhost:3000' as never);
 
       await service.forgotPassword({ email: 'joao@teste.com' });
 
@@ -177,6 +184,31 @@ describe('AuthService', () => {
         where: { userId: 'u1' },
       });
       expect(prisma.passwordResetToken.create).toHaveBeenCalled();
+    });
+
+    it('envia e-mail de reset quando usuário existe', async () => {
+      prisma.user.findUnique.mockResolvedValue({ id: 'u1', email: 'joao@teste.com', name: 'João Silva' } as any);
+      prisma.passwordResetToken.deleteMany.mockResolvedValue({ count: 0 });
+      prisma.passwordResetToken.create.mockResolvedValue({} as any);
+      config.getOrThrow.mockReturnValue('http://localhost:3000' as never);
+
+      await service.forgotPassword({ email: 'joao@teste.com' });
+
+      expect(emailService.sendPasswordReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'joao@teste.com',
+          name: 'João Silva',
+          resetUrl: expect.stringContaining('http://localhost:3000/auth/reset-password?token='),
+        }),
+      );
+    });
+
+    it('não envia e-mail quando usuário não existe', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await service.forgotPassword({ email: 'naoexiste@teste.com' });
+
+      expect(emailService.sendPasswordReset).not.toHaveBeenCalled();
     });
   });
 

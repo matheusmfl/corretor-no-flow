@@ -1,22 +1,41 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { useRouter } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
-import { Toaster } from 'sonner'
+import { toast, Toaster } from 'sonner'
 import { ApiError } from '@/lib/api/client'
+
+function toastFromError(error: unknown) {
+  const message = error instanceof ApiError
+    ? error.message
+    : 'Erro inesperado. Tente novamente.'
+  toast.error(message)
+}
 
 function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({
+      onError(error) {
+        if (error instanceof ApiError && error.isUnauthorized) {
+          window.location.href = '/login'
+          return
+        }
+        toastFromError(error)
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError(error, _variables, _context, mutation) {
+        // Se a mutação já tem onError próprio, não duplica o toast
+        if (mutation.options.onError) return
+        toastFromError(error)
+      },
+    }),
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000,       // 1 min — evita refetch desnecessário
+        staleTime: 60 * 1000,
         retry: (failureCount, error) => {
-          // Não tenta de novo em erros de autenticação ou not found
-          if (error instanceof ApiError && (error.isUnauthorized || error.isNotFound)) {
-            return false
-          }
+          if (error instanceof ApiError && (error.isUnauthorized || error.isNotFound)) return false
           return failureCount < 2
         },
       },
@@ -28,24 +47,7 @@ function makeQueryClient() {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const [queryClient] = useState(() => {
-    const client = makeQueryClient()
-
-    // Redireciona para /login em qualquer 401 não recuperado
-    client.getQueryCache().subscribe((event) => {
-      if (
-        event.type === 'updated' &&
-        event.action.type === 'error' &&
-        event.action.error instanceof ApiError &&
-        event.action.error.isUnauthorized
-      ) {
-        router.push('/login')
-      }
-    })
-
-    return client
-  })
+  const [queryClient] = useState(() => makeQueryClient())
 
   return (
     <QueryClientProvider client={queryClient}>

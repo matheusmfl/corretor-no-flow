@@ -21,6 +21,15 @@ class PublicCompanyDto implements PublicCompany {
   @ApiProperty({ nullable: true }) logoUrl: string | null;
   @ApiProperty() primaryColor: string;
   @ApiProperty() whatsapp: string;
+  @ApiProperty({ nullable: true }) bio: string | null;
+  @ApiProperty({ nullable: true }) contactEmail: string | null;
+  @ApiProperty({ nullable: true }) instagram: string | null;
+  @ApiProperty({ nullable: true }) website: string | null;
+  @ApiProperty({ nullable: true }) city: string | null;
+  @ApiProperty({ nullable: true }) state: string | null;
+  @ApiProperty({ nullable: true }) street: string | null;
+  @ApiProperty({ nullable: true }) neighborhood: string | null;
+  @ApiProperty({ nullable: true }) zipCode: string | null;
 }
 
 export class PublicProcessResponseDto implements PublicProcessResponse {

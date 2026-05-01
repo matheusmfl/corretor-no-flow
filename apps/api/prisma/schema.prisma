@@ -67,6 +67,16 @@ enum SubscriptionStatus {
   EXPIRED
 }
 
+enum QuoteEventType {
+  PAGE_OPEN
+  PAGE_CLOSE
+  HEARTBEAT
+  INSURER_VIEW    // payload: { insurer: "BRADESCO" }
+  PAYMENT_VIEW    // payload: { method: "PIX", installments: 10 }
+  WHATSAPP_CLICK
+  PDF_DOWNLOAD
+}
+
 // ─── Company ──────────────────────────────────────────────────────────────────
 
 model Company {
@@ -127,7 +137,8 @@ model QuoteProcess {
   expiresAt   DateTime?
   openedAt    DateTime?
 
-  quotes Quote[]
+  quotes   Quote[]
+  sessions QuoteSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -240,6 +251,7 @@ model User {
 
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  quoteSessions       QuoteSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -268,6 +280,54 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@map("password_reset_tokens")
+}
+
+// ─── Tracking ────────────────────────────────────────────────────────────────
+
+model QuoteSession {
+  id        String       @id @default(cuid())
+  processId String
+  process   QuoteProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  // UUID gerado no cliente (sessionStorage) — identifica a visita
+  sessionId String  @unique
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isOwner   Boolean @default(false) // true quando o broker vê a própria cotação
+
+  // Dados técnicos — sem PII
+  ipHash    String? // SHA256 do IP (nunca o IP bruto)
+  userAgent String?
+  referrer  String?
+
+  startedAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now()) // atualizado pelo heartbeat a cada 30s
+  endedAt    DateTime? // setado pelo beforeunload
+
+  events QuoteEvent[]
+
+  // Índice para buscar todas as sessões de um processo ordenadas por data
+  @@index([processId, startedAt])
+  // Índice para filtrar sessões reais (excluindo o próprio corretor)
+  @@index([processId, isOwner, startedAt])
+  @@map("quote_sessions")
+}
+
+model QuoteEvent {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   QuoteSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  type    QuoteEventType
+  payload Json?
+
+  createdAt DateTime @default(now())
+
+  // Índice para filtrar eventos por tipo dentro de uma sessão
+  @@index([sessionId, type])
+  // Índice para análises temporais (ex: quantos WHATSAPP_CLICK por dia)
+  @@index([type, createdAt])
+  @@map("quote_events")
 }
 
 // ─── Onboarding ───────────────────────────────────────────────────────────────

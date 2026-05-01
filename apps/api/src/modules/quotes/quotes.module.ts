@@ -11,6 +11,7 @@ import { QuotePdfTemplateService } from './application/services/quote-pdf-templa
 import { ExtractPdfProcessor } from './jobs/extract-pdf.processor';
 import { GeneratePdfUseCase } from './application/use-cases/generate-pdf.use-case';
 import { GenerateLinkUseCase } from './application/use-cases/generate-link.use-case';
+import { GetProcessMetricsUseCase } from './application/use-cases/get-process-metrics.use-case';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -30,6 +31,7 @@ import { AiModule } from '../ai/ai.module';
     QuotePdfTemplateService,
     GeneratePdfUseCase,
     GenerateLinkUseCase,
+    GetProcessMetricsUseCase,
     ExtractPdfProcessor,
   ],
 })
