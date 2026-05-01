@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sora, DM_Sans } from "next/font/google";
+import { DM_Sans, Sora } from "next/font/google";
 import "./globals.css";
 
 const sora = Sora({
@@ -11,13 +11,13 @@ const sora = Sora({
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Corretor no Flow — Cotações que encantam",
+  title: "Corretor no Flow - Propostas que viram conversa",
   description:
-    "Plataforma para corretores de seguros que transforma PDFs técnicos em propostas elegantes com link dinâmico.",
+    "SaaS para corretores de seguros transformarem PDFs tecnicos em propostas interativas, rastreaveis e prontas para converter.",
 };
 
 export default function RootLayout({
