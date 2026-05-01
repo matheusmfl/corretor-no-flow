@@ -170,6 +170,20 @@ describe('ExtractPdfProcessor', () => {
       );
     });
 
+    it('persiste name "Porto Seguro" no label da cotação', async () => {
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue(rawAiData);
+      mockParseAutoQuoteData.mockReturnValue(parsedData);
+
+      await processor.process(makeJob(portoJobData));
+
+      expect(prisma.quote.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ name: expect.stringContaining('Porto Seguro') }),
+        }),
+      );
+    });
+
     it('substitui paymentMethods no payload antes de chamar parseAutoQuoteData', async () => {
       const portoPayments = [{ id: 'debito', type: 'debit' as const, label: 'Débito', installments: [{ number: 1, amount: 100, hasInterest: false }] }];
       mockParsePortoPaymentTable.mockReturnValue(portoPayments);

@@ -1,9 +1,9 @@
 ---
 id: TASK-0016
 title: Integrar Porto Seguro no fluxo de processamento
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: api
 owner: claude
 reviewer: codex
@@ -49,10 +49,10 @@ Backend task. Tests must cover routing behavior before implementation.
 
 ## Acceptance Criteria
 
-- [ ] Porto upload job reaches Porto extraction path.
-- [ ] Porto quote ends in `PENDING_REVIEW` with extracted data when successful.
-- [ ] Failure path remains visible and safe.
-- [ ] Bradesco behavior is unchanged.
+- [x] Porto upload job reaches Porto extraction path.
+- [x] Porto quote ends in `PENDING_REVIEW` with extracted data when successful.
+- [x] Failure path remains visible and safe.
+- [x] Bradesco behavior is unchanged.
 
 ## Risks
 

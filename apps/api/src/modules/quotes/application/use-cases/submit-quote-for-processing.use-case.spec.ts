@@ -82,6 +82,24 @@ describe('SubmitQuoteForProcessingUseCase', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
+  it('enfileira job com insurer PORTO_SEGURO corretamente', async () => {
+    const portoProcess = makeProcess({
+      quotes: [{ id: QUOTE_ID, status: QuoteStatus.PENDING, insurer: Insurer.PORTO_SEGURO }],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(portoProcess as any);
+    prisma.quote.update.mockResolvedValue({ id: QUOTE_ID, status: QuoteStatus.PROCESSING } as any);
+    queue.add.mockResolvedValue({} as any);
+
+    const result = await useCase.execute(COMPANY_ID, PROCESS_ID, QUOTE_ID, FILE_PATH);
+
+    expect(queue.add).toHaveBeenCalledWith(
+      'extract-pdf',
+      { quoteId: QUOTE_ID, processId: PROCESS_ID, filePath: FILE_PATH, product: PRODUCT, insurer: Insurer.PORTO_SEGURO },
+      expect.any(Object),
+    );
+    expect(result.status).toBe('queued');
+  });
+
   it('lança BadRequestException quando cotação não está em status PENDING', async () => {
     prisma.quoteProcess.findUnique.mockResolvedValue(
       makeProcess({ quotes: [{ id: QUOTE_ID, status: QuoteStatus.PROCESSING, insurer: INSURER }] }) as any,
