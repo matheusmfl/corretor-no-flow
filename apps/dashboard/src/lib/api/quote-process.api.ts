@@ -7,6 +7,7 @@ import type {
   ReviewQuoteDto,
 } from '@corretor/types'
 import { apiClient } from './client'
+import { getBrowserApiBaseUrl } from './base-url'
 
 export const quoteProcessApi = {
   create(dto: CreateQuoteProcessDto): Promise<QuoteProcess> {
@@ -48,7 +49,7 @@ export const quoteProcessApi = {
   },
 
   pdfDownloadUrl(processId: string, quoteId: string): string {
-    const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+    const base = getBrowserApiBaseUrl()
     return `${base}/api/quotes/${processId}/quotes/${quoteId}/pdf`
   },
 }

@@ -1,7 +1,7 @@
 ---
 id: TASK-0017
 title: Validar review PDF e link publico com Porto
-status: qa
+status: done
 kind: implementation
 lifecycle: open
 area: dashboard
@@ -127,5 +127,12 @@ QA executed with one Bradesco quote and one Porto Seguro quote in the same proce
 - [x] Publish link.
 - [x] Open as insured client.
 - [x] Confirm WhatsApp CTA remains visible.
-- [ ] Resolve or explicitly defer QA findings above.
+- [x] Resolve or explicitly defer QA findings above.
+
+### Resolution summary (2026-05-01)
+
+- **PDF filename** fixed: `buildQuotePdfFilename` in `quote-filename.ts` uses vehicle model + insurer + deductibleType (when reliable) + premium in parentheses. `UNRELIABLE_DEDUCTIBLE_TYPES` set excludes `Compreensiva` variants.
+- **Porto deductible label** fixed: `quote-pdf-template.service.ts` filters `deductibleType` through the same set; `Franquia principal: (compreensiva)` no longer appears.
+- All other findings deferred: TASK-0021 (client identity), TASK-0022 (richer coverage display), TASK-0023 (logos). TASK-0025/0026/0027 created for client identity UX.
+- 29 tests passing: `quote-filename.spec.ts` + `quote-pdf-template.service.spec.ts`.
 

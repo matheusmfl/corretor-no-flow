@@ -21,6 +21,8 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 - Itau, Sompo, and Azul should reuse the same extraction strategy when their PDFs match Porto's structure.
 - Each insurer needs PDF samples, extraction tests, schema validation, review UI compatibility, PDF generation, and public-link compatibility.
 - Do not implement all insurers in one task.
+- AUTO upload should move toward a single multi-PDF dropzone with conservative insurer detection, instead of requiring one dropzone per insurer.
+- Group/template brand mentions must not decide the insurer. Example: Itau can mention Porto, and Aliro can mention Allianz.
 
 ### Group B - Conversion Public Link
 
@@ -72,3 +74,5 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 13. `TASK-0010` - Generate Porto coverage variation quotes.
 14. `TASK-0011` - Design AutoQuoteData insurer extras contract.
 15. `TASK-0012` - Map Porto extras backlog.
+16. `TASK-0028` - Create conservative AUTO PDF insurer detection in backend.
+17. `TASK-0029` - Replace per-insurer upload cards with a single multi-PDF upload review flow.

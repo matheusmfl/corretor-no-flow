@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import type { PublicProcessResponse, AutoQuoteData } from '@corretor/types'
+import { getServerApiBaseUrl } from '@/lib/api/base-url'
 import { QuoteTracker } from './quote-tracker'
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = getServerApiBaseUrl()
 
 type FetchResult =
   | { ok: true;  data: PublicProcessResponse }

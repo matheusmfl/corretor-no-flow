@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Insurer } from '@prisma/client';
 import type { AutoQuoteData } from '@corretor/types';
+import { UNRELIABLE_DEDUCTIBLE_TYPES } from './quote-filename';
 
 // ── Brand colors por seguradora ──────────────────────────────────────────────
 const INSURER_CONFIG: Record<Insurer, { label: string; brand: string }> = {
@@ -176,7 +177,10 @@ export class QuotePdfTemplateService {
 
     const best = bestInstallment(methods, premium.total);
     const mainDeductible = coverage.vehicle?.deductible;
-    const mainDeductibleType = coverage.vehicle?.deductibleType;
+    const rawDeductibleType = coverage.vehicle?.deductibleType;
+    const mainDeductibleType = rawDeductibleType && !UNRELIABLE_DEDUCTIBLE_TYPES.has(rawDeductibleType)
+      ? rawDeductibleType
+      : undefined;
 
     // ── Seção: coberturas ──────────────────────────────────────────────────
 

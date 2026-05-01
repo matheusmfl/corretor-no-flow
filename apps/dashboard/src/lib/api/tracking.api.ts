@@ -1,7 +1,8 @@
 import type { QuoteEventType, QuoteProcessMetrics } from '@corretor/types'
 import { apiClient } from './client'
+import { getBrowserApiBaseUrl } from './base-url'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = getBrowserApiBaseUrl()
 
 async function post(path: string, body?: unknown): Promise<void> {
   await fetch(`${API_URL}/api/tracking${path}`, {

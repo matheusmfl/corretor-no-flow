@@ -83,3 +83,17 @@ Some useful broker-facing information may be delayed.
 
 Review when:
 Porto core extraction is passing tests with complete and incomplete PDFs.
+
+## 2026-05-01 - AUTO Upload Should Detect Insurer Conservatively
+
+Decision:
+AUTO should move from per-insurer upload cards to a single multi-PDF upload flow. The broker still selects the product line/ramo, but the system detects the insurer from each PDF before final processing.
+
+Reason:
+Per-insurer dropzones create avoidable user error. A broker can upload a Porto PDF in the Bradesco slot, causing backend extraction to run with the wrong insurer context.
+
+Risk:
+Some insurer groups share templates or brand mentions. Itau PDFs may mention Porto, and Aliro PDFs may mention Allianz. Detection must use strong issuer/cotation signals and configurable family rules, not naive substring matching.
+
+Review when:
+The backend detector and frontend upload review flow are implemented and tested with real PDFs from supported insurers and known group/template edge cases.

@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useLogin } from '@/hooks/auth/use-login'
 import { handleError } from '@/lib/handle-error'
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
 
@@ -89,5 +89,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

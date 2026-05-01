@@ -32,7 +32,9 @@
       "Bash(docker-compose build *)",
       "PowerShell(\\(Get-Item \"C:\\\\Users\\\\mathe\\\\Desktop\\\\codigos 2026\\\\corretor-no-flow\\\\apps\\\\api\\\\src\\\\modules\\\\ai\\\\ai.service.ts\"\\).LastWriteTime = Get-Date)",
       "Bash(docker-compose up *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git stash *)",
+      "Bash(npx turbo *)"
     ]
   }
 }

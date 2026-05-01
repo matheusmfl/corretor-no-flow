@@ -1,9 +1,9 @@
 ---
 id: TASK-0021
 title: Definir regras de identidade do cliente no processo de cotacao
-status: todo
+status: done
 kind: discovery
-lifecycle: open
+lifecycle: closed
 area: product
 owner: codex
 reviewer: human
@@ -53,11 +53,11 @@ No code in this task.
 
 ## Acceptance Criteria
 
-- [ ] Discovery document exists.
-- [ ] Recommended rule for mixed insured/driver names is documented.
-- [ ] Public-link greeting rule is documented.
-- [ ] Review/publish warning rule is documented.
-- [ ] Follow-up implementation tasks can be created without ambiguity.
+- [x] Discovery document exists.
+- [x] Recommended rule for mixed insured/driver names is documented.
+- [x] Public-link greeting rule is documented.
+- [x] Review/publish warning rule is documented.
+- [x] Follow-up implementation tasks can be created without ambiguity.
 
 ## Risks
 
@@ -69,4 +69,26 @@ The broker publishes a link with a greeting for one client and quote details fro
 
 ## Human QA Checklist
 
-- [ ] Human confirms the chosen rule matches real broker workflow.
+- [x] Human confirms the chosen rule matches real broker workflow.
+
+## Decision
+
+Approved direction on 2026-05-01:
+
+- A quote process represents a flexible commercial service, not strictly one insured person.
+- Divergent names are allowed because brokers may quote spouse/husband/family variants in one sales context.
+- Simple one-name processes should keep the current low-friction experience.
+- When multiple identities exist, the system should suggest a presentation name such as `Familia Fonteles`, `Maria e Joao`, or `Cliente`.
+- The broker can edit/confirm this presentation name.
+- The public link greeting must use the confirmed presentation name or a neutral greeting, not automatically pick one quote's name.
+- Quote cards should discreetly show insured/main driver when commercially useful.
+
+Discovery document:
+
+- `.ai/discovery/CLIENT-IDENTITY-QUOTE-PROCESS.md`
+
+Follow-up tasks:
+
+- `TASK-0025` - Criar deteccao e sugestoes de identidade do processo.
+- `TASK-0026` - Adicionar UX de confirmacao de identidade no review/publicacao.
+- `TASK-0027` - Ajustar link publico para identidade flexivel.

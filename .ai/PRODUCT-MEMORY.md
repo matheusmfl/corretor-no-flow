@@ -37,6 +37,8 @@ Corretor no Flow helps insurance brokers turn technical insurer quote PDFs into 
 - Expand tracking events and compute a rule-based commercial score.
 - Add manual sales outcome status and internal renewal/opportunity agenda.
 - Map Health as a human discovery document before implementation.
+- Keep product line/ramo selection before upload, but remove mandatory insurer selection from the AUTO upload flow once PDF insurer detection is implemented.
+- Insurer detection must be conservative and explainable, especially for insurer groups such as Porto/Itau and Allianz/Aliro.
 
 ## Future Ideas
 

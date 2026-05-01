@@ -97,3 +97,51 @@ describe('QuotePdfTemplateService — grupos de cobertura condicionais', () => {
     });
   });
 });
+
+describe('QuotePdfTemplateService — franquia principal', () => {
+  function renderVehicle(vehicleOverride: Record<string, unknown>) {
+    return service.render({
+      ...BASE_QUOTE,
+      extractedData: {
+        ...BASE_QUOTE.extractedData,
+        coverage: {
+          vehicle: { ...BASE_QUOTE.extractedData.coverage.vehicle, ...vehicleOverride },
+        },
+      },
+    });
+  }
+
+  it('exibe label "Franquia principal" sem parênteses quando deductibleType é Compreensiva', () => {
+    const html = renderVehicle({ deductible: 6205, deductibleType: 'Compreensiva' });
+    expect(html).toContain('Franquia principal');
+    expect(html).not.toContain('Compreensiva');
+  });
+
+  it('exibe label "Franquia principal" sem parênteses quando deductibleType é compreensiva (lowercase)', () => {
+    const html = renderVehicle({ deductible: 6205, deductibleType: 'compreensiva' });
+    expect(html).not.toContain('compreensiva');
+  });
+
+  it('exibe valor da franquia mesmo quando deductibleType é não confiável', () => {
+    const html = renderVehicle({ deductible: 6205, deductibleType: 'Compreensiva' });
+    expect(html).toContain('6.205');
+  });
+
+  it('exibe deductibleType confiável entre parênteses', () => {
+    const html = renderVehicle({ deductible: 4000, deductibleType: 'Reduzida' });
+    expect(html).toContain('Reduzida');
+    expect(html).toContain('4.000');
+  });
+
+  it('exibe deductibleType "Normal" entre parênteses', () => {
+    const html = renderVehicle({ deductible: 5000, deductibleType: 'Normal' });
+    expect(html).toContain('Normal');
+  });
+
+  it('exibe label sem parênteses quando deductibleType está ausente', () => {
+    const html = renderVehicle({ deductible: 3000, deductibleType: undefined });
+    expect(html).toContain('Franquia principal');
+    // label não deve conter parênteses com tipo de franquia
+    expect(html).not.toMatch(/Franquia principal.*\(/);
+  });
+});
