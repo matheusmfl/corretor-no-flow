@@ -13,7 +13,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3002',
     credentials: true,
   });
   app.useGlobalPipes(

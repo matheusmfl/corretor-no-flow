@@ -23,7 +23,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-corretor}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-corretor} -d ${DB_NAME:-corretor_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,6 +79,6 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: corretor_tunnel
     restart: unless-stopped
-    command: tunnel --url http://host.docker.internal:3000
+    command: tunnel --url http://host.docker.internal:3002
     extra_hosts:
       - "host.docker.internal:host-gateway"

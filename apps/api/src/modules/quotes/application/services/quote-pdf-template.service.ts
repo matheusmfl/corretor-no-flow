@@ -67,6 +67,23 @@ function bestInstallment(
   return null;
 }
 
+type Coverage = AutoQuoteData['coverage'];
+
+function hasRcf(rcf: Coverage['rcf']): boolean {
+  if (!rcf) return false;
+  return Boolean(rcf.propertyDamage || rcf.bodilyInjury || rcf.moralDamages || rcf.combinedSingle);
+}
+
+function hasApp(app: Coverage['app']): boolean {
+  if (!app) return false;
+  return Boolean((app.death ?? 0) > 0 || (app.disability ?? 0) > 0 || (app.medical ?? 0) > 0 || app.passengerCount);
+}
+
+function hasAssist(assist: Coverage['assistance']): boolean {
+  if (!assist) return false;
+  return Boolean(assist.towing || assist.glassProtection || assist.replacementVehicle);
+}
+
 // Gera cores derivadas (brand-light e brand-mid) a partir da cor brand em hex
 function deriveColors(brand: string): { light: string; mid: string } {
   // Converte hex → rgb para interpolação manual
@@ -805,9 +822,9 @@ body {
   <div class="section">
     <div class="section-title">Coberturas contratadas</div>
     ${vehicleGroup}
-    ${rcfGroup}
-    ${appGroup}
-    ${assistGroup}
+    ${hasRcf(rcf) ? rcfGroup : ''}
+    ${hasApp(app) ? appGroup : ''}
+    ${hasAssist(assist) ? assistGroup : ''}
   </div>
 
   <!-- FRANQUIAS POR ITEM -->

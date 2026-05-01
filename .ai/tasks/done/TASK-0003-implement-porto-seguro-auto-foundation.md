@@ -1,7 +1,7 @@
 ---
 id: TASK-0003
 title: Implementar base Porto Seguro AUTO
-status: todo
+status: done
 kind: implementation
 lifecycle: closed
 area: api

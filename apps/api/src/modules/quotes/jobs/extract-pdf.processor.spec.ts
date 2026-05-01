@@ -69,7 +69,7 @@ describe('ExtractPdfProcessor', () => {
     expect(mockParseAutoQuoteData).toHaveBeenCalledWith(rawAiData);
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
-      data: { rawText, extractedData: parsedData, status: QuoteStatus.PENDING_REVIEW, name: 'Bradesco' },
+      data: { rawText, extractedData: parsedData, status: QuoteStatus.PENDING_REVIEW, name: expect.stringMatching(/^Bradesco.*1[.,]200/) },
       select: { processId: true },
     });
   });
@@ -182,6 +182,26 @@ describe('ExtractPdfProcessor', () => {
           data: expect.objectContaining({ name: expect.stringContaining('Porto Seguro') }),
         }),
       );
+    });
+
+    it('label nao inclui Compreensiva como tipo de franquia', async () => {
+      const portoDataCompreensiva = {
+        vehicle: { model: 'JEEP COMPASS' },
+        coverage: { vehicle: { deductibleType: 'Compreensiva', deductible: 6205 } },
+        premium: { total: 4226.40 },
+      };
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue(rawAiData);
+      mockParseAutoQuoteData.mockReturnValue(portoDataCompreensiva);
+
+      await processor.process(makeJob(portoJobData));
+
+      const call = prisma.quote.update.mock.calls.find((c) =>
+        (c[0].data as any).status === QuoteStatus.PENDING_REVIEW,
+      );
+      const name: string = (call![0].data as any).name;
+      expect(name).not.toContain('Compreensiva');
+      expect(name).toContain('Porto Seguro');
     });
 
     it('substitui paymentMethods no payload antes de chamar parseAutoQuoteData', async () => {

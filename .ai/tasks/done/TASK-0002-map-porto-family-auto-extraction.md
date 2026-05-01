@@ -1,9 +1,9 @@
 ---
 id: TASK-0002
 title: Mapear estrategia de extracao AUTO familia Porto
-status: todo
+status: done
 kind: discovery
-lifecycle: open
+lifecycle: closed
 area: product
 owner: codex
 reviewer: human
@@ -14,6 +14,12 @@ created_at: 2026-04-30
 ---
 
 # TASK-0002 - Mapear estrategia de extracao AUTO familia Porto
+
+## Status
+
+Discovery principal concluido em `.ai/discovery/PORTO-FAMILY-AUTO.md`.
+
+A primeira fatia Porto Seguro foi definida e desdobrada nas tasks `TASK-0013` ate `TASK-0017`. A validacao de Itau, Sompo e Azul permanece dependente de PDFs reais futuros e deve virar discovery/task separada quando houver amostras.
 
 ## Context
 
@@ -49,10 +55,10 @@ No backend implementation in this task. Future backend tasks must use TDD.
 
 ## Acceptance Criteria
 
-- [ ] A mapping document exists for Porto-family AUTO.
-- [ ] Required sample PDFs are listed.
-- [ ] Shared vs insurer-specific extraction rules are identified.
-- [ ] First Porto Seguro implementation task can be written without strategic ambiguity.
+- [x] A mapping document exists for Porto-family AUTO.
+- [x] Required sample PDFs are listed.
+- [x] Shared vs insurer-specific extraction rules are identified.
+- [x] First Porto Seguro implementation task can be written without strategic ambiguity.
 
 ## Risks
 
@@ -64,5 +70,5 @@ Claude implements Porto as a one-off parser, then Itau/Sompo/Azul duplicate logi
 
 ## Human QA Checklist
 
-- [ ] Human confirms whether the listed sample PDFs are available.
-- [ ] Human confirms Porto Seguro is still the first target.
+- [x] Human confirms whether the listed sample PDFs are available.
+- [x] Human confirms Porto Seguro is still the first target.

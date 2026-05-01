@@ -8,6 +8,7 @@ import { AiService } from '../../ai/ai.service';
 import { parseAutoQuoteData } from '../domain/schemas/auto-quote.schema';
 import { parseBradescoPaymentTable } from '../application/services/bradesco-payment-parser';
 import { parsePortoPaymentTable } from '../application/services/porto-payment-parser';
+import { UNRELIABLE_DEDUCTIBLE_TYPES } from '../application/services/quote-filename';
 import { QUEUE_NAMES } from '../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../queue/queue.types';
 import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
@@ -29,13 +30,14 @@ const INSURER_SHORT: Record<string, string> = {
 
 function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQuoteData): string {
   const base = INSURER_SHORT[insurer] ?? insurer;
-  const type  = data.coverage?.vehicle?.deductibleType;
-  const value = data.coverage?.vehicle?.deductible;
+  const rawType = data.coverage?.vehicle?.deductibleType;
+  const type = rawType && !UNRELIABLE_DEDUCTIBLE_TYPES.has(rawType) ? rawType : undefined;
+  const premiumTotal = data.premium?.total;
 
   const parts = [base];
   if (type) parts.push(type);
-  if (value != null) {
-    const formatted = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  if (premiumTotal != null) {
+    const formatted = premiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     parts.push(`(${formatted})`);
   }
   return parts.join(' — ');

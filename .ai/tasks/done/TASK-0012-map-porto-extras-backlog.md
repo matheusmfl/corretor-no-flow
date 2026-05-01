@@ -1,7 +1,7 @@
 ---
 id: TASK-0012
 title: Mapear extras Porto para backlog posterior
-status: todo
+status: done
 kind: discovery
 lifecycle: closed
 area: product
@@ -64,10 +64,10 @@ No code in this task.
 
 ## Acceptance Criteria
 
-- [ ] Porto extras backlog document exists.
-- [ ] Each extra is categorized as core now, broker review, client output, future tier, or ignore.
-- [ ] Each extra has a short reason.
-- [ ] Follow-up implementation tasks can be created later.
+- [x] Porto extras backlog document exists.
+- [x] Each extra is categorized as core now, broker review, client output, future tier, or ignore.
+- [x] Each extra has a short reason.
+- [x] Follow-up implementation tasks can be created later.
 
 ## Risks
 
