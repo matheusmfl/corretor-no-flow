@@ -67,6 +67,25 @@ Se o PDF contem `Porto` e `Itau`, e `Itau` aparece como seguradora/produto/cabec
 
 `Porto` nesse caso deve ser tratado como sinal de grupo/template, nao como seguradora final.
 
+Observacoes coletadas em QA/discovery:
+
+- Porto, Azul, Itau e Mitsui podem compartilhar um core de documento muito parecido, especialmente no orcamento reduzido.
+- A headline e o nome do produto comercial podem ser sinais mais importantes que mencoes soltas de `Porto`.
+- Exemplos de produto/headline observados:
+  - `Azul Tradicional e Protecao Combinada`
+  - `Auto Senior e Protecao Combinada`
+  - `Itau Seguro Auto Compacto`
+  - `Alternativo`
+  - `Incendio e Furto/Roubo`
+- Porto pode aparecer em logomarca/cabecalho ou em metodos de pagamento como `Porto Bank`; isso nao deve, sozinho, decidir a seguradora.
+- No PDF completo, a Porto pode trazer mais beneficios, servicos, coberturas adicionais, descontos e ate cobertura residencial agregada. Esses blocos ajudam a explicar o produto, mas nao devem mascarar a seguradora emissora.
+
+Impacto para parser/review:
+
+- Ausencia de RCF, Casco ou franquia pode ser esperada em produtos reduzidos, compacto, roubo/furto/incendio ou perda total.
+- O sistema deve diferenciar `nao contratado`, `nao aplicavel ao produto` e `nao encontrado no PDF`.
+- Produtos como `Itau Seguro Auto Compacto` precisam de label explicativa para o corretor/cliente, por exemplo quando pagam percentual reduzido da FIPE.
+
 ### Familia Allianz/Aliro
 
 Se o PDF contem `Allianz` e `Aliro`, e `Aliro` aparece como seguradora/produto/cabecalho forte, detectar `ALIRO`.
@@ -113,4 +132,3 @@ Implementar o fluxo em duas tasks:
 
 1. Backend: deteccao conservadora de seguradora e criacao/roteamento de quotes por PDF.
 2. Frontend: upload unico multi-PDF com revisao de deteccao antes do processamento final.
-

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Insurer, InsuranceProduct } from '@corretor/types'
+import type { InsuranceProduct } from '@corretor/types'
 import { useCreateProcess } from '@/hooks/quotes/use-create-process'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -14,17 +14,6 @@ const PRODUCTS: { value: InsuranceProduct; label: string; available: boolean }[]
   { value: 'LIFE',     label: 'Vida',         available: false },
   { value: 'TRAVEL',   label: 'Viagem',       available: false },
   { value: 'BUSINESS', label: 'Empresarial',  available: false },
-]
-
-const INSURERS: { value: Insurer; label: string }[] = [
-  { value: 'BRADESCO',     label: 'Bradesco Seguros' },
-  { value: 'PORTO_SEGURO', label: 'Porto Seguro'     },
-  { value: 'TOKIO_MARINE', label: 'Tokio Marine'     },
-  { value: 'SULAMERICA',   label: 'SulAmérica'       },
-  { value: 'SUHAI',        label: 'Suhai'            },
-  { value: 'ALIRO',        label: 'Aliro'            },
-  { value: 'ALLIANZ',      label: 'Allianz'          },
-  { value: 'YELLOW',       label: 'Yellow'           },
 ]
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
@@ -55,22 +44,9 @@ export default function NewQuotePage() {
   const createProcess = useCreateProcess()
 
   const [product, setProduct] = useState<InsuranceProduct>('AUTO')
-  const [selectedInsurers, setSelectedInsurers] = useState<Insurer[]>([])
-
-  function toggleInsurer(insurer: Insurer) {
-    setSelectedInsurers((prev) =>
-      prev.includes(insurer) ? prev.filter((i) => i !== insurer) : [...prev, insurer],
-    )
-  }
 
   async function handleNext() {
-    if (selectedInsurers.length === 0) return
-
-    const process = await createProcess.mutateAsync({
-      product,
-      insurers: selectedInsurers,
-    })
-
+    const process = await createProcess.mutateAsync({ product, insurers: [] })
     router.push(`/dashboard/quotes/${process.id}/upload`)
   }
 
@@ -115,59 +91,18 @@ export default function NewQuotePage() {
         </div>
       </div>
 
-      {/* Insurer selector */}
-      <div className="rounded-xl bg-white border border-surface-strong p-5 space-y-4">
-        <div>
-          <p className="text-sm font-semibold text-ink">Seguradoras</p>
-          <p className="text-xs text-ink-muted mt-0.5">
-            Selecione uma ou mais para comparar
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {INSURERS.map(({ value, label }) => {
-            const checked = selectedInsurers.includes(value)
-            return (
-              <button
-                key={value}
-                onClick={() => toggleInsurer(value)}
-                className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium transition-all text-left ${
-                  checked
-                    ? 'border-mahogany bg-mahogany/5 text-mahogany ring-1 ring-mahogany'
-                    : 'border-surface-strong bg-white text-ink hover:border-mahogany/40 hover:bg-surface/50'
-                }`}
-              >
-                {/* Checkbox visual */}
-                <span
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-                    checked
-                      ? 'border-mahogany bg-mahogany'
-                      : 'border-surface-strong bg-white'
-                  }`}
-                >
-                  {checked && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path
-                        d="M1 4L3.5 6.5L9 1"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </span>
-                {label}
-              </button>
-            )
-          })}
-        </div>
-
-        {selectedInsurers.length > 0 && (
-          <p className="text-xs text-ink-muted">
-            {selectedInsurers.length} seguradora{selectedInsurers.length > 1 ? 's' : ''} selecionada{selectedInsurers.length > 1 ? 's' : ''}
-          </p>
-        )}
+      {/* Info */}
+      <div className="rounded-xl bg-surface/60 border border-surface-strong px-5 py-4 flex items-start gap-3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className="text-ink-muted mt-0.5 shrink-0">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <p className="text-xs text-ink-muted leading-relaxed">
+          A seguradora será detectada automaticamente a partir do PDF. Você poderá confirmar antes do processamento.
+        </p>
       </div>
 
       {/* Actions */}
@@ -181,7 +116,7 @@ export default function NewQuotePage() {
 
         <button
           onClick={handleNext}
-          disabled={selectedInsurers.length === 0 || createProcess.isPending}
+          disabled={createProcess.isPending}
           className="rounded-lg bg-ember px-5 py-2.5 text-sm font-semibold text-white hover:bg-ember-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {createProcess.isPending ? 'Criando…' : 'Próximo'}

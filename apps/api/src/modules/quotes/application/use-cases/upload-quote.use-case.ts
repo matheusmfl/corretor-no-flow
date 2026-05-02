@@ -16,7 +16,7 @@ export class UploadQuoteUseCase {
         clientName: dto.clientName ?? null,
         clientPhone: dto.clientPhone ?? null,
         quotes: {
-          create: dto.insurers.map((insurer) => ({
+          create: (dto.insurers ?? []).map((insurer) => ({
             insurer,
             status: QuoteStatus.PENDING,
           })),

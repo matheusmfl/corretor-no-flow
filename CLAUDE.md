@@ -18,6 +18,31 @@ Corretor no Flow is a SaaS for insurance brokers. It turns insurer quote PDFs in
 
 Markdown tasks are the source of truth. The HTML Kanban in `.ai/kanban/index.html` is only a visual aid.
 
+## Task, Review, and QA Hygiene
+
+Task files are product memory, not just execution notes. When updating a task:
+
+- Do not erase, rewrite, or mark Codex review findings / human QA findings as fixed unless the implementation fully addresses the exact reported behavior.
+- If you believe a finding is fixed, add a new section such as `Fix attempt`, `Implementation notes`, or `Ready for re-review`; keep the original finding text visible for traceability.
+- If Codex or human QA says the fix is incomplete, do not change the task to imply completion. Add `Review findings pending` or `QA failed` notes and keep the task in `.ai/tasks/review`.
+- Do not move a task to `.ai/tasks/qa` until all Codex P0/P1/P2 findings are resolved in code and documented with the concrete behavior changed.
+- Do not move a task to `.ai/tasks/done`; done is accepted by the human/Codex review flow, not by the implementation agent.
+
+When responding to review findings:
+
+- Address the full user-observed scenario, not just the narrow symptom named in the first sentence.
+- Before saying "fixed", replay the scenario mentally against the code path and check whether other persisted states still reproduce it.
+- If the review asks for a product decision or there are multiple valid strategies, stop and document options instead of choosing silently.
+- A confidence downgrade is not the same as a block. If a known unsupported or wrong-product file can still be manually confirmed into a supported insurer, the unsafe path is still open.
+- Prefer adding targeted tests for the failing scenario. For backend fixes, tests are mandatory unless clearly impossible.
+
+Example:
+
+```txt
+Bad: "FAILED quotes are fixed because deleteMany({ status: FAILED }) runs before upload."
+Good: "FAILED quotes are removed, but existing READY/PENDING_REVIEW/PROCESSING quotes still remain in the process. The original QA scenario is not fully fixed until the new-batch behavior is defined and implemented."
+```
+
 ## Mandatory Backend Rule: TDD
 
 All backend development must follow TDD.

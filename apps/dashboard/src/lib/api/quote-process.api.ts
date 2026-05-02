@@ -1,5 +1,7 @@
 import type {
   CreateQuoteProcessDto,
+  DetectInsurerResponse,
+  Insurer,
   ListProcessesQuery,
   QuoteProcess,
   QuoteProcessDetail,
@@ -42,6 +44,27 @@ export const quoteProcessApi = {
 
   publishProcess(processId: string): Promise<{ publicToken: string; publicUrl: string; expiresAt: string }> {
     return apiClient.post(`/api/quotes/${processId}/publish`)
+  },
+
+  detectInsurer(file: File): Promise<DetectInsurerResponse> {
+    const form = new FormData()
+    form.append('file', file)
+    return apiClient.post('/api/quotes/detect-insurer', form)
+  },
+
+  resetBatch(processId: string): Promise<{ deleted: number }> {
+    return apiClient.post(`/api/quotes/${processId}/reset-batch`)
+  },
+
+  uploadAuto(
+    processId: string,
+    insurer: Insurer,
+    file: File,
+  ): Promise<{ quoteId: string; processId: string; status: 'queued' }> {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('insurer', insurer)
+    return apiClient.post(`/api/quotes/${processId}/upload-auto`, form)
   },
 
   cancel(id: string): Promise<QuoteProcess> {

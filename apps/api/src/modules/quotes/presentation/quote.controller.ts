@@ -18,6 +18,7 @@ import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
+import { unlink } from 'node:fs';
 import { buildQuotePdfFilename } from '../application/services/quote-filename';
 import * as crypto from 'crypto';
 import {
@@ -43,6 +44,9 @@ import { SubmitQuoteForProcessingUseCase } from '../application/use-cases/submit
 import { GeneratePdfUseCase } from '../application/use-cases/generate-pdf.use-case';
 import { GenerateLinkUseCase } from '../application/use-cases/generate-link.use-case';
 import { GetProcessMetricsUseCase } from '../application/use-cases/get-process-metrics.use-case';
+import { DetectInsurerUseCase } from '../application/use-cases/detect-insurer.use-case';
+import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quote.use-case';
+import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
 
 const pdfStorage = diskStorage({
   destination: './uploads',
@@ -66,6 +70,9 @@ export class QuoteController {
     private readonly generatePdf: GeneratePdfUseCase,
     private readonly generateLink: GenerateLinkUseCase,
     private readonly getProcessMetrics: GetProcessMetricsUseCase,
+    private readonly detectInsurer: DetectInsurerUseCase,
+    private readonly uploadAutoQuote: UploadAutoQuoteUseCase,
+    private readonly resetQuoteBatch: ResetQuoteBatchUseCase,
   ) {}
 
   @Post()
@@ -157,6 +164,56 @@ export class QuoteController {
   @ApiOperation({ summary: 'Gera link público para o segurado visualizar as cotações' })
   publish(@CurrentUser() user: { companyId: string }, @Param('id') id: string) {
     return this.generateLink.execute(user.companyId, id);
+  }
+
+  @Post('detect-insurer')
+  @HttpCode(200)
+  @UseInterceptors(FileInterceptor('file', { storage: pdfStorage }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Detecta a seguradora emissora de um PDF AUTO antes de criar a cotação' })
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
+  async detectInsurerFromPdf(
+    @CurrentUser() _user: { companyId: string },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo PDF é obrigatório');
+    try {
+      return await this.detectInsurer.execute(file.path);
+    } finally {
+      unlink(file.path, () => {/* descarte silencioso: PII não deve persistir */});
+    }
+  }
+
+  @Post(':processId/reset-batch')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Remove todas as cotações do processo antes de iniciar novo lote de upload' })
+  resetBatch(
+    @CurrentUser() user: { companyId: string },
+    @Param('processId') processId: string,
+  ) {
+    return this.resetQuoteBatch.execute(user.companyId, processId);
+  }
+
+  @Post(':processId/upload-auto')
+  @HttpCode(202)
+  @UseInterceptors(FileInterceptor('file', { storage: pdfStorage }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload PDF com seguradora confirmada — cria quote e enfileira processamento' })
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' }, insurer: { type: 'string' } } } })
+  async uploadAuto(
+    @CurrentUser() user: { companyId: string },
+    @Param('processId') processId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('insurer') insurer: string,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo PDF é obrigatório');
+    try {
+      if (!insurer) throw new BadRequestException('Seguradora é obrigatória');
+      return await this.uploadAutoQuote.execute(user.companyId, processId, insurer as any, file.path);
+    } catch (error) {
+      unlink(file.path, () => {});
+      throw error;
+    }
   }
 
   @Post(':processId/quotes/:quoteId/upload')

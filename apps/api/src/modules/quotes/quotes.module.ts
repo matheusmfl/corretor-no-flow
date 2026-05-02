@@ -12,6 +12,9 @@ import { ExtractPdfProcessor } from './jobs/extract-pdf.processor';
 import { GeneratePdfUseCase } from './application/use-cases/generate-pdf.use-case';
 import { GenerateLinkUseCase } from './application/use-cases/generate-link.use-case';
 import { GetProcessMetricsUseCase } from './application/use-cases/get-process-metrics.use-case';
+import { DetectInsurerUseCase } from './application/use-cases/detect-insurer.use-case';
+import { UploadAutoQuoteUseCase } from './application/use-cases/upload-auto-quote.use-case';
+import { ResetQuoteBatchUseCase } from './application/use-cases/reset-quote-batch.use-case';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -32,6 +35,9 @@ import { AiModule } from '../ai/ai.module';
     GeneratePdfUseCase,
     GenerateLinkUseCase,
     GetProcessMetricsUseCase,
+    DetectInsurerUseCase,
+    UploadAutoQuoteUseCase,
+    ResetQuoteBatchUseCase,
     ExtractPdfProcessor,
   ],
 })

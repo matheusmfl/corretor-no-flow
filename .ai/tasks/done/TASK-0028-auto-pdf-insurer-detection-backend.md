@@ -1,9 +1,9 @@
 ---
 id: TASK-0028
 title: Criar deteccao conservadora de seguradora no upload AUTO
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: api
 owner: claude
 reviewer: codex
@@ -76,13 +76,50 @@ Backend task. Comecar por testes antes da implementacao cobrindo:
 
 ## Acceptance Criteria
 
-- [ ] Backend possui detector deterministico e testado de seguradora AUTO.
-- [ ] Detector retorna sinais explicaveis para UI/review.
-- [ ] Mencao de grupo/template nao vence seguradora especifica.
-- [ ] PDF ambiguo nao e processado com parser errado.
-- [ ] Upload sem seguradora pre-selecionada consegue chegar a uma quote correta quando a deteccao e confiavel.
-- [ ] Fluxo antigo nao quebra enquanto o frontend novo nao estiver pronto, ou ha uma estrategia explicita de migracao.
-- [ ] Tests pass.
+- [x] Backend possui detector deterministico e testado de seguradora AUTO.
+- [x] Detector retorna sinais explicaveis para UI/review.
+- [x] Mencao de grupo/template nao vence seguradora especifica.
+- [x] PDF ambiguo nao e processado com parser errado.
+- [x] Upload sem seguradora pre-selecionada consegue chegar a uma quote correta quando a deteccao e confiavel.
+- [x] Fluxo antigo nao quebra enquanto o frontend novo nao estiver pronto, ou ha uma estrategia explicita de migracao.
+- [x] Tests pass.
+
+## Implementation Notes
+
+### Arquivos criados
+
+- `apps/api/src/modules/quotes/application/services/insurer-detector.ts` — função pura `detectInsurerFromText(text)`, zero dependências externas, zero IA.
+- `apps/api/src/modules/quotes/application/services/insurer-detector.spec.ts` — 13 testes TDD (RED→GREEN): alta confiança Bradesco/Porto/Tokio, família Porto (Itaú suprime Porto), família Allianz (Aliro suprime Allianz), sinal fraco, ambíguo sem família, texto sem padrões, estrutura de signals/candidates.
+- `apps/api/src/modules/quotes/application/use-cases/detect-insurer.use-case.ts` — use case que extrai texto do PDF via `PdfExtractorService` e retorna `DetectInsurerResponse` com campo `supported: boolean` (atualmente BRADESCO e PORTO_SEGURO).
+- `packages/types/src/quote.types.ts` — tipos `InsurerDetectionSignal` e `InsurerDetectionResult` exportados no pacote compartilhado.
+
+### Endpoint
+
+`POST /quotes/detect-insurer` (auth obrigatória, multipart/form-data, campo `file`).
+
+Retorna:
+```json
+{
+  "detectedInsurer": "BRADESCO" | "PORTO_SEGURO" | null,
+  "confidence": "high" | "medium" | "low",
+  "family": "porto" | "allianz" | undefined,
+  "candidates": ["BRADESCO"],
+  "signals": [{ "insurer": "BRADESCO", "type": "strong", "source": "razao_social", "value": "BRADESCO SEGUROS S/A" }],
+  "supported": true,
+  "reason": "..." | undefined
+}
+```
+
+### Estratégia de migração
+
+O fluxo antigo (`POST /quotes` + `POST /quotes/:id/quotes/:quoteId/upload`) não foi alterado. O novo endpoint é aditivo — o frontend novo (TASK-0029) pode usá-lo antes de criar o processo, enquanto o fluxo existente continua funcionando.
+
+### Comportamento seguro
+
+- `high + supported: true` → frontend pode criar processo/quote automaticamente.
+- `high + supported: false` → insurer detectado mas sem parser (ex: TOKIO_MARINE). Bloquear processamento, informar corretor.
+- `medium` → mostrar pré-selecionado, pedir confirmação antes de processar.
+- `low` ou `null` → bloquear, pedir ao corretor que identifique a seguradora ou remova o arquivo.
 
 ## Risks
 

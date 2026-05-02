@@ -56,7 +56,7 @@ export interface ListProcessesQuery {
 
 export interface CreateQuoteProcessDto {
   product: InsuranceProduct
-  insurers: Insurer[]
+  insurers?: Insurer[]
   clientName?: string
   clientPhone?: string
 }

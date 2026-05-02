@@ -8,10 +8,11 @@ export class CreateQuoteProcessDto implements ICreateQuoteProcessDto {
   @IsEnum(InsuranceProduct)
   product: InsuranceProduct;
 
-  @ApiProperty({ enum: Insurer, isArray: true, description: 'Seguradoras selecionadas' })
+  @ApiPropertyOptional({ enum: Insurer, isArray: true, description: 'Seguradoras pré-selecionadas (opcional no fluxo com detecção automática)' })
+  @IsOptional()
   @IsArray()
   @IsEnum(Insurer, { each: true })
-  insurers: Insurer[];
+  insurers?: Insurer[];
 
   @ApiPropertyOptional({ description: 'Nome do cliente' })
   @IsOptional()

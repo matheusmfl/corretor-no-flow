@@ -2,11 +2,11 @@
 id: TASK-0004
 title: Adicionar destaques de comparacao no link publico
 status: todo
-kind: implementation
+kind: discovery
 lifecycle: open
-area: dashboard
-owner: claude
-reviewer: codex
+area: product
+owner: codex
+reviewer: human
 complexity: medium
 risk: medium
 tdd_required: false
@@ -19,41 +19,47 @@ created_at: 2026-04-30
 
 The public link currently shows quote cards. It should become more useful for conversion by highlighting comparison points without making unsafe absolute recommendations.
 
+This task was originally written as an implementation task, but it still contains product decisions. It should now be treated as discovery before Claude implements frontend changes.
+
 ## Objective
 
-Show a "Destaques da comparacao" section on the public quote page for AUTO processes.
+Define a safe comparison-highlight contract for AUTO public links and prepare one or more small implementation tasks.
 
 ## Scope
 
-- Compare ready quotes in a process.
-- Highlight lower annual premium.
-- Highlight better installment option when available.
-- Highlight deductible, RCF, towing/assistance, and replacement car when available.
-- Group quotes from the same insurer when there are multiple franchise options.
-- Keep WhatsApp as the primary CTA.
+- Fill `.ai/discovery/PUBLIC-LINK-COMPARISON-HIGHLIGHTS.md`.
+- Define which fields enter the first V1 of comparison highlights.
+- Define safe wording for each highlight.
+- Define behavior for one quote, multiple insurers, and multiple franchise options from the same insurer.
+- Define how missing/incomplete fields should be handled.
+- Decide whether coverage richness depends on `TASK-0022`.
+- Produce a follow-up implementation task only after the rules are clear.
 
 ## Out Of Scope
 
+- Do not implement frontend changes in this task.
 - Do not implement AI recommendations.
 - Do not claim one quote is the best overall.
 - Do not change backend extraction.
 
 ## Likely Files
 
-- `apps/dashboard/src/app/(public)/c/[token]/page.tsx`
-- `packages/types/src/quote.types.ts`
+- `.ai/discovery/PUBLIC-LINK-COMPARISON-HIGHLIGHTS.md`
+- `.ai/discovery/AUTOQUOTE-EXTRAS-CONTRACT.md`
+- `.ai/discovery/PORTO-FAMILY-AUTO.md`
+- `.ai/tasks/todo/**`
 
 ## TDD Requirement
 
-Frontend task. Unit tests are optional unless comparison helpers are extracted.
+No implementation in this task.
 
 ## Acceptance Criteria
 
-- [ ] Public AUTO link shows "Destaques da comparacao".
-- [ ] Highlights use safe language.
-- [ ] Works with one quote without awkward comparison text.
-- [ ] Works with multiple quotes from the same insurer.
-- [ ] Existing Bradesco public link remains usable.
+- [ ] Discovery document defines first V1 comparison fields.
+- [ ] Discovery document defines safe client-facing wording.
+- [ ] One-quote and multiple-quote behaviors are clear.
+- [ ] Multiple options from the same insurer are handled conceptually.
+- [ ] Follow-up implementation task can be written without product ambiguity.
 
 ## Risks
 
@@ -65,7 +71,5 @@ The page says a quote is "the best" even though it is only cheapest, leading the
 
 ## Human QA Checklist
 
-- [ ] Open a public link with one quote.
-- [ ] Open a public link with two or more quotes.
-- [ ] Confirm WhatsApp button remains prominent.
-- [ ] Confirm comparison wording feels helpful but not absolute.
+- [ ] Human confirms the selected comparison fields are commercially useful.
+- [ ] Human confirms wording is safe and not too assertive.

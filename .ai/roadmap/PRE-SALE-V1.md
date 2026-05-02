@@ -26,7 +26,7 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 
 ### Group B - Conversion Public Link
 
-- Add comparison highlights to the public link.
+- Define safe comparison highlights before implementing them in the public link.
 - Use safe language such as "Destaques da comparacao".
 - Compare price, installment, deductible, RCF, assistance, towing, and replacement car when available.
 - Keep WhatsApp as the primary call to action.
@@ -35,7 +35,7 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 
 - Keep current session tracking as the base.
 - Add higher-value events such as full quote open, return visit, order of quote viewing, time by insurer, PDF download, and WhatsApp intent.
-- Score is deterministic at first: cold, warm, hot.
+- Score is deterministic at first: cold, warm, hot, but the first rule set must be defined before implementation.
 - Insights should be simple and useful: likely price interest, likely coverage interest, top insurer, and suggested approach moment.
 
 ### Group D - Sales Outcome And Renewal Agenda
@@ -65,14 +65,15 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 4. `TASK-0015` - Implement Porto core AUTO extraction.
 5. `TASK-0016` - Integrate Porto in async processing flow.
 6. `TASK-0017` - Validate review, PDF, and public link with Porto.
-7. `TASK-0004` - Add comparison highlights to public link.
-8. `TASK-0005` - Add rule-based commercial score.
-9. `TASK-0006` - Add sales outcome and renewal agenda foundation.
-10. `TASK-0007` - Complete Health mapping document.
-11. `TASK-0008` - Keep post-sale and prospecting discovery separate.
-12. `TASK-0009` - Map Bradesco renewal, bonus, and vehicle usage fields.
-13. `TASK-0010` - Generate Porto coverage variation quotes.
-14. `TASK-0011` - Design AutoQuoteData insurer extras contract.
-15. `TASK-0012` - Map Porto extras backlog.
-16. `TASK-0028` - Create conservative AUTO PDF insurer detection in backend.
-17. `TASK-0029` - Replace per-insurer upload cards with a single multi-PDF upload review flow.
+7. `TASK-0028` - Create conservative AUTO PDF insurer detection in backend.
+8. `TASK-0029` - Replace per-insurer upload cards with a single multi-PDF upload review flow.
+9. `TASK-0004` - Discover safe comparison highlights for the public link.
+10. `TASK-0005` - Discover rule-based commercial score v0.
+11. `TASK-0006` - Add sales outcome and renewal agenda foundation.
+12. `TASK-0007` - Complete Health mapping document.
+13. `TASK-0008` - Keep post-sale and prospecting discovery separate.
+14. `TASK-0009` - Map Bradesco renewal, bonus, and vehicle usage fields.
+15. `TASK-0010` - Generate Porto coverage variation quotes.
+16. `TASK-0011` - Design AutoQuoteData insurer extras contract.
+17. `TASK-0012` - Map Porto extras backlog.
+18. `TASK-0030` - Collect and extract future insurer PDF samples.

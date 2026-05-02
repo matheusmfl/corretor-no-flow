@@ -108,6 +108,30 @@ export interface AutoQuoteData {
   }>
 }
 
+// ─── Insurer detection ────────────────────────────────────────────────────────
+
+export interface InsurerDetectionSignal {
+  insurer: string
+  type: 'strong' | 'medium' | 'weak'
+  source: string
+  value: string
+}
+
+export interface InsurerDetectionResult {
+  detectedInsurer: Insurer | null
+  confidence: 'high' | 'medium' | 'low'
+  family?: string
+  /** True when the file is known to not be processable as AUTO (family insurer, wrong product). */
+  notProcessable?: boolean
+  candidates: Insurer[]
+  signals: InsurerDetectionSignal[]
+  reason?: string
+}
+
+export interface DetectInsurerResponse extends InsurerDetectionResult {
+  supported: boolean
+}
+
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
 export interface ReviewQuoteDto {
