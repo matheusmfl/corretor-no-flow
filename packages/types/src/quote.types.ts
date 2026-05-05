@@ -1,5 +1,8 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
+import type { InsuranceProduct } from './company.types'
+export type { InsuranceProduct } from './company.types'
+
 export type Insurer =
   | 'BRADESCO'
   | 'PORTO_SEGURO'
@@ -123,6 +126,10 @@ export interface InsurerDetectionResult {
   family?: string
   /** True when the file is known to not be processable as AUTO (family insurer, wrong product). */
   notProcessable?: boolean
+  /** Detected insurance product/line (AUTO, HEALTH). Null when no clear signal found. */
+  detectedProduct?: InsuranceProduct | null
+  /** Confidence in the product/line detection. */
+  productConfidence?: 'high' | 'medium' | 'low'
   candidates: Insurer[]
   signals: InsurerDetectionSignal[]
   reason?: string

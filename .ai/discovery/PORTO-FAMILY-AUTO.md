@@ -32,8 +32,8 @@ Colocar amostras em `.ai/pdf-lab/input` e extrair com `npm run pdf:extract`.
 
 - [x] PDF de impressao completa
 - [x] PDF de impressao incompleta
-- [ ] AUTO reduzido
-- [ ] AUTO extendido
+- [x] AUTO reduzido
+- [x] AUTO extendido
 - [ ] Franquia reduzida
 - [ ] Franquia normal
 - [ ] Cobertura com vidros/carro reserva
@@ -41,18 +41,18 @@ Colocar amostras em `.ai/pdf-lab/input` e extrair com `npm run pdf:extract`.
 
 ### Itau
 
-- [ ] Pelo menos 1 PDF AUTO
-- [ ] Comparar estrutura com Porto
+- [x] Pelo menos 1 PDF AUTO
+- [x] Comparar estrutura com Porto
 
 ### Sompo
 
-- [ ] Pelo menos 1 PDF AUTO
-- [ ] Comparar estrutura com Porto
+- [x] Pelo menos 1 PDF AUTO via Mitsui Sumitomo
+- [x] Comparar estrutura com Porto
 
 ### Azul
 
-- [ ] Pelo menos 1 PDF AUTO
-- [ ] Comparar estrutura com Porto
+- [x] Pelo menos 1 PDF AUTO
+- [x] Comparar estrutura com Porto
 
 ## Comandos Sugeridos
 
@@ -84,6 +84,109 @@ npm run pdf:extract -- --output-name auto_azul_auto_discovery --insurer azul --v
 - [x] Vidros
 - [ ] Carro reserva
 - [x] Assistencia 24h
+
+## Findings TASK-0030 - Amostras Futuras Extraidas
+
+Data: 2026-05-02.
+
+Outputs gerados:
+
+```txt
+.ai/pdf-lab/output/auto_azul_discovery.md
+.ai/pdf-lab/output/auto_itau_discovery.md
+.ai/pdf-lab/output/auto_mitsui_discovery.md
+.ai/pdf-lab/output/auto_porto_seguro_discovery_0030.md
+```
+
+Arquivos brutos ficaram em `.ai/pdf-lab/input/**`, pasta ignorada pelo Git.
+
+### Taxonomia inicial observada
+
+- Porto Seguro:
+  - `auto_porto_seguro_compreensiva_completo.pdf`
+  - `auto_porto_seguro_compreensiva_reduzido.pdf`
+  - `auto_porto_seguro_incendio_roubo_furto_completo.pdf`
+- Azul:
+  - `auto_azul_compreensiva_completo.pdf`
+  - `auto_azul_compreensiva_reduzido.pdf`
+  - `auto_azul_incendio_roubo_furto_completo.pdf`
+  - `auto_azul_incendio_roubo_furto_reduzido.pdf`
+- Itau:
+  - `auto_itau_compreensiva_completo.pdf`
+  - `auto_itau_compreensiva_reduzido.pdf`
+  - `auto_itau_assistencia_24h_completo.pdf`
+  - `auto_itau_assistencia_24h_reduzido.pdf`
+  - `auto_itau_compacto_indenizacao_integral_85_fipe_completo.pdf`
+  - `auto_itau_compacto_indenizacao_integral_85_fipe_reduzido.pdf`
+- Mitsui Sumitomo:
+  - `auto_mitsui_compreensiva_completo.pdf`
+  - `auto_mitsui_compreensiva_completo_02.pdf`
+  - `auto_mitsui_compreensiva_reduzido.pdf`
+
+### Observacoes rapidas
+
+- Todas as amostras extraidas parecem AUTO e compartilham estrutura muito proxima da familia Porto.
+- Os PDFs reduzidos trazem menos sinais textuais de marca; o campo de segmento/produto e mais importante que mencoes soltas a Porto.
+- Azul Tradicional aparece como cobertura compreensiva.
+- Azul Auto Roubo aparece como `Incendio, Roubo e Furto`, sem franquia, com percentual de FIPE observado em 90%.
+- Itau Tradicional aparece como cobertura compreensiva.
+- Itau Assistencia 24h parece um produto sem casco tradicional, com foco em reparos/APP/assistencia.
+- Itau Seguro Auto Compacto extraido nesta rodada aparece como `Indenizacao Integral` com 85% da FIPE.
+- Mitsui Sumitomo aparece como cobertura compreensiva e parece reutilizar o mesmo core estrutural.
+- Porto Seguro Incendio/Roubo/Furto aparece como produto sem franquia de casco tradicional.
+
+Implicacao para `TASK-0031`: detector e contrato de coberturas precisam tratar produto comercial e cobertura principal como dimensoes separadas. `Porto Bank`, CNPJ comum, link de grupo ou textos legais nao podem decidir seguradora.
+
+## Refinamento TASK-0031 - Fronteiras De Produto E Seguradora
+
+Data: 2026-05-04.
+
+### Conclusao De Produto
+
+Para a familia Porto, existem pelo menos tres dimensoes que nao devem ser misturadas:
+
+- Seguradora/marca comercial: Porto Seguro, Azul, Itau, Mitsui Sumitomo/Sompo.
+- Produto comercial: Auto Senior, Azul Tradicional, Azul Auto Roubo, Itau Tradicional, Itau Assistencia 24h, Itau Seguro Auto Compacto, Mitsui Sumitomo Seguros e Protecao Combinada.
+- Cobertura principal: compreensiva, incendio/roubo/furto, indenizacao integral, assistencia 24h, RCF sem casco ou outras variacoes.
+
+O detector decide seguradora e ramo. O parser/review interpreta produto e cobertura. A ausencia de uma cobertura nao deve virar erro sem considerar o produto comercial.
+
+### Fronteiras Por Marca Observadas
+
+- Porto Seguro: amostras trazem `Auto Senior e Protecao Combinada`, segmento `Auto Senior`, beneficios Porto, Porto Bank, cobertura residencial combinada e assistencias mais amplas no PDF completo.
+- Azul: amostras trazem `Azul Tradicional e Protecao Combinada` e `Azul Auto Roubo`. Mesmo com CNPJ/template Porto, a frase de licenciamento indica que Azul e marca especifica; deve ser tratada como seguradora/produto separado.
+- Itau: amostras trazem `Itau Tradicional`, `Itau Assistencia 24h` e `Itau Seguro Auto Compacto`. O compacto observado usa percentual reduzido da FIPE, exemplo 85%, e deve receber label explicativa.
+- Mitsui Sumitomo/Sompo: amostras trazem `Mitsui Sumitomo Seguros e Protecao Combinada` e texto de cosseguro com Porto lider. Para o usuario final, exibir Porto como seguradora seria enganoso; enquanto nao houver enum/parser proprio, deve bloquear como reconhecido nao suportado.
+
+### PDF Completo Vs Reduzido
+
+- O PDF reduzido concentra dados gerais, veiculo, segurado, produto/segmento, coberturas principais, descontos, premio e pagamentos.
+- O PDF completo adiciona clausulas, detalhes de franquias, explicacoes de coberturas, beneficios, assistencias e cobertura residencial combinada.
+- Para deteccao, o PDF reduzido pode ser mais arriscado porque traz menos repeticoes de marca; headline/produto/segmento ganham peso maior.
+- Para parser/review, o PDF completo ajuda a explicar ausencias e beneficios, mas nao deve criar campos obrigatorios novos no MVP.
+
+### Semantica De Coberturas Ausentes
+
+A review precisa diferenciar pelo menos:
+
+- `nao contratado`: cobertura existe no produto, mas nao foi escolhida.
+- `nao aplicavel`: cobertura nao faz sentido para aquele produto, como franquia tradicional em produto de roubo/furto/incendio ou perda total.
+- `nao encontrado`: o PDF nao trouxe o dado com confianca suficiente.
+
+Produtos que exigem cuidado:
+
+- `Itau Seguro Auto Compacto`: pode indenizar percentual reduzido da FIPE; nao tratar como erro se for menor que 100%.
+- `Itau Assistencia 24h`: pode nao ter casco tradicional; falta de casco nao e necessariamente falha de extracao.
+- `Azul Auto Roubo` e produtos `Incendio, Roubo e Furto`: podem nao ter franquia de casco tradicional e podem usar percentual FIPE diferente.
+- Produtos com RCF ausente: pode ser opcional nao contratado ou plano sem essa cobertura; precisa label, nao erro silencioso.
+
+### Recomendacao Para Implementacao
+
+- Adicionar detector de produto AUTO com sinais positivos e negativos antes do roteamento para parser.
+- Rebaixar sinais Porto quando headline/produto/segmento apontar Azul, Itau ou Mitsui/Sompo.
+- Retornar resultado explicavel com `detectedProduct`, `productConfidence`, `notProcessable` e `reason` quando o ramo/produto divergir.
+- Manter Azul, Itau e Mitsui/Sompo como reconhecidos mas nao suportados enquanto nao houver parser dedicado e decisao de enum/contrato.
+- Criar estrutura futura de `commercialProduct` e `coverageSemantics` em `AutoQuoteData` para labels de review/public link.
 
 ## Findings Do PDF Lab - Completo vs Incompleto
 

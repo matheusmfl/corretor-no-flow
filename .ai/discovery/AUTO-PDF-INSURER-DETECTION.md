@@ -71,10 +71,15 @@ Observacoes coletadas em QA/discovery:
 
 - Porto, Azul, Itau e Mitsui podem compartilhar um core de documento muito parecido, especialmente no orcamento reduzido.
 - A headline e o nome do produto comercial podem ser sinais mais importantes que mencoes soltas de `Porto`.
+- Amostras extraidas em 2026-05-02 confirmam que os PDFs completos e reduzidos de Azul, Itau, Mitsui e Porto compartilham textos, CNPJ, estrutura, pagamentos Porto Bank e blocos legais parecidos.
 - Exemplos de produto/headline observados:
   - `Azul Tradicional e Protecao Combinada`
+  - `Azul Auto Roubo`
   - `Auto Senior e Protecao Combinada`
+  - `Itau Tradicional`
+  - `Itau Assistencia 24h`
   - `Itau Seguro Auto Compacto`
+  - `Mitsui Sumitomo Seguros e Protecao Combinada`
   - `Alternativo`
   - `Incendio e Furto/Roubo`
 - Porto pode aparecer em logomarca/cabecalho ou em metodos de pagamento como `Porto Bank`; isso nao deve, sozinho, decidir a seguradora.
@@ -85,6 +90,50 @@ Impacto para parser/review:
 - Ausencia de RCF, Casco ou franquia pode ser esperada em produtos reduzidos, compacto, roubo/furto/incendio ou perda total.
 - O sistema deve diferenciar `nao contratado`, `nao aplicavel ao produto` e `nao encontrado no PDF`.
 - Produtos como `Itau Seguro Auto Compacto` precisam de label explicativa para o corretor/cliente, por exemplo quando pagam percentual reduzido da FIPE.
+- Produtos de roubo/furto/incendio podem ter cobertura principal sem franquia e percentual FIPE diferente de 100%.
+- `Itau Assistencia 24h` pode nao ter casco tradicional, portanto nao deve ser tratado como erro automatico de extracao.
+
+#### Matriz De Decisao Observada Em 2026-05-04
+
+As amostras da `TASK-0030` confirmam que a familia Porto compartilha CNPJ, template, pagamentos Porto Bank, textos legais, link de grupo e blocos de beneficio. Esses sinais nao bastam para decidir `PORTO_SEGURO`.
+
+Sinais dominantes por marca/produto:
+
+- `PORTO_SEGURO`: headline/produto `Auto Senior e Protecao Combinada`, texto de solicitacao com `PORTO SEGURO`, segmento `AUTO SENIOR`.
+- `AZUL`: headline/produto `Azul Tradicional e Protecao Combinada` ou `Azul Auto Roubo`, texto `Azul Seguro Auto e uma marca licenciada para uso da Porto Seguro Companhia de Seguros Gerais`, segmento `AZUL TRADICIONAL` ou produto Azul equivalente.
+- `ITAU`: headline/produto `Itau Tradicional`, `Itau Assistencia 24h` ou `Itau Seguro Auto Compacto`; esses produtos podem aparecer no mesmo core de orcamento e devem bloquear roteamento Porto.
+- `MITSUI`: headline/produto `Mitsui Sumitomo Seguros e Protecao Combinada`, texto de cosseguro com Porto lider e Mitsui Sumitomo como cosseguradora; deve ser detectado como Mitsui/Sompo ou como nao processavel, nunca como Porto automatico.
+
+Regra conservadora:
+
+- Quando `Porto`, `Porto Bank`, CNPJ `61.198.164/0001-60` ou `61.198.164.0001/60`, link `portoseguro.com.br`, beneficios Porto ou texto legal de grupo aparecem junto de `Azul`, `Itau`, `Mitsui Sumitomo` ou `Sompo` em headline/produto/segmento, a marca especifica vence.
+- Se a marca especifica ainda nao existir no enum/processador, retornar `detectedInsurer: null`, `notProcessable: true`, `family: "porto"` e uma razao clara: seguradora reconhecida mas sem parser suportado.
+- Se houver apenas sinais de grupo/template e nenhum sinal dominante de emissor, retornar baixa confianca e pedir confirmacao humana.
+- `Mitsui Sumitomo` deve entrar como conceito proprio de detector. A relacao comercial observada e cosseguro/operacao com Porto; para o produto, isso nao autoriza usar parser Porto e exibir Porto como seguradora final.
+
+#### Guard De Produto AUTO
+
+O upload de processo `AUTO` deve validar ramo antes de processamento. O detector nao precisa classificar todos os ramos, mas precisa bloquear divergencias obvias.
+
+Sinais fortes de AUTO:
+
+- `Orcamento de Seguro Auto`;
+- `Seguro Auto`;
+- `Coberturas e servicos AUTO`;
+- `Veiculo`, `placa`, `chassi`, `FIPE`, `franquia`, `RCF-V`, `casco`, `colisao`, `incendio`, `roubo` ou `furto` em contexto de veiculo;
+- produto/segmento de portfolio auto como `Auto Senior`, `Azul Tradicional`, `Itau Tradicional`, `Itau Seguro Auto Compacto`, `Mitsui Sumitomo Seguros e Protecao Combinada`.
+
+Sinais fortes de nao AUTO:
+
+- `Plano de Saude`, `Seguro Saude`, `cobertura hospitalar`, `internacao hospitalar`, `consultas medicas`, `rede credenciada`, `reembolso medico`;
+- ramo sem veiculo/placa/chassi/FIPE/franquia de auto.
+
+Comportamento recomendado:
+
+- AUTO forte + seguradora suportada: pode seguir fluxo automatico quando a confianca da seguradora for alta.
+- AUTO forte + seguradora reconhecida mas nao suportada: bloquear processamento e informar seguradora/produto reconhecidos.
+- Nao AUTO forte + qualquer seguradora: bloquear processamento em processo AUTO.
+- AUTO ausente e nenhum ramo divergente forte: media/baixa confianca, pedir confirmacao antes de processar.
 
 ### Familia Allianz/Aliro
 

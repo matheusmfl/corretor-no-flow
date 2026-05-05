@@ -1,9 +1,9 @@
 ---
 id: TASK-0031
 title: Refinar deteccao de produto e fronteiras da familia Porto
-status: todo
+status: review
 kind: discovery
-lifecycle: open
+lifecycle: review
 area: product
 owner: codex
 reviewer: human
@@ -62,12 +62,18 @@ No implementation in this task.
 
 ## Acceptance Criteria
 
-- [ ] Regras conceituais distinguem Porto, Itau e Mitsui/Sompo.
-- [ ] Risco de produto errado, como Saude Bradesco em processo AUTO, esta documentado.
-- [ ] Discovery diferencia PDF reduzido e PDF completo da familia Porto.
-- [ ] Discovery documenta tipos de produto/cobertura que mudam a interpretacao das coberturas.
-- [ ] Recomendacao existe para bloquear ou confirmar produto divergente.
-- [ ] Follow-up tecnico pode ser escrito sem ambiguidade.
+- [x] Regras conceituais distinguem Porto, Itau e Mitsui/Sompo.
+- [x] Risco de produto errado, como Saude Bradesco em processo AUTO, esta documentado.
+- [x] Discovery diferencia PDF reduzido e PDF completo da familia Porto.
+- [x] Discovery documenta tipos de produto/cobertura que mudam a interpretacao das coberturas.
+- [x] Recomendacao existe para bloquear ou confirmar produto divergente.
+- [x] Follow-up tecnico pode ser escrito sem ambiguidade.
+
+## Completion Notes - 2026-05-04
+
+- Atualizado `.ai/discovery/AUTO-PDF-INSURER-DETECTION.md` com matriz conservadora de decisao para familia Porto e guard de produto AUTO.
+- Atualizado `.ai/discovery/PORTO-FAMILY-AUTO.md` com fronteiras entre seguradora, produto comercial e cobertura principal.
+- Criada `TASK-0032-implement-conservative-auto-product-and-family-detector.md` para implementar os ajustes com TDD.
 
 ## Risks
 

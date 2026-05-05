@@ -1,5 +1,5 @@
 import { Insurer } from '@prisma/client';
-import type { InsurerDetectionResult, InsurerDetectionSignal } from '@corretor/types';
+import type { InsuranceProduct, InsurerDetectionResult, InsurerDetectionSignal } from '@corretor/types';
 
 type SignalType = 'strong' | 'medium' | 'weak';
 
@@ -30,10 +30,17 @@ const STRONG_PATTERNS: PatternDef[] = [
   // ITAU: não está no enum Prisma mas é emissor real em PDFs da família Porto
   { insurer: 'ITAU',         source: 'razao_social', pattern: /ita[uú]\s+seguros\s+s\.?\s*\/?\s*a\.?/i },
   { insurer: 'ITAU',         source: 'produto',      pattern: /cota[cç][aã]o\s+ita[uú]/i },
-  { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+auto/i },
+  { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+(?:seguro\s+)?auto/i },
+  { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+(?:tradicional|compacto)/i },
+  { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+assist[eê]ncia/i },
   // MITSUI: não está no enum Prisma mas circula em PDFs da plataforma Porto
   { insurer: 'MITSUI',       source: 'razao_social', pattern: /mitsui\s+sumitomo/i },
   { insurer: 'MITSUI',       source: 'razao_social', pattern: /mitsui\s+seguros/i },
+  // AZUL: marca licenciada Porto — headline/produto específico é sinal dominante
+  { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+tradicional/i },
+  { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+auto\s+roubo/i },
+  { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+seguro\s+auto/i },
+  { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+compacto/i },
 ];
 
 // ── Medium patterns: marca/produto em contexto plausível ─────────────────────
@@ -46,6 +53,8 @@ const MEDIUM_PATTERNS: PatternDef[] = [
   // suprimir detecção de Porto quando o emissor real é da família
   { insurer: 'ITAU',         source: 'marca', pattern: /ita[uú]\s+seguros/i },
   { insurer: 'MITSUI',       source: 'marca', pattern: /\bmitsui\b/i },
+  // Azul: "azul seguros/seguro" como marca em contexto de produto
+  { insurer: 'AZUL',         source: 'marca', pattern: /\bazul\s+seguros?\b/i },
 ];
 
 // ── Regras de família: seguradora específica suprime menção de grupo ──────────
@@ -54,11 +63,13 @@ const MEDIUM_PATTERNS: PatternDef[] = [
 const FAMILY_RULES: Array<{ family: string; specificInsurer: string; groupInsurer: string }> = [
   { family: 'porto',   specificInsurer: 'ITAU',   groupInsurer: 'PORTO_SEGURO' },
   { family: 'porto',   specificInsurer: 'MITSUI',  groupInsurer: 'PORTO_SEGURO' },
+  { family: 'porto',   specificInsurer: 'AZUL',    groupInsurer: 'PORTO_SEGURO' },
   { family: 'allianz', specificInsurer: 'ALIRO',   groupInsurer: 'ALLIANZ' },
 ];
 
 // ── Produto AUTO: keywords que confirmam que o PDF é de automóvel ────────────
 const AUTO_PRODUCT_PATTERNS: RegExp[] = [
+  /or[cç]amento\s+de\s+seguro\s+auto/i,
   /seguro\s+autom[oó]vel/i,
   /seguro\s+auto\b/i,
   /cota[cç][aã]o\s+auto/i,
@@ -66,6 +77,10 @@ const AUTO_PRODUCT_PATTERNS: RegExp[] = [
   /franquia\s+do\s+ve[ií]culo/i,
   /danos?\s+ao\s+ve[ií]culo/i,
   /cobertura\s+casco/i,
+  /\bplaca\b/i,
+  /\bchassi\b/i,
+  /\bfipe\b/i,
+  /\brcf[-\s]?v?\b/i,
 ];
 
 // ── Produto SAÚDE: keywords que indicam ramo saúde, não AUTO ─────────────────
@@ -81,6 +96,28 @@ const HEALTH_PRODUCT_PATTERNS: RegExp[] = [
 
 const PRISMA_INSURERS = new Set<string>(Object.values(Insurer));
 
+function computeProductDetection(text: string): {
+  detectedProduct: InsuranceProduct | null;
+  productConfidence: 'high' | 'medium' | 'low';
+} {
+  const autoMatches = AUTO_PRODUCT_PATTERNS.filter((p) => p.test(text)).length;
+  const healthMatches = HEALTH_PRODUCT_PATTERNS.filter((p) => p.test(text)).length;
+
+  // 2+ sinais de saúde constituem evidência forte o suficiente para dominar
+  // menções isoladas de auto (ex.: rodapé de marketing ou texto genérico).
+  if (healthMatches >= 2) {
+    return { detectedProduct: 'HEALTH', productConfidence: 'high' };
+  }
+  // Sinal único de saúde só vence quando não há nenhum sinal de auto concorrente.
+  if (healthMatches === 1 && autoMatches === 0) {
+    return { detectedProduct: 'HEALTH', productConfidence: 'medium' };
+  }
+
+  if (autoMatches >= 2) return { detectedProduct: 'AUTO', productConfidence: 'high' };
+  if (autoMatches === 1) return { detectedProduct: 'AUTO', productConfidence: 'medium' };
+  return { detectedProduct: null, productConfidence: 'low' };
+}
+
 function collectSignals(text: string, patterns: PatternDef[], type: SignalType): InsurerDetectionSignal[] {
   const found: InsurerDetectionSignal[] = [];
   for (const def of patterns) {
@@ -93,8 +130,11 @@ function collectSignals(text: string, patterns: PatternDef[], type: SignalType):
 }
 
 export function detectInsurerFromText(text: string): InsurerDetectionResult {
-  const hasHealthSignals = HEALTH_PRODUCT_PATTERNS.some((p) => p.test(text));
-  const hasAutoSignals   = AUTO_PRODUCT_PATTERNS.some((p) => p.test(text));
+  const { detectedProduct, productConfidence } = computeProductDetection(text);
+  const productProp = { detectedProduct, productConfidence };
+
+  const hasHealthSignals = detectedProduct === 'HEALTH';
+  const hasAutoSignals   = detectedProduct === 'AUTO';
 
   const rawSignals: InsurerDetectionSignal[] = [
     ...collectSignals(text, STRONG_PATTERNS, 'strong'),
@@ -145,6 +185,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     return {
       detectedInsurer: null,
       confidence: 'low',
+      ...productProp,
       ...familyProp,
       candidates,
       signals,
@@ -157,6 +198,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     return {
       detectedInsurer: null,
       confidence: 'low',
+      ...productProp,
       ...familyProp,
       candidates,
       signals,
@@ -168,11 +210,17 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     const winner = [...strongInsurerSet][0];
 
     if (!PRISMA_INSURERS.has(winner)) {
-      const label = winner === 'ITAU' ? 'Itaú Seguros' : winner === 'MITSUI' ? 'Mitsui Seguros' : winner;
+      const LABEL: Record<string, string> = {
+        ITAU:  'Itaú Seguros',
+        MITSUI: 'Mitsui Seguros',
+        AZUL:  'Azul Seguros',
+      };
+      const label = LABEL[winner] ?? winner;
       return {
         detectedInsurer: null,
         confidence: 'medium',
         notProcessable: true,
+        ...productProp,
         ...familyProp,
         candidates,
         signals,
@@ -186,6 +234,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
         detectedInsurer: winner as Insurer,
         confidence: 'medium',
         notProcessable: true,
+        ...productProp,
         ...familyProp,
         candidates,
         signals,
@@ -196,6 +245,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     return {
       detectedInsurer: winner as Insurer,
       confidence: 'high',
+      ...productProp,
       ...familyProp,
       candidates,
       signals,
@@ -205,20 +255,38 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
   // Only medium signals
   if (mediumInsurerSet.size === 1) {
     const winner = [...mediumInsurerSet][0];
-    if (PRISMA_INSURERS.has(winner)) {
+    if (!PRISMA_INSURERS.has(winner)) {
+      const LABEL: Record<string, string> = {
+        ITAU:  'Itaú Seguros',
+        MITSUI: 'Mitsui Seguros',
+        AZUL:  'Azul Seguros',
+      };
+      const label = LABEL[winner] ?? winner;
       return {
-        detectedInsurer: winner as Insurer,
-        confidence: 'medium',
+        detectedInsurer: null,
+        confidence: 'low',
+        notProcessable: true,
+        ...productProp,
         ...familyProp,
         candidates,
         signals,
+        reason: `${label} reconhecido mas sem parser suportado`,
       };
     }
+    return {
+      detectedInsurer: winner as Insurer,
+      confidence: 'medium',
+      ...productProp,
+      ...familyProp,
+      candidates,
+      signals,
+    };
   }
 
   return {
     detectedInsurer: null,
     confidence: 'low',
+    ...productProp,
     ...familyProp,
     candidates,
     signals,

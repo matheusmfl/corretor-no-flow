@@ -47,6 +47,64 @@ const PORTO_ITAU_MEDIUM_TEXT = `
   Emitido por Itaú Seguros em regime de parceria
 `;
 
+// Azul Tradicional — família Porto com headline de produto Azul
+const PORTO_AZUL_TRADICIONAL_TEXT = `
+  Porto Seguro Companhia de Seguros Gerais
+  CNPJ: 61.198.164.0001/60
+  Azul Tradicional e Proteção Combinada
+  Orçamento de Seguro Auto
+`;
+
+// Azul Auto Roubo — produto incêndio/roubo/furto da Azul
+const PORTO_AZUL_ROUBO_TEXT = `
+  Porto Seguro Companhia de Seguros Gerais
+  CNPJ: 61.198.164.0001/60
+  Azul Auto Roubo
+  Orçamento de Seguro Auto
+`;
+
+// Itaú Seguro Auto Compacto — produto compacto com 85% FIPE
+const PORTO_ITAU_COMPACTO_TEXT = `
+  Porto Seguro Companhia de Seguros Gerais
+  CNPJ: 61.198.164.0001/60
+  Itaú Seguro Auto Compacto
+  Orçamento de Seguro Auto
+`;
+
+// Itaú Assistência 24h — produto sem casco tradicional
+const PORTO_ITAU_ASSISTENCIA_TEXT = `
+  Porto Seguro Companhia de Seguros Gerais
+  CNPJ: 61.198.164.0001/60
+  Itaú Assistência 24h
+  Orçamento de Seguro Auto
+`;
+
+// Texto com sinais fortes de AUTO mas sem seguradora conhecida
+const AUTO_CLEAR_TEXT = `
+  Orçamento de Seguro Auto
+  Veículo: VOLKSWAGEN GOL 1.0
+  Placa: ABC1D23
+  FIPE: 005171-4
+  Franquia do veículo: R$ 3.500,00
+`;
+
+// Texto somente de saúde, sem seguradora identificada
+const HEALTH_ONLY_TEXT = `
+  Plano de Saúde Individual
+  Cobertura hospitalar
+  Consultas médicas e internação hospitalar incluídas
+  Rede credenciada disponível
+`;
+
+// PDF de saúde com menção isolada de "seguro auto" no rodapé (ruído)
+const HEALTH_WITH_AUTO_NOISE_TEXT = `
+  BRADESCO SEGUROS S/A
+  CNPJ 92.693.973/0001-33
+  Plano de Saúde — Cobertura Hospitalar
+  Consultas médicas e internação hospitalar incluídas
+  Veja também: seguro auto particular
+`;
+
 // Bradesco detectado mas PDF é de saúde
 const BRADESCO_SAUDE_TEXT = `
   BRADESCO SEGUROS S/A
@@ -105,6 +163,7 @@ describe('detectInsurerFromText', () => {
       const result = detectInsurerFromText(PORTO_ITAU_MEDIUM_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBe(true);
     });
 
     it('não retorna PORTO_SEGURO quando Mitsui tem sinal forte (família Porto)', () => {
@@ -119,12 +178,48 @@ describe('detectInsurerFromText', () => {
       const result = detectInsurerFromText(PORTO_MITSUI_MEDIUM_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBe(true);
     });
 
     it('detecta ALIRO quando Aliro tem sinal forte e Allianz é menção de grupo (família Allianz)', () => {
       const result = detectInsurerFromText(ALLIANZ_ALIRO_TEXT);
       expect(result.detectedInsurer).toBe('ALIRO');
       expect(result.family).toBe('allianz');
+    });
+  });
+
+  describe('regras de família — Azul', () => {
+    it('não retorna PORTO_SEGURO quando Azul Tradicional aparece como produto (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_AZUL_TRADICIONAL_TEXT);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBe(true);
+    });
+
+    it('não retorna PORTO_SEGURO quando Azul Auto Roubo aparece como produto (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_AZUL_ROUBO_TEXT);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+      expect(result.family).toBe('porto');
+    });
+
+    it('sinais de PORTO_SEGURO são downgraded para weak quando Azul é detectado', () => {
+      const result = detectInsurerFromText(PORTO_AZUL_TRADICIONAL_TEXT);
+      const portoSignals = result.signals.filter((s) => s.insurer === 'PORTO_SEGURO');
+      expect(portoSignals.every((s) => s.type === 'weak')).toBe(true);
+    });
+  });
+
+  describe('regras de família — Itaú headlines', () => {
+    it('não retorna PORTO_SEGURO quando Itaú Seguro Auto Compacto aparece como produto', () => {
+      const result = detectInsurerFromText(PORTO_ITAU_COMPACTO_TEXT);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+      expect(result.family).toBe('porto');
+    });
+
+    it('não retorna PORTO_SEGURO quando Itaú Assistência 24h aparece como produto', () => {
+      const result = detectInsurerFromText(PORTO_ITAU_ASSISTENCIA_TEXT);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+      expect(result.family).toBe('porto');
     });
   });
 
@@ -135,6 +230,37 @@ describe('detectInsurerFromText', () => {
       expect(result.confidence).toBe('medium');
       expect(result.notProcessable).toBe(true);
       expect(result.reason).toMatch(/sa[uú]de/i);
+      expect(result.detectedProduct).toBe('HEALTH');
+    });
+
+    it('bloqueia PDF de saúde mesmo com menção isolada de seguro auto (sinais saúde dominantes)', () => {
+      const result = detectInsurerFromText(HEALTH_WITH_AUTO_NOISE_TEXT);
+      expect(result.notProcessable).toBe(true);
+      expect(result.detectedProduct).toBe('HEALTH');
+      expect(result.reason).toMatch(/sa[uú]de/i);
+    });
+  });
+
+  describe('detectedProduct e productConfidence', () => {
+    it('retorna detectedProduct AUTO com productConfidence high quando múltiplos sinais de veículo presentes', () => {
+      const result = detectInsurerFromText(AUTO_CLEAR_TEXT);
+      expect(result.detectedProduct).toBe('AUTO');
+      expect(result.productConfidence).toBe('high');
+    });
+
+    it('retorna detectedProduct HEALTH quando sinais de saúde presentes e sem sinais AUTO', () => {
+      const result = detectInsurerFromText(HEALTH_ONLY_TEXT);
+      expect(result.detectedProduct).toBe('HEALTH');
+    });
+
+    it('retorna detectedProduct AUTO para Porto Seguro válido', () => {
+      const result = detectInsurerFromText(PORTO_TEXT);
+      expect(result.detectedProduct).toBe('AUTO');
+    });
+
+    it('retorna detectedProduct null para texto sem sinais de produto', () => {
+      const result = detectInsurerFromText('proposta de seguro para veículo');
+      expect(result.detectedProduct).toBeNull();
     });
   });
 
