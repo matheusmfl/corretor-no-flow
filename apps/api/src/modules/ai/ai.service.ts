@@ -84,6 +84,82 @@ Regras importantes:
 - Use exatamente os nomes de campos em inglês conforme especificado`;
 }
 
+function getAzulAutoPrompt(): string {
+  return `Você está analisando uma Cotação de Seguro Auto da Azul Seguro Auto (marca licenciada da Porto Seguro).
+O documento pode ter até 5 páginas. Cotações "resumidas" têm apenas 2 páginas mas contêm todos os dados essenciais.
+
+Extraia TODOS os dados abaixo e retorne EXATAMENTE neste formato JSON (sem campos extras, sem markdown):
+
+{
+  "vehicle": {
+    "plate": "placa do veículo (ex: ABC1D23 — campo 'Placa' ou 'Placa/Chassi')",
+    "model": "marca e modelo completo (ex: JEEP COMPASS SPORT 1.3 T 270 FLEX)",
+    "yearManufacture": ano de fabricação como número inteiro,
+    "yearModel": ano do modelo como número inteiro,
+    "chassis": "número do chassi (campo 'Chassi')",
+    "fipeCode": "código FIPE (campo 'Código FIPE' ou 'Cód. FIPE')",
+    "fipeValue": valor FIPE em reais como número decimal
+  },
+  "driver": {
+    "name": "nome completo do segurado/condutor principal (campo 'Segurado' ou 'Condutor Principal')",
+    "cpf": "CPF com pontuação (campo 'CPF')",
+    "birthDate": "data de nascimento DD/MM/AAAA",
+    "gender": "Masculino ou Feminino",
+    "maritalStatus": "estado civil"
+  },
+  "quoteNumber": "número da cotação (campo 'Cotação' ou 'Número da Cotação')",
+  "insurer": "Azul Seguro Auto",
+  "validFrom": "data de início da vigência DD/MM/AAAA (campo 'Vigência' ou 'Início')",
+  "validUntil": "data de fim da vigência DD/MM/AAAA",
+  "bonusClass": "classe de bônus (ex: Bônus 0, Classe 0 — campo 'Bônus' ou 'Classe de Bônus')",
+  "coverage": {
+    "vehicle": {
+      "fipePercentage": percentual FIPE coberto como número inteiro (ex: 100 ou 90 — verifique o campo 'COMPREENSIVA' ou 'INCÊNDIO, ROUBO E FURTO'),
+      "lmi": "LMI do veículo como string (opcional)",
+      "deductible": franquia do veículo em reais como número decimal (procure 'Franquia' na seção de coberturas — se 'Franquia: -' ou ausente, omita este campo),
+      "deductibleType": "tipo da franquia (ex: Normal — omitir se não houver franquia)"
+    },
+    "rcf": {
+      "propertyDamage": LMI de Danos Materiais em reais como número decimal (seção 'RCF-V DANOS MATERIAIS'),
+      "bodilyInjury": LMI de Danos Corporais em reais como número decimal,
+      "moralDamages": LMI de Danos Morais em reais como número decimal ou null,
+      "combinedSingle": LMI de Limite Único Combinado em reais como número decimal ou null
+    },
+    "app": {
+      "death": LMI de Morte por passageiro em reais como número decimal,
+      "disability": LMI de Invalidez por passageiro em reais como número decimal,
+      "medical": LMI de Despesas Médicas por passageiro em reais como número decimal,
+      "passengerCount": número de passageiros cobertos como inteiro
+    },
+    "assistance": {
+      "towing": true se assistência/guincho contratado,
+      "glassProtection": true se cobertura de vidros contratada,
+      "replacementVehicle": true se veículo reserva contratado,
+      "replacementDays": número de dias de veículo reserva como inteiro
+    }
+  },
+  "deductibles": [
+    { "item": "nome do item (ex: Veículo, Vidros)", "value": valor em reais como número decimal, "type": "tipo (opcional)" }
+  ],
+  "premium": {
+    "base": prêmio líquido/base em reais como número decimal,
+    "rcfTotal": total RCF em reais como número decimal,
+    "appTotal": total APP em reais como número decimal,
+    "iof": IOF em reais como número decimal,
+    "total": prêmio total a pagar em reais como número decimal (campo 'Prêmio Total' ou 'Total a Pagar')
+  },
+  "paymentMethods": []
+}
+
+Regras importantes:
+- O campo "paymentMethods" será preenchido por outro sistema — retorne-o como array vazio []
+- Em "deductibles" inclua somente itens com valor maior que zero — para Azul Auto Roubo a franquia é ausente, retorne "deductibles": []
+- Campos numéricos devem ser números (não strings)
+- Se um campo não estiver no documento, use null ou omita-o
+- O percentual FIPE pode ser 90% (Azul Auto Roubo) ou 100% (Azul Tradicional) — extraia o valor real
+- Use exatamente os nomes de campos em inglês conforme especificado`;
+}
+
 function getBradescoAutoPrompt(): string {
   return `Você está analisando um Demonstrativo de Cálculo do Bradesco Auto/RE.
 O documento tem até 5 páginas, sendo que apenas as 3 primeiras contêm dados relevantes (as demais são cláusulas contratuais).
@@ -214,6 +290,8 @@ export class AiService {
       prompt = getBradescoAutoPrompt();
     } else if (product === InsuranceProduct.AUTO && insurer === Insurer.PORTO_SEGURO) {
       prompt = getPortoSeguroAutoPrompt();
+    } else if (product === InsuranceProduct.AUTO && insurer === Insurer.AZUL) {
+      prompt = getAzulAutoPrompt();
     } else {
       prompt = `Extraia os dados da cotação de seguro ${product} da seguradora ${insurer} e retorne um objeto JSON estruturado com todas as informações relevantes.`;
     }

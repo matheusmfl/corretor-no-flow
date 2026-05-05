@@ -10,6 +10,7 @@ import { quoteProcessApi } from '@/lib/api/quote-process.api'
 const SUPPORTED_INSURERS: { value: Insurer; label: string }[] = [
   { value: 'BRADESCO',     label: 'Bradesco Seguros' },
   { value: 'PORTO_SEGURO', label: 'Porto Seguro'     },
+  { value: 'AZUL',         label: 'Azul Seguros'     },
 ]
 
 const INSURER_LABEL: Record<Insurer, string> = {
@@ -21,6 +22,7 @@ const INSURER_LABEL: Record<Insurer, string> = {
   ALIRO:        'Aliro',
   ALLIANZ:      'Allianz',
   YELLOW:       'Yellow',
+  AZUL:         'Azul Seguros',
 }
 
 // ─── State machine ────────────────────────────────────────────────────────────

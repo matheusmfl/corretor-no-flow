@@ -13,6 +13,7 @@ const INSURER_CONFIG: Record<Insurer, { label: string; brand: string }> = {
   ALIRO:        { label: 'Aliro',             brand: '#1f2d3d' },
   ALLIANZ:      { label: 'Allianz',           brand: '#003781' },
   YELLOW:       { label: 'Yellow Seguros',    brand: '#f5b500' },
+  AZUL:         { label: 'Azul Seguros',      brand: '#0066B3' },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ const INSURER_SHORT: Record<string, string> = {
   ALIRO:        'Aliro',
   ALLIANZ:      'Allianz',
   YELLOW:       'Yellow',
+  AZUL:         'Azul',
 };
 
 function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQuoteData): string {
@@ -108,6 +109,7 @@ export class ExtractPdfProcessor extends WorkerHost {
       let parsedPayments = null;
       if (insurer === Insurer.BRADESCO) parsedPayments = parseBradescoPaymentTable(rawText);
       else if (insurer === Insurer.PORTO_SEGURO) parsedPayments = parsePortoPaymentTable(rawText);
+      else if (insurer === Insurer.AZUL) parsedPayments = parsePortoPaymentTable(rawText);
       this.logger.debug(
         `[${quoteId}] deterministicParser durationMs=${Date.now() - parserStart} found=${parsedPayments !== null}`,
       );

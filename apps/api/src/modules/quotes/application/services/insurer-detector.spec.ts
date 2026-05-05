@@ -189,16 +189,24 @@ describe('detectInsurerFromText', () => {
   });
 
   describe('regras de família — Azul', () => {
+    it('detecta AZUL como seguradora suportada com alta confiança a partir de produto Azul Tradicional', () => {
+      const result = detectInsurerFromText(PORTO_AZUL_TRADICIONAL_TEXT);
+      expect(result.detectedInsurer).toBe('AZUL');
+      expect(result.confidence).toBe('high');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
+    });
+
     it('não retorna PORTO_SEGURO quando Azul Tradicional aparece como produto (família Porto)', () => {
       const result = detectInsurerFromText(PORTO_AZUL_TRADICIONAL_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
-      expect(result.notProcessable).toBe(true);
     });
 
     it('não retorna PORTO_SEGURO quando Azul Auto Roubo aparece como produto (família Porto)', () => {
       const result = detectInsurerFromText(PORTO_AZUL_ROUBO_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+      expect(result.detectedInsurer).toBe('AZUL');
       expect(result.family).toBe('porto');
     });
 

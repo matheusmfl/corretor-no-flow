@@ -12,7 +12,7 @@ import { QUEUE_NAMES } from '../../../queue/queue.constants';
 import type { ExtractPdfJobData } from '../../../queue/queue.types';
 import { QuoteStatus } from '../../domain/value-objects/quote-status.vo';
 
-const SUPPORTED_INSURERS = new Set<Insurer>([Insurer.BRADESCO, Insurer.PORTO_SEGURO]);
+const SUPPORTED_INSURERS = new Set<Insurer>([Insurer.BRADESCO, Insurer.PORTO_SEGURO, Insurer.AZUL]);
 
 @Injectable()
 export class UploadAutoQuoteUseCase {

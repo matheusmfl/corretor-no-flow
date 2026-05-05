@@ -12,6 +12,7 @@ export type Insurer =
   | 'ALIRO'
   | 'ALLIANZ'
   | 'YELLOW'
+  | 'AZUL'
 
 export type QuoteStatus =
   | 'PENDING'
