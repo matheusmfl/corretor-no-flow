@@ -72,7 +72,8 @@ No code in this task.
 ## Acceptance Criteria
 
 - [ ] Pelo menos uma amostra futura e extraida pelo PDF lab.
-- [ ] Itau/Azul/Sompo sao comparados contra a hipotese de familia Porto quando houver PDFs.
+- [ ] Itau/Azul/Mitsui Sumitomo sao comparados contra a hipotese de familia Porto quando houver PDFs.
+- [ ] Sompo deve ser coletada como seguradora futura separada, sem assumir relacao com Mitsui Sumitomo ou familia Porto.
 - [ ] Tokio Marine e HDI sao documentadas como fora/possivelmente fora da familia Porto.
 - [ ] Sinais de identidade úteis para o detector sao documentados.
 - [ ] Nenhum PDF bruto sensivel e adicionado ao Git.
@@ -92,4 +93,3 @@ O time implementa uma nova seguradora assumindo que ela segue a estrutura Porto,
 - [ ] Confirmar quais PDFs foram coletados e suas seguradoras.
 - [ ] Confirmar que os arquivos estao anonimizados ou protegidos localmente.
 - [ ] Confirmar que os achados fazem sentido para priorizacao comercial.
-

@@ -31,6 +31,17 @@ describe('DetectInsurerUseCase — campo supported', () => {
     expect(result.detectedInsurer).toBe('AZUL');
   });
 
+  it('MITSUI_SUMITOMO retorna supported: true e não retorna PORTO_SEGURO', async () => {
+    const { useCase } = makeSut(
+      'CNPJ: 61.198.164.0001/60 - Porto Seguro\nMITSUI SUMITOMO SEGUROS e PROTEÇÃO COMBINADA\nOrçamento de Seguro Auto\nSegmento MITSUI SUMITOMO SEGUROS',
+    );
+    const result = await useCase.execute('/fake/path.pdf');
+    expect(result.supported).toBe(true);
+    expect(result.detectedInsurer).toBe('MITSUI_SUMITOMO');
+    expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+    expect(result.family).toBe('porto');
+  });
+
   it('seguradora não suportada retorna supported: false', async () => {
     const { useCase } = makeSut('Tokio Marine Seguradora S.A.');
     const result = await useCase.execute('/fake/path.pdf');

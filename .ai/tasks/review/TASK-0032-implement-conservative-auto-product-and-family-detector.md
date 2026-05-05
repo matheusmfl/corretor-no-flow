@@ -18,7 +18,7 @@ blocked_by: TASK-0031
 
 ## Context
 
-A `TASK-0031` consolidou que PDFs da familia Porto compartilham template, CNPJ, Porto Bank, textos legais e links de grupo. Por isso, `PORTO_SEGURO` nao pode ser decidido por esses sinais quando o produto/headline indica Azul, Itau ou Mitsui Sumitomo/Sompo.
+A `TASK-0031` consolidou que PDFs da familia Porto compartilham template, CNPJ, Porto Bank, textos legais e links de grupo. Por isso, `PORTO_SEGURO` nao pode ser decidido por esses sinais quando o produto/headline indica Azul, Itau ou Mitsui Sumitomo.
 
 Tambem ficou claro que processo `AUTO` precisa bloquear PDFs de outro ramo, como Saude, antes de enfileirar parser AUTO.
 
@@ -32,7 +32,7 @@ Evoluir o detector backend para classificar seguradora e produto/ramo de forma c
   - Porto Seguro continua detectado como suportado quando headline/produto aponta Porto.
   - Azul nao vira Porto; deve retornar reconhecido mas nao processavel enquanto nao houver parser.
   - Itau nao vira Porto; deve retornar reconhecido mas nao processavel enquanto nao houver parser.
-  - Mitsui Sumitomo/Sompo nao vira Porto; deve retornar reconhecido mas nao processavel enquanto nao houver parser.
+  - Mitsui Sumitomo nao vira Porto; deve retornar reconhecido mas nao processavel enquanto nao houver parser.
 - Adicionar testes para guard de produto:
   - AUTO forte + seguradora suportada pode seguir.
   - Saude forte em processo AUTO retorna `notProcessable`.
@@ -48,7 +48,7 @@ Evoluir o detector backend para classificar seguradora e produto/ramo de forma c
 
 ## Out Of Scope
 
-- Implementar parser Azul, Itau, Mitsui/Sompo.
+- Implementar parser Azul, Itau, Mitsui Sumitomo.
 - Adicionar novas seguradoras como suportadas no fluxo de processamento.
 - Processar Saude.
 - Resolver a estrutura completa de `coverageSemantics` em review/public link.
@@ -68,7 +68,7 @@ Obrigatorio. Comecar por testes do detector antes de alterar regras.
 
 ## Acceptance Criteria
 
-- [x] Testes provam que Itau, Azul e Mitsui/Sompo nao sao roteados como Porto Seguro.
+- [x] Testes provam que Itau, Azul e Mitsui Sumitomo nao sao roteados como Porto Seguro.
 - [x] Testes provam que PDF Saude detectado em processo AUTO fica bloqueado.
 - [x] Resultado do detector explica seguradora, familia, produto/ramo e motivo de bloqueio.
 - [x] Seguradoras reconhecidas mas nao suportadas aparecem como nao processaveis, nao como erro generico.
@@ -129,6 +129,6 @@ Correcoes aplicadas em resposta ao review do Codex:
 
 ## Human QA Checklist
 
-- [ ] Validar mensagem exibida para Itau/Azul/Mitsui/Sompo reconhecidos mas nao suportados.
+- [ ] Validar mensagem exibida para Itau/Azul/Mitsui Sumitomo reconhecidos mas nao suportados.
 - [ ] Validar mensagem exibida para PDF nao AUTO em fluxo AUTO.
-- [ ] Confirmar se Mitsui Sumitomo deve aparecer no texto do produto como Mitsui, Sompo ou Mitsui/Sompo.
+- [x] Confirmado em 2026-05-05: Mitsui Sumitomo deve aparecer como Mitsui Sumitomo. Sompo nao e alias nem parte do escopo atual.

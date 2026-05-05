@@ -18,7 +18,8 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 ### Group A - AUTO Multi-Insurer
 
 - Porto Seguro is the base implementation for the Porto family.
-- Itau, Sompo, and Azul should reuse the same extraction strategy when their PDFs match Porto's structure.
+- Itau, Mitsui Sumitomo, and Azul should reuse the same extraction strategy when their PDFs match Porto's structure.
+- Sompo is a separate future insurer, not an alias for Mitsui Sumitomo and not part of the current Porto-family implementation scope.
 - Each insurer needs PDF samples, extraction tests, schema validation, review UI compatibility, PDF generation, and public-link compatibility.
 - Do not implement all insurers in one task.
 - AUTO upload should move toward a single multi-PDF dropzone with conservative insurer detection, instead of requiring one dropzone per insurer.

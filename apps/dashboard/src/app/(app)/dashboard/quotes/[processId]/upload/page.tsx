@@ -8,21 +8,23 @@ import { quoteProcessApi } from '@/lib/api/quote-process.api'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SUPPORTED_INSURERS: { value: Insurer; label: string }[] = [
-  { value: 'BRADESCO',     label: 'Bradesco Seguros' },
-  { value: 'PORTO_SEGURO', label: 'Porto Seguro'     },
-  { value: 'AZUL',         label: 'Azul Seguros'     },
+  { value: 'BRADESCO',        label: 'Bradesco Seguros'        },
+  { value: 'PORTO_SEGURO',    label: 'Porto Seguro'            },
+  { value: 'AZUL',            label: 'Azul Seguros'            },
+  { value: 'MITSUI_SUMITOMO', label: 'Mitsui Sumitomo Seguros' },
 ]
 
 const INSURER_LABEL: Record<Insurer, string> = {
-  BRADESCO:     'Bradesco',
-  PORTO_SEGURO: 'Porto Seguro',
-  TOKIO_MARINE: 'Tokio Marine',
-  SULAMERICA:   'SulAmérica',
-  SUHAI:        'Suhai',
-  ALIRO:        'Aliro',
-  ALLIANZ:      'Allianz',
-  YELLOW:       'Yellow',
-  AZUL:         'Azul Seguros',
+  BRADESCO:        'Bradesco',
+  PORTO_SEGURO:    'Porto Seguro',
+  TOKIO_MARINE:    'Tokio Marine',
+  SULAMERICA:      'SulAmérica',
+  SUHAI:           'Suhai',
+  ALIRO:           'Aliro',
+  ALLIANZ:         'Allianz',
+  YELLOW:          'Yellow',
+  AZUL:            'Azul Seguros',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo',
 }
 
 // ─── State machine ────────────────────────────────────────────────────────────

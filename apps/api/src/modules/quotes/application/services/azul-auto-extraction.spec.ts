@@ -15,8 +15,9 @@ const AZUL_TRADICIONAL_AI_RESPONSE = {
     yearModel:       2026,
     chassis:         '00000XXXXXTXX00000',
     fipeCode:        '170720',
-    fipeValue:       0,
+    fipeValue:       125400.00, // valor de mercado FIPE — não confundir com franquia (6516)
   },
+  segment: 'AZUL TRADICIONAL',
   driver: {
     name:          'FULANA DE TAL SILVA',
     cpf:           '000.000.000-00',
@@ -64,6 +65,7 @@ const AZUL_ROUBO_AI_RESPONSE = {
     fipeCode:        '170720',
     fipeValue:       0,
   },
+  segment: 'AZUL AUTO ROUBO',
   driver: {
     name:          'FULANA DE TAL SILVA',
     cpf:           '000.000.000-00',
@@ -208,12 +210,31 @@ describe('Azul AUTO — integração AI response + parser → AutoQuoteData', ()
       expect(result.coverage.vehicle?.fipePercentage).toBe(100);
     });
 
+    it('vehicle.fipeValue nao e igual a coverage.vehicle.deductible (bug de confusao FIPE/franquia)', () => {
+      const payments = parsePortoPaymentTable(TRADICIONAL);
+      const result = parseAutoQuoteData({ ...AZUL_TRADICIONAL_AI_RESPONSE, paymentMethods: payments ?? [] });
+      expect(result.vehicle?.fipeValue).toBeCloseTo(125400.00);
+      expect(result.vehicle?.fipeValue).not.toBeCloseTo(result.coverage?.vehicle?.deductible ?? 0);
+    });
+
+    it('coverage.vehicle.deductible existe e e diferente de fipeValue', () => {
+      const payments = parsePortoPaymentTable(TRADICIONAL);
+      const result = parseAutoQuoteData({ ...AZUL_TRADICIONAL_AI_RESPONSE, paymentMethods: payments ?? [] });
+      expect(result.coverage.vehicle?.deductible).toBeCloseTo(6516.0);
+    });
+
     it('retorna 8 métodos de pagamento com ids únicos', () => {
       const payments = parsePortoPaymentTable(TRADICIONAL);
       const result = parseAutoQuoteData({ ...AZUL_TRADICIONAL_AI_RESPONSE, paymentMethods: payments ?? [] });
       expect(result.paymentMethods).toHaveLength(8);
       const ids = result.paymentMethods.map((m) => m.id);
       expect(new Set(ids).size).toBe(8);
+    });
+
+    it('retorna segment = "AZUL TRADICIONAL"', () => {
+      const payments = parsePortoPaymentTable(TRADICIONAL);
+      const result = parseAutoQuoteData({ ...AZUL_TRADICIONAL_AI_RESPONSE, paymentMethods: payments ?? [] });
+      expect(result.segment).toBe('AZUL TRADICIONAL');
     });
   });
 
@@ -253,6 +274,12 @@ describe('Azul AUTO — integração AI response + parser → AutoQuoteData', ()
       const payments = parsePortoPaymentTable(ROUBO);
       const result = parseAutoQuoteData({ ...AZUL_ROUBO_AI_RESPONSE, paymentMethods: payments ?? [] });
       expect(result.paymentMethods).toHaveLength(8);
+    });
+
+    it('retorna segment = "AZUL AUTO ROUBO"', () => {
+      const payments = parsePortoPaymentTable(ROUBO);
+      const result = parseAutoQuoteData({ ...AZUL_ROUBO_AI_RESPONSE, paymentMethods: payments ?? [] });
+      expect(result.segment).toBe('AZUL AUTO ROUBO');
     });
   });
 });

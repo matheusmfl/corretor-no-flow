@@ -5,15 +5,16 @@ import { UNRELIABLE_DEDUCTIBLE_TYPES } from './quote-filename';
 
 // ── Brand colors por seguradora ──────────────────────────────────────────────
 const INSURER_CONFIG: Record<Insurer, { label: string; brand: string }> = {
-  BRADESCO:     { label: 'Bradesco Seguros',  brand: '#cc0000' },
-  PORTO_SEGURO: { label: 'Porto Seguro',      brand: '#003087' },
-  TOKIO_MARINE: { label: 'Tokio Marine',      brand: '#d4001a' },
-  SULAMERICA:   { label: 'SulAmérica',        brand: '#e30613' },
-  SUHAI:        { label: 'Suhai',             brand: '#0066cc' },
-  ALIRO:        { label: 'Aliro',             brand: '#1f2d3d' },
-  ALLIANZ:      { label: 'Allianz',           brand: '#003781' },
-  YELLOW:       { label: 'Yellow Seguros',    brand: '#f5b500' },
-  AZUL:         { label: 'Azul Seguros',      brand: '#0066B3' },
+  BRADESCO:        { label: 'Bradesco Seguros',        brand: '#cc0000' },
+  PORTO_SEGURO:    { label: 'Porto Seguro',            brand: '#003087' },
+  TOKIO_MARINE:    { label: 'Tokio Marine',            brand: '#d4001a' },
+  SULAMERICA:      { label: 'SulAmérica',              brand: '#e30613' },
+  SUHAI:           { label: 'Suhai',                   brand: '#0066cc' },
+  ALIRO:           { label: 'Aliro',                   brand: '#1f2d3d' },
+  ALLIANZ:         { label: 'Allianz',                 brand: '#003781' },
+  YELLOW:          { label: 'Yellow Seguros',          brand: '#f5b500' },
+  AZUL:            { label: 'Azul Seguros',            brand: '#0066B3' },
+  MITSUI_SUMITOMO: { label: 'Mitsui Sumitomo Seguros', brand: '#003087' },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

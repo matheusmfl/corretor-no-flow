@@ -35,6 +35,22 @@ What should not be changed.
 
 - `path/to/file.ts`
 
+## Executor Context Pack
+
+Read these files first, in order:
+
+1. `path/to/most-relevant-test-or-entrypoint.spec.ts`
+2. `path/to/primary-implementation-file.ts`
+3. `path/to/related-ui-or-template-file.ts`
+
+Use `rg` only for these terms before opening more files:
+
+- `specificSymbolOrField`
+- `specificFunctionName`
+- `specificRouteOrLabel`
+
+Do not use broad Explore/subagent/codebase-map workflows before reading these files. If more than 6 additional files seem necessary, stop and explain why.
+
 ## TDD Requirement
 
 Backend work must start with tests or update existing tests before implementation.

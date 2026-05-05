@@ -33,9 +33,9 @@ const STRONG_PATTERNS: PatternDef[] = [
   { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+(?:seguro\s+)?auto/i },
   { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+(?:tradicional|compacto)/i },
   { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+assist[eê]ncia/i },
-  // MITSUI: não está no enum Prisma mas circula em PDFs da plataforma Porto
-  { insurer: 'MITSUI',       source: 'razao_social', pattern: /mitsui\s+sumitomo/i },
-  { insurer: 'MITSUI',       source: 'razao_social', pattern: /mitsui\s+seguros/i },
+  // MITSUI_SUMITOMO: cosseguradora em PDFs da plataforma Porto (15% cosseguro)
+  { insurer: 'MITSUI_SUMITOMO', source: 'razao_social', pattern: /mitsui\s+sumitomo/i },
+  { insurer: 'MITSUI_SUMITOMO', source: 'razao_social', pattern: /mitsui\s+seguros/i },
   // AZUL: marca licenciada Porto — headline/produto específico é sinal dominante
   { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+tradicional/i },
   { insurer: 'AZUL',         source: 'produto',      pattern: /azul\s+auto\s+roubo/i },
@@ -51,8 +51,8 @@ const MEDIUM_PATTERNS: PatternDef[] = [
   { insurer: 'ALIRO',        source: 'marca', pattern: /\baliro\b/i },
   // Família Porto: menção mais fraca que razão social formal mas suficiente para
   // suprimir detecção de Porto quando o emissor real é da família
-  { insurer: 'ITAU',         source: 'marca', pattern: /ita[uú]\s+seguros/i },
-  { insurer: 'MITSUI',       source: 'marca', pattern: /\bmitsui\b/i },
+  { insurer: 'ITAU',            source: 'marca', pattern: /ita[uú]\s+seguros/i },
+  { insurer: 'MITSUI_SUMITOMO', source: 'marca', pattern: /\bmitsui\b/i },
   // Azul: "azul seguros/seguro" como marca em contexto de produto
   { insurer: 'AZUL',         source: 'marca', pattern: /\bazul\s+seguros?\b/i },
 ];
@@ -61,9 +61,9 @@ const MEDIUM_PATTERNS: PatternDef[] = [
 // Aplica quando o emissor real (specificInsurer) aparece mesmo sem sinais fortes,
 // evitando que o PDF seja classificado como a seguradora-mãe (groupInsurer).
 const FAMILY_RULES: Array<{ family: string; specificInsurer: string; groupInsurer: string }> = [
-  { family: 'porto',   specificInsurer: 'ITAU',   groupInsurer: 'PORTO_SEGURO' },
-  { family: 'porto',   specificInsurer: 'MITSUI',  groupInsurer: 'PORTO_SEGURO' },
-  { family: 'porto',   specificInsurer: 'AZUL',    groupInsurer: 'PORTO_SEGURO' },
+  { family: 'porto',   specificInsurer: 'ITAU',            groupInsurer: 'PORTO_SEGURO' },
+  { family: 'porto',   specificInsurer: 'MITSUI_SUMITOMO', groupInsurer: 'PORTO_SEGURO' },
+  { family: 'porto',   specificInsurer: 'AZUL',            groupInsurer: 'PORTO_SEGURO' },
   { family: 'allianz', specificInsurer: 'ALIRO',   groupInsurer: 'ALLIANZ' },
 ];
 
@@ -211,9 +211,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
 
     if (!PRISMA_INSURERS.has(winner)) {
       const LABEL: Record<string, string> = {
-        ITAU:  'Itaú Seguros',
-        MITSUI: 'Mitsui Seguros',
-        AZUL:  'Azul Seguros',
+        ITAU: 'Itaú Seguros',
       };
       const label = LABEL[winner] ?? winner;
       return {
@@ -257,9 +255,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     const winner = [...mediumInsurerSet][0];
     if (!PRISMA_INSURERS.has(winner)) {
       const LABEL: Record<string, string> = {
-        ITAU:  'Itaú Seguros',
-        MITSUI: 'Mitsui Seguros',
-        AZUL:  'Azul Seguros',
+        ITAU: 'Itaú Seguros',
       };
       const label = LABEL[winner] ?? winner;
       return {

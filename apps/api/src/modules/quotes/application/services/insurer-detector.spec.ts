@@ -166,19 +166,31 @@ describe('detectInsurerFromText', () => {
       expect(result.notProcessable).toBe(true);
     });
 
+    it('detecta MITSUI_SUMITOMO com alta confiança quando sinal forte presente (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_MITSUI_TEXT);
+      expect(result.detectedInsurer).toBe('MITSUI_SUMITOMO');
+      expect(result.confidence).toBe('high');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
+    });
+
     it('não retorna PORTO_SEGURO quando Mitsui tem sinal forte (família Porto)', () => {
       const result = detectInsurerFromText(PORTO_MITSUI_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
-      expect(result.reason).toMatch(/[Mm]itsui/);
-      expect(result.notProcessable).toBe(true);
+    });
+
+    it('detecta MITSUI_SUMITOMO com confiança média quando apenas marca presente (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_MITSUI_MEDIUM_TEXT);
+      expect(result.detectedInsurer).toBe('MITSUI_SUMITOMO');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
     });
 
     it('não retorna PORTO_SEGURO quando Mitsui tem sinal médio (marca apenas)', () => {
       const result = detectInsurerFromText(PORTO_MITSUI_MEDIUM_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
-      expect(result.notProcessable).toBe(true);
     });
 
     it('detecta ALIRO quando Aliro tem sinal forte e Allianz é menção de grupo (família Allianz)', () => {
@@ -307,6 +319,20 @@ describe('detectInsurerFromText', () => {
       const result = detectInsurerFromText(text);
       expect(result.detectedInsurer).toBe('PORTO_SEGURO');
       expect(result.confidence).toBe('high');
+    });
+
+    it('detecta MITSUI_SUMITOMO com alta confiança a partir do fixture real (complete)', () => {
+      const text = fs.readFileSync(path.join(fixturesDir, 'mitsui-sumitomo-auto-complete.txt'), 'utf-8');
+      const result = detectInsurerFromText(text);
+      expect(result.detectedInsurer).toBe('MITSUI_SUMITOMO');
+      expect(result.confidence).toBe('high');
+      expect(result.family).toBe('porto');
+    });
+
+    it('não retorna PORTO_SEGURO para fixture Mitsui Sumitomo', () => {
+      const text = fs.readFileSync(path.join(fixturesDir, 'mitsui-sumitomo-auto-complete.txt'), 'utf-8');
+      const result = detectInsurerFromText(text);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
     });
   });
 

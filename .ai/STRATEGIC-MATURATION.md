@@ -30,7 +30,8 @@ Examples:
 
 - "What if we had an emergency button?"
 - "Health quote PDFs may need a different comparison page."
-- "Porto, Itau, Sompo, and Azul PDFs look similar."
+- "Porto, Itau, Mitsui Sumitomo, and Azul PDFs look similar."
+- Sompo is a separate future insurer and should not be treated as a Mitsui alias or Porto-family insurer.
 
 ### Strategic maturation
 

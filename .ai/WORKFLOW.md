@@ -120,3 +120,37 @@ Inputs and outputs are ignored by Git because they may contain sensitive insured
 - Avoid large tasks. Split work when the scope crosses backend, frontend, and infra at the same time.
 - Prefer repo conventions over new abstractions.
 - Record important product or architecture decisions in `.ai/DECISIONS.md`.
+
+## Token-Efficient Task Writing
+
+Every executable task should include an `Executor Context Pack` unless it is pure discovery/human work.
+
+The context pack should:
+
+- list the first files to read, ideally 3-7 files;
+- put the most relevant test or failing behavior first;
+- include exact `rg` terms for targeted search;
+- say what not to explore broadly;
+- name discovery docs only when they are truly needed for implementation.
+
+Do not rely on `Likely Files` alone for implementation tasks. `Likely Files` is a broad ownership map; `Executor Context Pack` is the small starting context for the executor.
+
+Recommended wording:
+
+```md
+## Executor Context Pack
+
+Read these files first, in order:
+
+1. `path/to/failing-or-new.spec.ts`
+2. `path/to/implementation.ts`
+3. `path/to/ui-or-template.tsx`
+
+Use `rg` only for:
+
+- `fieldName`
+- `functionName`
+- `visible label`
+
+Do not use broad Explore/subagent/codebase-map workflows before reading these files. If more than 6 additional files seem necessary, stop and explain why.
+```

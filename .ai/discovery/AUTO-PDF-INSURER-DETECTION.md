@@ -102,11 +102,12 @@ Sinais dominantes por marca/produto:
 - `PORTO_SEGURO`: headline/produto `Auto Senior e Protecao Combinada`, texto de solicitacao com `PORTO SEGURO`, segmento `AUTO SENIOR`.
 - `AZUL`: headline/produto `Azul Tradicional e Protecao Combinada` ou `Azul Auto Roubo`, texto `Azul Seguro Auto e uma marca licenciada para uso da Porto Seguro Companhia de Seguros Gerais`, segmento `AZUL TRADICIONAL` ou produto Azul equivalente.
 - `ITAU`: headline/produto `Itau Tradicional`, `Itau Assistencia 24h` ou `Itau Seguro Auto Compacto`; esses produtos podem aparecer no mesmo core de orcamento e devem bloquear roteamento Porto.
-- `MITSUI`: headline/produto `Mitsui Sumitomo Seguros e Protecao Combinada`, texto de cosseguro com Porto lider e Mitsui Sumitomo como cosseguradora; deve ser detectado como Mitsui/Sompo ou como nao processavel, nunca como Porto automatico.
+- `MITSUI`: headline/produto `Mitsui Sumitomo Seguros e Protecao Combinada`, texto de cosseguro com Porto lider e Mitsui Sumitomo como cosseguradora; deve ser detectado como Mitsui Sumitomo ou como nao processavel, nunca como Porto automatico.
 
 Regra conservadora:
 
-- Quando `Porto`, `Porto Bank`, CNPJ `61.198.164/0001-60` ou `61.198.164.0001/60`, link `portoseguro.com.br`, beneficios Porto ou texto legal de grupo aparecem junto de `Azul`, `Itau`, `Mitsui Sumitomo` ou `Sompo` em headline/produto/segmento, a marca especifica vence.
+- Quando `Porto`, `Porto Bank`, CNPJ `61.198.164/0001-60` ou `61.198.164.0001/60`, link `portoseguro.com.br`, beneficios Porto ou texto legal de grupo aparecem junto de `Azul`, `Itau` ou `Mitsui Sumitomo` em headline/produto/segmento, a marca especifica vence.
+- Sompo nao deve ser tratada como alias de Mitsui Sumitomo nem como parte da familia Porto neste momento; fica como seguradora futura separada.
 - Se a marca especifica ainda nao existir no enum/processador, retornar `detectedInsurer: null`, `notProcessable: true`, `family: "porto"` e uma razao clara: seguradora reconhecida mas sem parser suportado.
 - Se houver apenas sinais de grupo/template e nenhum sinal dominante de emissor, retornar baixa confianca e pedir confirmacao humana.
 - `Mitsui Sumitomo` deve entrar como conceito proprio de detector. A relacao comercial observada e cosseguro/operacao com Porto; para o produto, isso nao autoriza usar parser Porto e exibir Porto como seguradora final.

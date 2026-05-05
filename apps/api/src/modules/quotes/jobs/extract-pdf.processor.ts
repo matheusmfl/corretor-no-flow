@@ -8,7 +8,7 @@ import { AiService } from '../../ai/ai.service';
 import { parseAutoQuoteData } from '../domain/schemas/auto-quote.schema';
 import { parseBradescoPaymentTable } from '../application/services/bradesco-payment-parser';
 import { parsePortoPaymentTable } from '../application/services/porto-payment-parser';
-import { UNRELIABLE_DEDUCTIBLE_TYPES } from '../application/services/quote-filename';
+import { UNRELIABLE_DEDUCTIBLE_TYPES, getAzulProductLabel } from '../application/services/quote-filename';
 import { QUEUE_NAMES } from '../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../queue/queue.types';
 import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
@@ -18,29 +18,36 @@ const INSURER_PAGE_LIMITS: Partial<Record<Insurer, number>> = {
 };
 
 const INSURER_SHORT: Record<string, string> = {
-  BRADESCO:     'Bradesco',
-  PORTO_SEGURO: 'Porto Seguro',
-  TOKIO_MARINE: 'Tokio Marine',
-  SULAMERICA:   'SulAmérica',
-  SUHAI:        'Suhai',
-  ALIRO:        'Aliro',
-  ALLIANZ:      'Allianz',
-  YELLOW:       'Yellow',
-  AZUL:         'Azul',
+  BRADESCO:        'Bradesco',
+  PORTO_SEGURO:    'Porto Seguro',
+  TOKIO_MARINE:    'Tokio Marine',
+  SULAMERICA:      'SulAmérica',
+  SUHAI:           'Suhai',
+  ALIRO:           'Aliro',
+  ALLIANZ:         'Allianz',
+  YELLOW:          'Yellow',
+  AZUL:            'Azul',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo',
 };
 
 function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQuoteData): string {
   const base = INSURER_SHORT[insurer] ?? insurer;
+  const premiumTotal = data.premium?.total;
+  const premiumStr = premiumTotal != null
+    ? premiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    : null;
+
+  if (insurer === 'AZUL') {
+    const productLabel = getAzulProductLabel(data);
+    const name = productLabel ? `${base} ${productLabel}` : base;
+    return premiumStr ? `${name} — (${premiumStr})` : name;
+  }
+
   const rawType = data.coverage?.vehicle?.deductibleType;
   const type = rawType && !UNRELIABLE_DEDUCTIBLE_TYPES.has(rawType) ? rawType : undefined;
-  const premiumTotal = data.premium?.total;
-
   const parts = [base];
   if (type) parts.push(type);
-  if (premiumTotal != null) {
-    const formatted = premiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    parts.push(`(${formatted})`);
-  }
+  if (premiumStr) parts.push(`(${premiumStr})`);
   return parts.join(' — ');
 }
 
@@ -110,6 +117,7 @@ export class ExtractPdfProcessor extends WorkerHost {
       if (insurer === Insurer.BRADESCO) parsedPayments = parseBradescoPaymentTable(rawText);
       else if (insurer === Insurer.PORTO_SEGURO) parsedPayments = parsePortoPaymentTable(rawText);
       else if (insurer === Insurer.AZUL) parsedPayments = parsePortoPaymentTable(rawText);
+      else if (insurer === Insurer.MITSUI_SUMITOMO) parsedPayments = parsePortoPaymentTable(rawText);
       this.logger.debug(
         `[${quoteId}] deterministicParser durationMs=${Date.now() - parserStart} found=${parsedPayments !== null}`,
       );

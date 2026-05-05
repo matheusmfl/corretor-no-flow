@@ -29,23 +29,23 @@ Definir regras de deteccao para distinguir seguradora especifica e produto/ramo 
 ## Scope
 
 - Usar PDFs reais/extracoes da `TASK-0030` quando disponiveis.
-- Documentar diferencas entre Porto Seguro, Itau, Azul, Mitsui/Sompo e outras marcas da familia/portfolio.
+- Documentar diferencas entre Porto Seguro, Itau, Azul, Mitsui Sumitomo e outras marcas da familia/portfolio.
 - Documentar diferencas entre PDF reduzido e PDF completo dentro da familia Porto.
-- Confirmar se Sompo pertence ou nao ao mesmo grupo/estrutura relevante para o produto.
-- Definir se Mitsui deve ser tratada como seguradora separada, alias de Sompo, ou discovery propria.
+- Registrar que Sompo nao pertence ao escopo atual da familia Porto e nao deve ser alias de Mitsui Sumitomo.
+- Definir Mitsui Sumitomo como seguradora separada/discovery propria.
 - Mapear produtos comerciais como `Itau Seguro Auto Compacto`, `Alternativo`, `Azul Tradicional e Protecao Combinada`, `Auto Senior e Protecao Combinada`, `Incendio e Roubo/Furto`.
 - Mapear coberturas ausentes por produto para distinguir `nao contratado`, `nao aplicavel` e `nao existente nesse plano`.
 - Definir sinais fortes para `AUTO` vs `HEALTH` quando possivel.
 - Atualizar `.ai/discovery/AUTO-PDF-INSURER-DETECTION.md` com regras conservadoras:
   - Itau nao deve virar Porto;
-  - Mitsui/Sompo nao deve virar Porto;
+  - Mitsui Sumitomo nao deve virar Porto;
   - marca de grupo/template nao deve decidir seguradora;
   - produto nao AUTO deve bloquear ou pedir confirmacao segura.
 - Produzir follow-up implementation task para detector/backend.
 
 ## Out Of Scope
 
-- Nao implementar parser Itau/Mitsui/Sompo/Azul.
+- Nao implementar parser Itau/Mitsui Sumitomo/Azul.
 - Nao adicionar seguradora futura como suportada no frontend.
 - Nao processar Saude.
 
@@ -62,7 +62,7 @@ No implementation in this task.
 
 ## Acceptance Criteria
 
-- [x] Regras conceituais distinguem Porto, Itau e Mitsui/Sompo.
+- [x] Regras conceituais distinguem Porto, Itau e Mitsui Sumitomo.
 - [x] Risco de produto errado, como Saude Bradesco em processo AUTO, esta documentado.
 - [x] Discovery diferencia PDF reduzido e PDF completo da familia Porto.
 - [x] Discovery documenta tipos de produto/cobertura que mudam a interpretacao das coberturas.
@@ -87,7 +87,7 @@ O corretor envia PDF Itau ou Mitsui, o sistema exibe Porto Seguro, processa com 
 ## Human QA Checklist
 
 - [ ] Human confirma quais marcas pertencem a qual grupo/estrutura comercial.
-- [ ] Human fornece exemplos reais ou extracoes para Itau e Mitsui/Sompo quando possivel.
+- [ ] Human fornece exemplos reais ou extracoes para Itau e Mitsui Sumitomo quando possivel.
 
 ## Human Notes - 2026-05-02
 

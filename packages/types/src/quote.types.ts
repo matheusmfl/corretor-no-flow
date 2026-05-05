@@ -13,6 +13,7 @@ export type Insurer =
   | 'ALLIANZ'
   | 'YELLOW'
   | 'AZUL'
+  | 'MITSUI_SUMITOMO'
 
 export type QuoteStatus =
   | 'PENDING'
@@ -57,6 +58,7 @@ export interface AutoQuoteData {
   }
   quoteNumber?: string
   insurer: string
+  segment?: string
   validFrom?: string
   validUntil?: string
   bonusClass?: string

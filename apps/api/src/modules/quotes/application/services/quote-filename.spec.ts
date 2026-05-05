@@ -86,4 +86,88 @@ describe('buildQuotePdfFilename', () => {
     expect(result).not.toContain('6205');   // valor da franquia fora do nome
     expect(result).toContain('4226');       // premio total presente
   });
+
+  // ── Azul: diferenciação por produto ───────────────────────────────────────────
+
+  const azulTradicional = {
+    vehicle:  { model: 'JEEP COMPASS SPORT 1.3 T 270 FLEX' },
+    segment:  'AZUL TRADICIONAL',
+    coverage: { vehicle: { fipePercentage: 100, deductibleType: 'Normal', deductible: 6516 } },
+    premium:  { total: 3673.00 },
+  };
+
+  const azulRoubo = {
+    vehicle:  { model: 'JEEP COMPASS SPORT 1.3 T 270 FLEX' },
+    segment:  'AZUL AUTO ROUBO',
+    coverage: { vehicle: { fipePercentage: 90 } },
+    premium:  { total: 1705.05 },
+  };
+
+  it('Azul Tradicional: nome inclui "Seguro" (produto Seguro Auto)', () => {
+    expect(buildQuotePdfFilename('AZUL', azulTradicional as any))
+      .toContain('Seguro');
+  });
+
+  it('Azul Roubo: nome inclui "Roubo_e_Furto"', () => {
+    const result = buildQuotePdfFilename('AZUL', azulRoubo as any);
+    expect(result).toContain('Roubo');
+    expect(result).toContain('Furto');
+  });
+
+  it('Azul Tradicional e Azul Roubo geram nomes distintos', () => {
+    const t = buildQuotePdfFilename('AZUL', azulTradicional as any);
+    const r = buildQuotePdfFilename('AZUL', azulRoubo as any);
+    expect(t).not.toBe(r);
+  });
+
+  it('Azul: usa "Azul" como seguradora (nao "AZUL" em maiusculo)', () => {
+    expect(buildQuotePdfFilename('AZUL', azulTradicional as any))
+      .toContain('Azul');
+    expect(buildQuotePdfFilename('AZUL', azulTradicional as any))
+      .not.toContain('_AZUL_');
+  });
+
+  it('Azul: segment tem prioridade sobre fipePercentage (segmento TRADICIONAL mesmo com 90%)', () => {
+    const confusing = {
+      ...azulTradicional,
+      segment:  'AZUL TRADICIONAL',
+      coverage: { vehicle: { fipePercentage: 90 } }, // errado, mas segment é primário
+    };
+    const result = buildQuotePdfFilename('AZUL', confusing as any);
+    expect(result).toContain('Seguro'); // produto vem do segment, não do fipePercentage
+    expect(result).not.toContain('Roubo');
+  });
+
+  // ── Azul: fallback para quoteName quando extractedData incompleto ──────────────
+
+  it('Azul: usa quoteName como fallback quando extractedData nao tem segment nem fipePercentage', () => {
+    const incompleto = {
+      vehicle:  { model: 'JEEP COMPASS SPORT 1.3 T 270 FLEX' },
+      premium:  { total: 1705.05 },
+      // sem segment, sem coverage.vehicle.fipePercentage
+    };
+    const result = buildQuotePdfFilename('AZUL', incompleto as any, 'Azul Roubo e Furto — (R$ 1.705,05)');
+    expect(result).toContain('Roubo');
+    expect(result).toContain('Furto');
+    expect(result).not.toBe('Azul.pdf');
+  });
+
+  it('Azul: fallback com extractedData null usa quoteName', () => {
+    const result = buildQuotePdfFilename('AZUL', null, 'Azul Seguro Auto — (R$ 3.673,00)');
+    expect(result).toContain('Seguro');
+    expect(result).not.toBe('Azul.pdf');
+  });
+
+  it('Azul: extractedData valido com fipePercentage ignora quoteName', () => {
+    // quando extractedData tem dados suficientes, quoteName nao deve interferir
+    const result = buildQuotePdfFilename('AZUL', azulRoubo as any, 'Nome diferente qualquer');
+    expect(result).toContain('Roubo');
+    expect(result).not.toContain('diferente');
+  });
+
+  it('Azul: sem quoteName e extractedData incompleto retorna pelo menos "Azul"', () => {
+    const result = buildQuotePdfFilename('AZUL', null);
+    expect(result).toContain('Azul');
+    expect(result.endsWith('.pdf')).toBe(true);
+  });
 });

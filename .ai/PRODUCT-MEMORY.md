@@ -32,7 +32,7 @@ Corretor no Flow helps insurance brokers turn technical insurer quote PDFs into 
 
 ## Pre-Sale V1 Roadmap
 
-- Expand AUTO to Porto Seguro first, then reuse a Porto-family extraction base for Itau, Sompo, and Azul.
+- Expand AUTO to Porto Seguro first, then reuse a Porto-family-style extraction base for Itau, Mitsui Sumitomo, and Azul when their PDFs match Porto's structure. Sompo is a separate future insurer and should not be treated as a Mitsui alias or Porto-family insurer.
 - Improve the public link with safe comparison highlights.
 - Expand tracking events and compute a rule-based commercial score.
 - Add manual sales outcome status and internal renewal/opportunity agenda.

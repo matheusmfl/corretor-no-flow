@@ -156,7 +156,7 @@ export class QuoteController {
     const quote = (process as any).quotes?.find((q: any) => q.id === quoteId);
     if (!quote?.originalFileKey) throw new NotFoundException('PDF não gerado para esta cotação');
     const absolutePath = path.resolve(quote.originalFileKey);
-    const filename = buildQuotePdfFilename(quote.insurer, quote.extractedData as Record<string, unknown> | null);
+    const filename = buildQuotePdfFilename(quote.insurer, quote.extractedData as Record<string, unknown> | null, quote.name);
     res.download(absolutePath, filename);
   }
 

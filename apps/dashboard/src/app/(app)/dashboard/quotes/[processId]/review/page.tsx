@@ -11,6 +11,7 @@ import { useReviewQuote } from '@/hooks/quotes/use-review-quote'
 const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
+  AZUL:         'Azul Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',
@@ -91,7 +92,11 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
       <div className={`flex items-center justify-between px-5 py-3 ${
         isReady ? 'bg-green-50' : isFailed ? 'bg-red-50' : 'bg-surface/40'
       }`}>
-        <p className="font-semibold text-ink">{INSURER_LABELS[quote.insurer] ?? quote.insurer}</p>
+        <div>
+          <p className="font-semibold text-ink">
+            {quote.name ?? INSURER_LABELS[quote.insurer] ?? quote.insurer}
+          </p>
+        </div>
         {isReady && (
           <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
             <IconCheck size={10} /> Confirmado

@@ -12,6 +12,7 @@ import { quoteProcessApi } from '@/lib/api/quote-process.api'
 const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
+  AZUL:         'Azul Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',
@@ -140,7 +141,9 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
           <div className="space-y-2">
             {pdfResults.map((r) => {
               const quote = quotes.find((q) => q.id === r.quoteId)
-              const label = quote ? (INSURER_LABELS[quote.insurer] ?? quote.insurer) : r.quoteId
+              const label = quote
+                ? (quote.name?.replace(/\s*—\s*\(R\$[^)]*\)\s*$/, '').trim() ?? INSURER_LABELS[quote.insurer] ?? quote.insurer)
+                : r.quoteId
               const downloadUrl = quoteProcessApi.pdfDownloadUrl(processId, r.quoteId)
 
               return (

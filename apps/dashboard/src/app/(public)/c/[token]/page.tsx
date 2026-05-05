@@ -54,6 +54,7 @@ const PRODUCT_LABELS: Record<string, string> = {
 const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
+  AZUL:         'Azul Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',
@@ -134,7 +135,9 @@ function QuoteCard({
       {/* Header colorido */}
       <div className="px-4 py-3 flex items-center justify-between" style={{ background: brand }}>
         <span className="text-sm font-bold text-white">
-          {INSURER_LABELS[quote.insurer] ?? quote.insurer}
+          {quote.name
+            ? quote.name.replace(/\s*—\s*\(R\$[^)]*\)\s*$/, '').trim()
+            : (INSURER_LABELS[quote.insurer] ?? quote.insurer)}
         </span>
         {vehicleLabel && (
           <span className="text-xs text-white/70 truncate max-w-[140px]">{vehicleLabel}</span>
@@ -142,12 +145,6 @@ function QuoteCard({
       </div>
 
       <div className="px-4 py-4 space-y-3">
-        {/* Nome da cotação */}
-        {quote.name && (
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#9a9590]">
-            {quote.name}
-          </p>
-        )}
 
         {/* Prêmio */}
         {total != null && (

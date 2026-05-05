@@ -11,12 +11,31 @@ Corretor no Flow is a SaaS for insurance brokers. It turns insurer quote PDFs in
 ## Execution Workflow
 
 1. Read the assigned task in `.ai/tasks/todo` or `.ai/tasks/in-progress`.
-2. Move the task to `.ai/tasks/in-progress` when starting.
-3. Implement only the task scope.
-4. Run the relevant tests or explain why they could not run.
-5. Move the task to `.ai/tasks/review` when complete.
+2. Read the task `Executor Context Pack` first, when present.
+3. Move the task to `.ai/tasks/in-progress` when starting.
+4. Implement only the task scope.
+5. Run the relevant tests or explain why they could not run.
+6. Move the task to `.ai/tasks/review` when complete.
 
 Markdown tasks are the source of truth. The HTML Kanban in `.ai/kanban/index.html` is only a visual aid.
+
+## Token Budget And Context Discipline
+
+Tasks should be executable from their Markdown plus a small file set. Do not start with broad repository exploration when a task includes an `Executor Context Pack`.
+
+When a task has `Executor Context Pack`:
+
+- Read only the listed files first, in the listed order.
+- Use `rg` only for the listed search terms until those files are exhausted.
+- Do not use broad Explore/subagent/codebase-map workflows before reading the context pack.
+- If more than 6 additional files seem necessary, stop and explain why before continuing.
+- Do not reread discovery docs, done tasks, or unrelated folders unless the task explicitly names them.
+
+When a task does not have `Executor Context Pack`:
+
+- Read the task and use targeted `rg` before opening files.
+- Prefer specific searches over full codebase exploration.
+- Keep the first-pass context small: task file, directly named files, and tests around the changed behavior.
 
 ## Task, Review, and QA Hygiene
 

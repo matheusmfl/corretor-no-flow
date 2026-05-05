@@ -22,7 +22,7 @@ describe('UploadAutoQuoteUseCase — guarda de seguradoras suportadas', () => {
     prisma.quote.create.mockResolvedValue({ id: 'q1', processId: 'p1', insurer: Insurer.BRADESCO } as any);
   });
 
-  it.each([Insurer.BRADESCO, Insurer.PORTO_SEGURO, Insurer.AZUL])(
+  it.each([Insurer.BRADESCO, Insurer.PORTO_SEGURO, Insurer.AZUL, Insurer.MITSUI_SUMITOMO])(
     '%s é aceita sem lançar exceção',
     async (insurer) => {
       prisma.quote.create.mockResolvedValue({ id: 'q1', processId: 'p1', insurer } as any);

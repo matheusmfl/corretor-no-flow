@@ -76,7 +76,7 @@ A ordem de expansao planejada e:
 4. Sompo.
 5. Azul.
 
-A estrategia tecnica e tratar Porto Seguro como a base da chamada "familia Porto", porque Itau, Sompo e Azul parecem ter PDFs e estrutura parecidos.
+A estrategia tecnica e tratar Porto Seguro como a base da chamada "familia Porto", porque Itau, Mitsui Sumitomo e Azul parecem ter PDFs e estrutura parecidos. Sompo fica como seguradora futura separada e nao deve ser tratada como alias de Mitsui Sumitomo.
 
 Antes de implementar, vamos mapear PDFs reais. Isso evita criar um parser isolado para Porto e depois descobrir que nao reaproveita bem para as outras marcas.
 

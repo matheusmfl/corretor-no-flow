@@ -42,6 +42,7 @@ enum Insurer {
   ALLIANZ
   YELLOW
   AZUL
+  MITSUI_SUMITOMO
 }
 
 enum QuoteProcessStatus {

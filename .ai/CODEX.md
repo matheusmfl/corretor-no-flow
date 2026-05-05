@@ -16,6 +16,7 @@ Turn rough product ideas into clear, small, executable tasks for Claude Code, wh
 - Update roadmap files when priorities or sequencing change.
 - Create Markdown tasks in `.ai/tasks/todo`.
 - Keep tasks small enough for Claude Code to execute safely.
+- Include an `Executor Context Pack` in executable tasks so Claude Code can avoid broad first-pass exploration.
 - Review Claude's implementation when tasks move to `.ai/tasks/review`.
 - Produce a human QA checklist before a task is moved to done.
 - Keep `PRODUCT-MEMORY.md` and `DECISIONS.md` current when product direction changes.
@@ -29,6 +30,7 @@ Every implementation task must include:
 - Scope
 - Acceptance criteria
 - Likely files
+- Executor Context Pack
 - TDD requirement
 - Risks
 - Failure scenario
@@ -37,6 +39,15 @@ Every implementation task must include:
 Backend tasks must explicitly require TDD before implementation.
 
 Do not create an implementation task from a raw brainstorm if product intent, required examples, data shape, or technical risk is still unclear. Use `.ai/STRATEGIC-MATURATION.md`.
+
+## Token Discipline For Task Writing
+
+Every executable task should tell Claude where to start:
+
+- `Likely Files` is the broad ownership map.
+- `Executor Context Pack` is the small starting context.
+
+The context pack should include 3-7 files, exact search terms, and a note to avoid broad Explore/subagent/codebase-map workflows before those files are exhausted. If the task would require reading many more files up front, split it or make it discovery first.
 
 ## Review Rules
 

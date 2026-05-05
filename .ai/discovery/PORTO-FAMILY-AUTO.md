@@ -2,11 +2,13 @@
 
 ## Objetivo
 
-Entender como os PDFs AUTO da Porto Seguro, Itau, Sompo e Azul se comportam antes de criar tasks tecnicas de extracao.
+Entender como os PDFs AUTO da Porto Seguro, Itau, Mitsui Sumitomo e Azul se comportam antes de criar tasks tecnicas de extracao.
 
 ## Hipotese Inicial
 
-Porto Seguro sera a base tecnica. Itau, Sompo e Azul podem reaproveitar parte do parser/prompt se os PDFs forem realmente parecidos.
+Porto Seguro sera a base tecnica. Itau, Mitsui Sumitomo e Azul podem reaproveitar parte do parser/prompt se os PDFs forem realmente parecidos.
+
+Correcao posterior: Sompo nao deve ser tratada como alias de Mitsui Sumitomo nem como parte da familia Porto neste momento. Sompo fica como seguradora futura separada.
 
 Essa hipotese precisa ser validada com PDFs reais.
 
@@ -18,7 +20,7 @@ Essa hipotese precisa ser validada com PDFs reais.
 - As tabelas de pagamento aparecem sempre no mesmo formato?
 - Franquia normal/reduzida aparece em campo fixo ou texto solto?
 - Vidros, carro reserva, guincho e assistencias aparecem de forma padronizada?
-- Itau, Sompo e Azul usam a mesma estrutura ou apenas visual parecido?
+- Itau, Mitsui Sumitomo e Azul usam a mesma estrutura ou apenas visual parecido?
 - Quais campos sao obrigatorios para o corretor confiar na comparacao?
 - Quais campos podem ficar ausentes sem quebrar o fluxo?
 - Quais informacoes o corretor ve no cotador, mas nao devem ir para o PDF final?
@@ -44,7 +46,7 @@ Colocar amostras em `.ai/pdf-lab/input` e extrair com `npm run pdf:extract`.
 - [x] Pelo menos 1 PDF AUTO
 - [x] Comparar estrutura com Porto
 
-### Sompo
+### Mitsui Sumitomo
 
 - [x] Pelo menos 1 PDF AUTO via Mitsui Sumitomo
 - [x] Comparar estrutura com Porto
@@ -61,7 +63,7 @@ npm run pdf:extract -- --output-name auto_porto_seguro_reduzido --insurer porto_
 npm run pdf:extract -- --output-name auto_porto_seguro_extendido --insurer porto_seguro --variant extendido
 npm run pdf:extract -- --input-dir .ai/pdf-lab/input/porto-seguro --output-name auto_porto_seguro_completa_incompleta --insurer porto_seguro --variant completa_incompleta
 npm run pdf:extract -- --output-name auto_itau_auto_discovery --insurer itau --variant discovery
-npm run pdf:extract -- --output-name auto_sompo_auto_discovery --insurer sompo --variant discovery
+npm run pdf:extract -- --output-name auto_mitsui_auto_discovery --insurer mitsui --variant discovery
 npm run pdf:extract -- --output-name auto_azul_auto_discovery --insurer azul --variant discovery
 ```
 
@@ -145,7 +147,7 @@ Data: 2026-05-04.
 
 Para a familia Porto, existem pelo menos tres dimensoes que nao devem ser misturadas:
 
-- Seguradora/marca comercial: Porto Seguro, Azul, Itau, Mitsui Sumitomo/Sompo.
+- Seguradora/marca comercial: Porto Seguro, Azul, Itau, Mitsui Sumitomo.
 - Produto comercial: Auto Senior, Azul Tradicional, Azul Auto Roubo, Itau Tradicional, Itau Assistencia 24h, Itau Seguro Auto Compacto, Mitsui Sumitomo Seguros e Protecao Combinada.
 - Cobertura principal: compreensiva, incendio/roubo/furto, indenizacao integral, assistencia 24h, RCF sem casco ou outras variacoes.
 
@@ -156,7 +158,7 @@ O detector decide seguradora e ramo. O parser/review interpreta produto e cobert
 - Porto Seguro: amostras trazem `Auto Senior e Protecao Combinada`, segmento `Auto Senior`, beneficios Porto, Porto Bank, cobertura residencial combinada e assistencias mais amplas no PDF completo.
 - Azul: amostras trazem `Azul Tradicional e Protecao Combinada` e `Azul Auto Roubo`. Mesmo com CNPJ/template Porto, a frase de licenciamento indica que Azul e marca especifica; deve ser tratada como seguradora/produto separado.
 - Itau: amostras trazem `Itau Tradicional`, `Itau Assistencia 24h` e `Itau Seguro Auto Compacto`. O compacto observado usa percentual reduzido da FIPE, exemplo 85%, e deve receber label explicativa.
-- Mitsui Sumitomo/Sompo: amostras trazem `Mitsui Sumitomo Seguros e Protecao Combinada` e texto de cosseguro com Porto lider. Para o usuario final, exibir Porto como seguradora seria enganoso; enquanto nao houver enum/parser proprio, deve bloquear como reconhecido nao suportado.
+- Mitsui Sumitomo: amostras trazem `Mitsui Sumitomo Seguros e Protecao Combinada` e texto de cosseguro com Porto lider. Para o usuario final, exibir Porto como seguradora seria enganoso; enquanto nao houver enum/parser proprio, deve bloquear como reconhecido nao suportado.
 
 ### PDF Completo Vs Reduzido
 
@@ -183,9 +185,9 @@ Produtos que exigem cuidado:
 ### Recomendacao Para Implementacao
 
 - Adicionar detector de produto AUTO com sinais positivos e negativos antes do roteamento para parser.
-- Rebaixar sinais Porto quando headline/produto/segmento apontar Azul, Itau ou Mitsui/Sompo.
+- Rebaixar sinais Porto quando headline/produto/segmento apontar Azul, Itau ou Mitsui Sumitomo.
 - Retornar resultado explicavel com `detectedProduct`, `productConfidence`, `notProcessable` e `reason` quando o ramo/produto divergir.
-- Manter Azul, Itau e Mitsui/Sompo como reconhecidos mas nao suportados enquanto nao houver parser dedicado e decisao de enum/contrato.
+- Manter Azul, Itau e Mitsui Sumitomo como reconhecidos mas nao suportados enquanto nao houver parser dedicado e decisao de enum/contrato.
 - Criar estrutura futura de `commercialProduct` e `coverageSemantics` em `AutoQuoteData` para labels de review/public link.
 
 ## Findings Do PDF Lab - Completo vs Incompleto
@@ -539,7 +541,7 @@ Produtos tradicionais:
 
 - Azul Tradicional.
 - Itau Tradicional.
-- Mitsui/Sompo Tradicional.
+- Mitsui Sumitomo Tradicional.
 - Porto Tradicional.
 
 Produtos alternativos:
@@ -577,7 +579,7 @@ Ao personalizar os dados da oferta, as coberturas serao ajustadas conforme os va
 - Tabela de pagamento pode exigir parser deterministico.
 - Algumas coberturas podem aparecer apenas como texto livre.
 - IA pode confundir assistencias opcionais com contratadas.
-- Implementar Porto isolado pode dificultar reaproveitar Itau/Sompo/Azul depois.
+- Implementar Porto isolado pode dificultar reaproveitar Itau/Mitsui Sumitomo/Azul depois.
 - Cotador pode exibir informacoes que nao aparecem no PDF impresso.
 - PDF completo e incompleto podem ter diferencas relevantes de cobertura, pagamento ou texto legal.
 - Informacoes como rastreador, dispositivo anti-roubo e isencao fiscal podem ser importantes para underwriting, mas irrelevantes ou sensiveis demais para o segurado final.
@@ -591,7 +593,7 @@ Ao final, este documento deve permitir criar tasks tecnicas pequenas como:
 - Adaptar prompt Porto AUTO.
 - Adicionar fixtures/testes Porto.
 - Validar Itau contra base Porto.
-- Validar Sompo contra base Porto.
+- Validar Mitsui Sumitomo contra base Porto.
 - Validar Azul contra base Porto.
 
 ## Status

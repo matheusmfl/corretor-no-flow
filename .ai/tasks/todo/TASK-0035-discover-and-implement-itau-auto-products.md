@@ -18,7 +18,7 @@ blocked_by: TASK-0032
 
 ## Context
 
-A `TASK-0032` reconhece Itau como seguradora da familia Porto, mas bloqueia processamento por falta de parser suportado. As amostras Itau parecem mais arriscadas que Azul e Mitsui/Sompo porque incluem produtos com semanticas diferentes:
+A `TASK-0032` reconhece Itau como seguradora da familia Porto, mas bloqueia processamento por falta de parser suportado. As amostras Itau parecem mais arriscadas que Azul e Mitsui Sumitomo porque incluem produtos com semanticas diferentes:
 
 - `Itau Tradicional`;
 - `Itau Assistencia 24h`;
@@ -59,7 +59,7 @@ Implementar suporte Itau AUTO por produto comercial, preservando diferencas de c
 ## Out Of Scope
 
 - Implementar Azul.
-- Implementar Mitsui/Sompo.
+- Implementar Mitsui Sumitomo.
 - Criar comparador comercial avancado.
 - Resolver todos os produtos Itau nao presentes nas amostras.
 
@@ -76,6 +76,33 @@ Implementar suporte Itau AUTO por produto comercial, preservando diferencas de c
 - `.ai/pdf-lab/output/auto_itau_discovery.md`
 - `.ai/discovery/PORTO-FAMILY-AUTO.md`
 - `.ai/tasks/todo/TASK-0022-design-rich-auto-coverage-display-contract.md`
+
+## Executor Context Pack
+
+Do not use broad Explore/subagent/codebase-map workflows before reading these files. This task may need to be split if the first pass shows the Itau products diverge too much.
+
+Read these files first, in order:
+
+1. `.ai/pdf-lab/output/auto_itau_discovery.md`
+2. `apps/api/src/modules/quotes/application/services/insurer-detector.spec.ts`
+3. `apps/api/src/modules/quotes/application/services/insurer-detector.ts`
+4. `apps/api/src/modules/quotes/application/services/azul-auto-extraction.spec.ts`
+5. `apps/api/src/modules/ai/ai.service.ts`
+6. `apps/api/src/modules/quotes/jobs/extract-pdf.processor.ts`
+7. `apps/api/src/modules/quotes/domain/schemas/auto-quote.schema.ts`
+
+Use `rg` only for these terms before opening more files:
+
+- `ITAU`
+- `Itaú`
+- `Itau`
+- `commercialProduct`
+- `fipePercentage`
+- `deductible`
+- `Assistencia 24h`
+- `Compacto`
+
+If more than 6 additional files seem necessary, stop and explain why before continuing.
 
 ## TDD Requirement
 
@@ -94,7 +121,7 @@ Obrigatorio. Comecar com testes por produto Itau. Nao habilitar Itau como suport
 
 ## Risks
 
-- Itau tem mais variacao de produto que Azul e Mitsui/Sompo.
+- Itau tem mais variacao de produto que Azul e Mitsui Sumitomo.
 - Sem `commercialProduct`, a UI pode esconder diferencas relevantes para o segurado.
 - Processar Compacto/Assistencia 24h como compreensiva tradicional pode gerar proposta enganosa.
 

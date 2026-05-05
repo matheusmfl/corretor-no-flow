@@ -82,6 +82,7 @@ const AutoQuoteDataSchema = z.object({
   driver: DriverSchema,
   quoteNumber: z.string().optional(),
   insurer: z.string(),
+  segment: z.string().optional(),
   validFrom: z.string().optional(),
   validUntil: z.string().optional(),
   bonusClass: z.string().optional(),
