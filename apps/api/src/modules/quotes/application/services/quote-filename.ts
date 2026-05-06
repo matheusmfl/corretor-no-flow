@@ -54,6 +54,27 @@ export function getItauProductLabel(data: Partial<AutoQuoteData>): string | unde
   return undefined;
 }
 
+const TOKIO_SEGMENT_LABEL_MAP: Record<string, string> = {
+  'AUTO':                    'Auto',
+  'AUTO CLÁSSICO':           'Auto Clássico',
+  'AUTO ROUBO + RASTREADOR': 'Roubo + Rastreador',
+  'ASSISTÊNCIA EXCLUSIVA':   'Assistência Exclusiva',
+};
+
+export function getTokioProductLabel(data: Partial<AutoQuoteData>): string | undefined {
+  const raw = data.segment?.trim() ?? '';
+  if (!raw) return undefined;
+
+  const upper = raw.toUpperCase();
+
+  if (/PROTE[ÇC][ÃA]O\s+MENSAL/i.test(upper)) {
+    const pct = data.coverage?.vehicle?.fipePercentage;
+    return pct != null && pct !== 100 ? `Proteção Mensal · ${pct}% FIPE` : 'Proteção Mensal';
+  }
+
+  return TOKIO_SEGMENT_LABEL_MAP[upper] ?? undefined;
+}
+
 export function getAzulProductLabel(data: Partial<AutoQuoteData>): string | undefined {
   const segment = data.segment?.toUpperCase().trim();
   if (segment && AZUL_SEGMENT_LABEL_MAP[segment]) return AZUL_SEGMENT_LABEL_MAP[segment];
@@ -96,7 +117,9 @@ export function buildQuotePdfFilename(
     ? getAzulProductLabel(d)
     : insurer === 'ITAU'
       ? getItauProductLabel(d)
-      : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
+      : insurer === 'TOKIO_MARINE'
+        ? getTokioProductLabel(d)
+        : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
 
   // Fallback: quando extractedData não tem dados suficientes para identificar o produto,
   // usa quoteName (já confirmado pelo corretor) para montar um filename significativo.

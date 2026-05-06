@@ -71,6 +71,10 @@ export const quoteProcessApi = {
     return apiClient.delete(`/api/quotes/${id}`)
   },
 
+  removeQuote(processId: string, quoteId: string): Promise<{ deleted: true }> {
+    return apiClient.delete(`/api/quotes/${processId}/quotes/${quoteId}`)
+  },
+
   pdfDownloadUrl(processId: string, quoteId: string): string {
     const base = getBrowserApiBaseUrl()
     return `${base}/api/quotes/${processId}/quotes/${quoteId}/pdf`

@@ -54,9 +54,16 @@ describe('DetectInsurerUseCase — campo supported', () => {
   });
 
   it('seguradora não suportada retorna supported: false', async () => {
-    const { useCase } = makeSut('Tokio Marine Seguradora S.A.');
+    const { useCase } = makeSut('SulAmérica Seguros S/A cotação automóvel chassi placa FIPE');
     const result = await useCase.execute('/fake/path.pdf');
     expect(result.supported).toBe(false);
+  });
+
+  it('Tokio Marine retorna supported: true', async () => {
+    const { useCase } = makeSut('Cotação Tokio Marine Processo SUSEP chassi placa FIPE');
+    const result = await useCase.execute('/fake/path.pdf');
+    expect(result.supported).toBe(true);
+    expect(result.detectedInsurer).toBe('TOKIO_MARINE');
   });
 
   it('texto vazio retorna supported: false', async () => {

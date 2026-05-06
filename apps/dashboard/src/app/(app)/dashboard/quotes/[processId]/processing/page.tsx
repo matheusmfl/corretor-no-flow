@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Quote, QuoteProcessDetail, QuoteStatus } from '@corretor/types'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
 import { shouldProcessingAutoRedirect } from '@/lib/quotes/quote-flow-guards'
+import { useRemoveQuote } from '@/hooks/quotes/use-remove-quote'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -51,10 +52,19 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 
 // ─── Quote status row ─────────────────────────────────────────────────────────
 
-function QuoteStatusRow({ quote }: { quote: Quote }) {
+function QuoteStatusRow({
+  quote,
+  isRemoving,
+  onRemove,
+}: {
+  quote: Quote
+  isRemoving: boolean
+  onRemove: () => void
+}) {
   const done = isTerminal(quote.status)
   const failed = quote.status === 'FAILED'
   const pending = quote.status === 'PENDING'
+  const canRemove = quote.status !== 'READY'
 
   return (
     <div className="flex items-center gap-4 py-3.5">
@@ -103,6 +113,18 @@ function QuoteStatusRow({ quote }: { quote: Quote }) {
           />
         </div>
       </div>
+
+      {canRemove && (
+        <button
+          onClick={onRemove}
+          disabled={isRemoving}
+          className="ml-2 rounded-lg border border-surface-strong bg-white px-3 py-1.5 text-xs font-semibold text-ink-muted hover:text-red-600 hover:border-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Remover cotação"
+          title="Remover esta cotação do processo"
+        >
+          {isRemoving ? 'Removendo…' : 'Remover'}
+        </button>
+      )}
     </div>
   )
 }
@@ -184,6 +206,7 @@ function Spinner() {
 export default function ProcessingPage({ params }: { params: Promise<{ processId: string }> }) {
   const { processId } = use(params)
   const router = useRouter()
+  const removeQuote = useRemoveQuote(processId)
 
   const { data: process, isLoading, isFetching } = useQuoteProcess(processId, {
     refetchOnMount: 'always',
@@ -269,7 +292,16 @@ export default function ProcessingPage({ params }: { params: Promise<{ processId
         ) : (
           <div className="divide-y divide-surface">
             {quotes.map((quote) => (
-              <QuoteStatusRow key={quote.id} quote={quote} />
+              <QuoteStatusRow
+                key={quote.id}
+                quote={quote}
+                isRemoving={removeQuote.isPending && removeQuote.variables?.quoteId === quote.id}
+                onRemove={() => {
+                  const ok = window.confirm('Remover esta cotação do processo? Isso não pode ser desfeito.')
+                  if (!ok) return
+                  removeQuote.mutate({ quoteId: quote.id })
+                }}
+              />
             ))}
           </div>
         )}

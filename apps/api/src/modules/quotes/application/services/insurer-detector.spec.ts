@@ -129,6 +129,39 @@ const TOKIO_TEXT = `
   Proposta de Seguro Automóvel — Tokio Marine
 `;
 
+// Renovação Bradesco onde a congênere anterior é Tokio Marine — deve retornar BRADESCO
+const BRADESCO_RENOVACAO_TOKIO_CONGENERE_TEXT = `
+BRADESCO SEGUROS S/A
+CNPJ 92.693.973/0001-33
+Proposta de Seguro Automóvel — Bradesco Auto/RE
+Tipo Seguro: Renovação Congênere
+Nome da Congênere: Tokio Marine Seguros
+Placa: ABC1D23
+Chassi: 9BWAA45U3EP506205
+Código FIPE: 005227-2
+RCF-V Danos Materiais R$ 50.000,00
+`;
+
+// Renovação Tokio com Bradesco como congênere anterior — detector deve retornar TOKIO_MARINE
+const TOKIO_RENOVACAO_BRADESCO_CONGENERE_TEXT = `
+Cotação Tokio Marine
+Processo SUSEP nº 15414.100335/2004-74 (Automóvel)
+Aceitação sujeita a análise da Seguradora
+Nº Cotação: 1016728949 | Validade cotação: 13/05/2026 | Vigência: 06/05/2026 a 06/05/2027
+Selecionamos o produto ideal para você:
+Auto
+Valor Referenciado (VMR), Colisão, Incêndio e Roubo/Furto
+Tipo Seguro Vigência
+Renovação Congênere 06/05/2026 - 06/05/2027 Sim OKB-0A62
+VOLKSWAGEN GOL CITY/TREND 1.0 MI TOTAL FLEX 8V 2P
+Código FIPE: 005227-2
+Nome da Congênere Número da apólice Fim de vigência Classe de Bônus
+5312 - BRADESCO SEGUROS S/A 178550 15/05/2026 2
+Colisão, Incêndio e Roubo/Furto Valor Referenciado (VMR) % de Ajuste - 100,00%
+RCF-V - Danos Materiais R$ 50.000,00
+Prêmio Líquido total R$ 3.013,84
+`;
+
 describe('detectInsurerFromText', () => {
   describe('detecção com alta confiança', () => {
     it('detecta BRADESCO com confiança alta a partir de razão social e CNPJ', () => {
@@ -146,6 +179,23 @@ describe('detectInsurerFromText', () => {
     it('detecta TOKIO_MARINE com confiança alta (suporte a parser é responsabilidade do endpoint)', () => {
       const result = detectInsurerFromText(TOKIO_TEXT);
       expect(result.detectedInsurer).toBe('TOKIO_MARINE');
+      expect(result.confidence).toBe('high');
+    });
+
+    it('detecta TOKIO_MARINE com alta confiança em renovação onde Bradesco é a congênere anterior', () => {
+      const result = detectInsurerFromText(TOKIO_RENOVACAO_BRADESCO_CONGENERE_TEXT);
+      expect(result.detectedInsurer).toBe('TOKIO_MARINE');
+      expect(result.confidence).toBe('high');
+    });
+
+    it('não retorna BRADESCO quando aparece apenas como congênere anterior em PDF Tokio', () => {
+      const result = detectInsurerFromText(TOKIO_RENOVACAO_BRADESCO_CONGENERE_TEXT);
+      expect(result.detectedInsurer).not.toBe('BRADESCO');
+    });
+
+    it('detecta BRADESCO com alta confiança em renovação onde Tokio é a congênere anterior', () => {
+      const result = detectInsurerFromText(BRADESCO_RENOVACAO_TOKIO_CONGENERE_TEXT);
+      expect(result.detectedInsurer).toBe('BRADESCO');
       expect(result.confidence).toBe('high');
     });
   });

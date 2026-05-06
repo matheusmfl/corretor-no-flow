@@ -350,6 +350,89 @@ Regras importantes:
 
 }
 
+function getTokioMarineAutoPrompt(): string {
+  return `Você está analisando uma Cotação de Seguro Auto da Tokio Marine.
+O cabeçalho do documento é "Cotação Tokio Marine / Processo SUSEP nº 15414.100335/2004-74 (Automóvel)".
+Pode ser uma renovação: o campo "Nome da Congênere" lista a SEGURADORA ANTERIOR — não a atual. O campo "insurer" deve ser sempre "Tokio Marine".
+
+Há 5 produtos distintos. Use o texto para identificar qual se aplica:
+1) Auto — cobertura completa, VMR 100%, oficina Livre Escolha, peças novas originais.
+2) Auto Clássico — VMR 100%, oficina Rede Referenciada, carro reserva 7 dias, peças novas originais.
+3) Auto Roubo + Rastreador — cobertura Incêndio e Roubo/Furto, VMR 100%, rastreador ITURAN obrigatório. NÃO rotular como compreensiva.
+4) Auto Proteção Mensal — VMR 90%, RCF R$ 25.000, sem vidros/carro reserva, peças Novas Compatíveis. Produto mensal.
+5) Assistência Exclusiva — sem casco (Casco, RCF e APP aparecem como "Não contratada"). Apenas Assistência 24 horas. Omita coverage.vehicle e coverage.rcf e coverage.app inteiramente.
+
+Extraia TODOS os dados abaixo e retorne EXATAMENTE neste formato JSON (sem campos extras, sem markdown):
+
+{
+  "vehicle": {
+    "plate": "placa do veículo (campo 'Placa')",
+    "model": "marca e modelo completo (ex: VOLKSWAGEN GOL CITY/TREND 1.0 MI TOTAL FLEX 8V 2P)",
+    "yearManufacture": ano de fabricação como número inteiro,
+    "yearModel": ano do modelo como número inteiro,
+    "chassis": "número do chassi (campo 'Chassi')",
+    "fipeCode": "código FIPE (campo 'Código FIPE')",
+    "fipeValue": valor de mercado FIPE em reais como número decimal — omitir se não disponível
+  },
+  "driver": {
+    "name": "nome completo do proponente (campo 'Proponente')",
+    "cpf": "CPF com pontuação",
+    "birthDate": "data de nascimento DD/MM/AAAA se disponível",
+    "gender": "Masculino ou Feminino se disponível",
+    "maritalStatus": "estado civil se disponível"
+  },
+  "quoteNumber": "número da cotação (campo 'Nº Cotação')",
+  "insurer": "Tokio Marine",
+  "segment": "nome do produto exatamente como aparece no documento — ex: Auto, Auto Clássico, Auto Roubo + Rastreador, Auto Proteção Mensal, Assistência Exclusiva",
+  "validFrom": "data de início da vigência DD/MM/AAAA",
+  "validUntil": "data de fim da vigência DD/MM/AAAA",
+  "bonusClass": "Classe de Bônus (campo 'Classe de Bônus') se disponível",
+  "coverage": {
+    "vehicle": {
+      "fipePercentage": percentual VMR como número inteiro (campo '% de Ajuste' — ex: 100 ou 90) — omitir para Assistência Exclusiva,
+      "deductible": valor da franquia parcial em reais como número decimal (campo 'Indenização Parcial do Veículo') — omitir para Assistência Exclusiva,
+      "deductibleType": "tipo da franquia (ex: Básica)" — omitir para Assistência Exclusiva
+    },
+    "rcf": {
+      "propertyDamage": LMI Danos Materiais em reais como número decimal — omitir se Não contratada,
+      "bodilyInjury": LMI Danos Corporais em reais como número decimal — omitir se Não contratada,
+      "moralDamages": null,
+      "combinedSingle": null
+    },
+    "app": {
+      "death": LMI Morte por passageiro em reais — omitir se Não contratada,
+      "disability": LMI Invalidez por passageiro em reais — omitir se Não contratada,
+      "medical": null,
+      "passengerCount": lotação como número inteiro se disponível
+    },
+    "assistance": {
+      "towing": true se Assistência 24 horas contratada,
+      "glassProtection": true se Vidros contratados (não presente em Proteção Mensal e Assistência Exclusiva),
+      "replacementVehicle": true se Carro reserva contratado,
+      "replacementDays": número de dias de carro reserva como inteiro
+    }
+  },
+  "deductibles": [
+    { "item": "Veículo", "value": valor da franquia em reais como número decimal }
+  ],
+  "premium": {
+    "base": Prêmio Líquido total em reais como número decimal (campo 'Prêmio Líquido total'),
+    "iof": null,
+    "total": prêmio total do período em reais como número decimal — para produtos anuais use o valor 'à vista' da capa (ex: R$ 3.236,26); para Auto Proteção Mensal use o total anualizado da tabela de pagamento (coluna 'Total (R$)' da linha 12x — ex: 2.731,41), NÃO o valor mensal da capa (ex: NÃO usar R$ 227,56)
+  },
+  "paymentMethods": []
+}
+
+Regras importantes:
+- "paymentMethods" sempre []
+- "insurer" sempre "Tokio Marine" — NUNCA usar o valor de "Nome da Congênere" (seguradora anterior)
+- Para Assistência Exclusiva: omitir coverage.vehicle, coverage.rcf, coverage.app inteiramente
+- Para Auto Roubo + Rastreador: coverage.vehicle.fipePercentage = 100, NÃO classificar como compreensiva
+- Para Auto Proteção Mensal: coverage.vehicle.fipePercentage = 90, produto é mensal
+- Campos numéricos como números, não strings
+- Se campo não existir no documento, use null ou omita`;
+}
+
 function getBradescoAutoPrompt(): string {
   return `Você está analisando um Demonstrativo de Cálculo do Bradesco Auto/RE.
 O documento tem até 5 páginas, sendo que apenas as 3 primeiras contêm dados relevantes (as demais são cláusulas contratuais).
@@ -490,6 +573,8 @@ export class AiService {
       prompt = getMitsuiSumitomoAutoPrompt();
     } else if (product === InsuranceProduct.AUTO && insurer === Insurer.ITAU) {
       prompt = getItauAutoPrompt();
+    } else if (product === InsuranceProduct.AUTO && insurer === Insurer.TOKIO_MARINE) {
+      prompt = getTokioMarineAutoPrompt();
     } else {
       prompt = `Extraia os dados da cotação de seguro ${product} da seguradora ${insurer} e retorne um objeto JSON estruturado com todas as informações relevantes.`;
     }

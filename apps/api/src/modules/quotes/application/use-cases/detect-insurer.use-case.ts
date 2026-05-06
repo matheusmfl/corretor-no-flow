@@ -3,7 +3,7 @@ import { PdfExtractorService } from '../services/pdf-extractor.service';
 import { detectInsurerFromText } from '../services/insurer-detector';
 import type { InsurerDetectionResult } from '@corretor/types';
 
-const SUPPORTED_INSURERS = new Set(['BRADESCO', 'PORTO_SEGURO', 'AZUL', 'MITSUI_SUMITOMO', 'ITAU']);
+const SUPPORTED_INSURERS = new Set(['BRADESCO', 'PORTO_SEGURO', 'AZUL', 'MITSUI_SUMITOMO', 'ITAU', 'TOKIO_MARINE']);
 
 export interface DetectInsurerResponse extends InsurerDetectionResult {
   supported: boolean;

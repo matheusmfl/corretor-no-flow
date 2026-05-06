@@ -18,6 +18,7 @@ const SUPPORTED_INSURERS = new Set<Insurer>([
   Insurer.AZUL,
   Insurer.MITSUI_SUMITOMO,
   Insurer.ITAU,
+  Insurer.TOKIO_MARINE,
 ]);
 
 @Injectable()

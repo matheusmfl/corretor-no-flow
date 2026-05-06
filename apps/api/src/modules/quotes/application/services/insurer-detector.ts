@@ -96,6 +96,32 @@ const HEALTH_PRODUCT_PATTERNS: RegExp[] = [
 
 const PRISMA_INSURERS = new Set<string>(Object.values(Insurer));
 
+// Downgrade razao_social strong signals that appear after the "Nome da Congênere" label.
+// This label marks the start of the previous-insurer section in renewal PDFs.
+// Any insurer match AFTER this label is the previous issuer, not the current emitter.
+//   Tokio PDF:   "Cotação Tokio Marine" at top (before label) → kept strong
+//                "BRADESCO SEGUROS S/A" after label → downgraded to weak
+//   Bradesco PDF: "BRADESCO SEGUROS S/A" at top (before label) → kept strong
+//                 "Tokio Marine Seguros" after label → downgraded to weak
+function suppressCongenereSignals(
+  rawSignals: InsurerDetectionSignal[],
+  text: string,
+): InsurerDetectionSignal[] {
+  if (!/Renova[cç][aã]o\s+Cong[eê]nere/i.test(text)) return rawSignals;
+
+  const congenereIdx = text.search(/Nome\s+da\s+Cong[eê]nere/i);
+  if (congenereIdx === -1) return rawSignals;
+
+  return rawSignals.map((s) => {
+    if (s.type !== 'strong' || s.source !== 'razao_social') return s;
+    const matchIdx = text.indexOf(s.value);
+    if (matchIdx !== -1 && matchIdx > congenereIdx) {
+      return { ...s, type: 'weak' as SignalType };
+    }
+    return s;
+  });
+}
+
 function computeProductDetection(text: string): {
   detectedProduct: InsuranceProduct | null;
   productConfidence: 'high' | 'medium' | 'low';
@@ -136,10 +162,13 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
   const hasHealthSignals = detectedProduct === 'HEALTH';
   const hasAutoSignals   = detectedProduct === 'AUTO';
 
-  const rawSignals: InsurerDetectionSignal[] = [
-    ...collectSignals(text, STRONG_PATTERNS, 'strong'),
-    ...collectSignals(text, MEDIUM_PATTERNS, 'medium'),
-  ];
+  const rawSignals: InsurerDetectionSignal[] = suppressCongenereSignals(
+    [
+      ...collectSignals(text, STRONG_PATTERNS, 'strong'),
+      ...collectSignals(text, MEDIUM_PATTERNS, 'medium'),
+    ],
+    text,
+  );
 
   // Apply family rules: when specificInsurer has a strong signal,
   // downgrade all groupInsurer signals to weak (they are group/template references)

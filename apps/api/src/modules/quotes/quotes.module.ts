@@ -15,6 +15,7 @@ import { GetProcessMetricsUseCase } from './application/use-cases/get-process-me
 import { DetectInsurerUseCase } from './application/use-cases/detect-insurer.use-case';
 import { UploadAutoQuoteUseCase } from './application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from './application/use-cases/reset-quote-batch.use-case';
+import { RemoveQuoteFromProcessUseCase } from './application/use-cases/remove-quote-from-process.use-case';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -38,6 +39,7 @@ import { AiModule } from '../ai/ai.module';
     DetectInsurerUseCase,
     UploadAutoQuoteUseCase,
     ResetQuoteBatchUseCase,
+    RemoveQuoteFromProcessUseCase,
     ExtractPdfProcessor,
   ],
 })

@@ -22,7 +22,7 @@ describe('UploadAutoQuoteUseCase — guarda de seguradoras suportadas', () => {
     prisma.quote.create.mockResolvedValue({ id: 'q1', processId: 'p1', insurer: Insurer.BRADESCO } as any);
   });
 
-  it.each([Insurer.BRADESCO, Insurer.PORTO_SEGURO, Insurer.AZUL, Insurer.MITSUI_SUMITOMO, Insurer.ITAU])(
+  it.each([Insurer.BRADESCO, Insurer.PORTO_SEGURO, Insurer.AZUL, Insurer.MITSUI_SUMITOMO, Insurer.ITAU, Insurer.TOKIO_MARINE])(
     '%s é aceita sem lançar exceção',
     async (insurer) => {
       prisma.quote.create.mockResolvedValue({ id: 'q1', processId: 'p1', insurer } as any);
@@ -32,7 +32,7 @@ describe('UploadAutoQuoteUseCase — guarda de seguradoras suportadas', () => {
 
   it('seguradora não suportada lança BadRequestException', async () => {
     await expect(
-      useCase.execute('c1', 'p1', Insurer.TOKIO_MARINE, '/file.pdf'),
+      useCase.execute('c1', 'p1', Insurer.SULAMERICA, '/file.pdf'),
     ).rejects.toThrow(BadRequestException);
   });
 

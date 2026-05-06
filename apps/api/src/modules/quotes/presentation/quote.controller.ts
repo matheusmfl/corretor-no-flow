@@ -47,6 +47,7 @@ import { GetProcessMetricsUseCase } from '../application/use-cases/get-process-m
 import { DetectInsurerUseCase } from '../application/use-cases/detect-insurer.use-case';
 import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
+import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
 
 const pdfStorage = diskStorage({
   destination: './uploads',
@@ -73,6 +74,7 @@ export class QuoteController {
     private readonly detectInsurer: DetectInsurerUseCase,
     private readonly uploadAutoQuote: UploadAutoQuoteUseCase,
     private readonly resetQuoteBatch: ResetQuoteBatchUseCase,
+    private readonly removeQuoteFromProcess: RemoveQuoteFromProcessUseCase,
   ) {}
 
   @Post()
@@ -230,5 +232,15 @@ export class QuoteController {
   ) {
     if (!file) throw new BadRequestException('Arquivo PDF é obrigatório');
     return this.submitQuoteForProcessing.execute(user.companyId, processId, quoteId, file.path);
+  }
+
+  @Delete(':processId/quotes/:quoteId')
+  @ApiOperation({ summary: 'Remove uma cotação do processo (ex: travou em PROCESSING)' })
+  removeQuote(
+    @CurrentUser() user: { companyId: string },
+    @Param('processId') processId: string,
+    @Param('quoteId') quoteId: string,
+  ) {
+    return this.removeQuoteFromProcess.execute(user.companyId, processId, quoteId);
   }
 }
