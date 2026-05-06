@@ -9,6 +9,9 @@ import { useProcessMetrics } from '@/hooks/quotes/use-process-metrics'
 const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco',
   PORTO_SEGURO: 'Porto Seguro',
+  AZUL:         'Azul',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo',
+  ITAU:         'Itaú',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',

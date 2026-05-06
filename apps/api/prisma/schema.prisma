@@ -43,6 +43,7 @@ enum Insurer {
   YELLOW
   AZUL
   MITSUI_SUMITOMO
+  ITAU
 }
 
 enum QuoteProcessStatus {

@@ -8,7 +8,11 @@ import { AiService } from '../../ai/ai.service';
 import { parseAutoQuoteData } from '../domain/schemas/auto-quote.schema';
 import { parseBradescoPaymentTable } from '../application/services/bradesco-payment-parser';
 import { parsePortoPaymentTable } from '../application/services/porto-payment-parser';
-import { UNRELIABLE_DEDUCTIBLE_TYPES, getAzulProductLabel } from '../application/services/quote-filename';
+import {
+  UNRELIABLE_DEDUCTIBLE_TYPES,
+  getAzulProductLabel,
+  getItauProductLabel,
+} from '../application/services/quote-filename';
 import { QUEUE_NAMES } from '../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../queue/queue.types';
 import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
@@ -28,6 +32,7 @@ const INSURER_SHORT: Record<string, string> = {
   YELLOW:          'Yellow',
   AZUL:            'Azul',
   MITSUI_SUMITOMO: 'Mitsui Sumitomo',
+  ITAU:            'Itaú',
 };
 
 function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQuoteData): string {
@@ -39,6 +44,12 @@ function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQu
 
   if (insurer === 'AZUL') {
     const productLabel = getAzulProductLabel(data);
+    const name = productLabel ? `${base} ${productLabel}` : base;
+    return premiumStr ? `${name} — (${premiumStr})` : name;
+  }
+
+  if (insurer === 'ITAU') {
+    const productLabel = getItauProductLabel(data);
     const name = productLabel ? `${base} ${productLabel}` : base;
     return premiumStr ? `${name} — (${premiumStr})` : name;
   }
@@ -118,6 +129,7 @@ export class ExtractPdfProcessor extends WorkerHost {
       else if (insurer === Insurer.PORTO_SEGURO) parsedPayments = parsePortoPaymentTable(rawText);
       else if (insurer === Insurer.AZUL) parsedPayments = parsePortoPaymentTable(rawText);
       else if (insurer === Insurer.MITSUI_SUMITOMO) parsedPayments = parsePortoPaymentTable(rawText);
+      else if (insurer === Insurer.ITAU) parsedPayments = parsePortoPaymentTable(rawText);
       this.logger.debug(
         `[${quoteId}] deterministicParser durationMs=${Date.now() - parserStart} found=${parsedPayments !== null}`,
       );

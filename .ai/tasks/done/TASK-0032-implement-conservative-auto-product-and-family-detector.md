@@ -1,9 +1,9 @@
 ---
 id: TASK-0032
 title: Implementar detector conservador de produto AUTO e familia Porto
-status: review
+status: done
 kind: implementation
-lifecycle: review
+lifecycle: done
 area: backend
 owner: codex
 reviewer: human
@@ -128,6 +128,21 @@ Correcoes aplicadas em resposta ao review do Codex:
 - Produto comercial e cobertura principal ainda nao estao modelados no contrato final.
 
 ## Human QA Checklist
+
+- [x] Confirmar que Itau nao vira Porto.
+- [x] Confirmar que Mitsui Sumitomo nao vira Porto.
+- [x] Confirmar que Azul nao vira Porto.
+- [x] Confirmar que seguradoras da familia Porto agora possuem caminho proprio ou bloqueio seguro.
+
+## Done Notes - 2026-05-05
+
+Task encerrada por decisao humana. O detector conservador foi exercitado e superado pelas implementacoes completas de Azul, Mitsui Sumitomo e Itau:
+
+- Azul AUTO (`TASK-0033`/`TASK-0036`) processado sem cair em Porto.
+- Mitsui Sumitomo AUTO (`TASK-0034`) processado sem cair em Porto.
+- Itau AUTO (`TASK-0035`) processado e validado com PDFs reais sem cair em Porto.
+
+Manter futuras melhorias de semantica de coberturas em `TASK-0022`.
 
 - [ ] Validar mensagem exibida para Itau/Azul/Mitsui Sumitomo reconhecidos mas nao suportados.
 - [ ] Validar mensagem exibida para PDF nao AUTO em fluxo AUTO.

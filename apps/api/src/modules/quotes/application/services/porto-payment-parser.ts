@@ -9,17 +9,17 @@ const KNOWN_METHODS: Array<{
   label: string;
 }> = [
   {
-    pattern: /CART[ÃA]O DE CR[ÉE]DITO PORTO BANK\s*\(AQUISI[ÇC][ÃA]O\)\*?/i,
+    pattern: /(?:TODAS\s+)?CART[ÃA]O DE CR[ÉE]DITO PORTO BANK\s*\(AQUISI[ÇC][ÃA]O\)\*?/i,
     type: 'credit_bradesco',
     label: 'Cartão Porto Bank (Aquisição)',
   },
   {
-    pattern: /CART[ÃA]O DE CR[ÉE]DITO PORTO BANK SEM DESCONTO/i,
+    pattern: /(?:TODAS\s+)?CART[ÃA]O DE CR[ÉE]DITO PORTO BANK SEM DESCONTO/i,
     type: 'credit_card',
     label: 'Cartão Porto Bank (Outro Titular)',
   },
   {
-    pattern: /CART[ÃA]O DE CR[ÉE]DITO\s*-\s*DEMAIS BANDEIRAS/i,
+    pattern: /(?:TODAS\s+)?CART[ÃA]O DE CR[ÉE]DITO\s*-\s*DEMAIS BANDEIRAS/i,
     type: 'credit_card',
     label: 'Cartão de Crédito',
   },
@@ -167,7 +167,15 @@ function splitByMethods(
 
   positions.sort((a, b) => a.index - b.index);
 
-  const isIncomplete = /Parcela\s+1x/i.test(section);
+  const installmentHeaderMatch = /\b1x(?:\s+\d+x){2,}/.exec(section);
+  const firstLabelBeforeInstallmentHeader =
+    installmentHeaderMatch != null && positions[0]!.index < installmentHeaderMatch.index;
+
+  const isIncomplete =
+    /Parcela\s+1x/i.test(section) ||
+    // Itaú / alguns PDFs: linha do método (ex. TODAS CARTÃO…) vem antes da grade 1x 2x…
+    firstLabelBeforeInstallmentHeader;
+
   const results: Array<{ label: string; type: PaymentMethod['type']; chunk: string }> = [];
 
   if (isIncomplete) {

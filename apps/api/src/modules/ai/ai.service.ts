@@ -1,7 +1,30 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import { Insurer, InsuranceProduct } from '@prisma/client';
-import { GROQ_CLIENT } from './ai.constants';
+import { GEMINI_CLIENT, GROQ_CLIENT } from './ai.constants';
+
+/** Detecta rate limit Groq (429 / rate_limit_exceeded) para acionar fallback Gemini. */
+export function isGroqRateLimitExceeded(err: unknown): boolean {
+  if (err == null || typeof err !== 'object') return false;
+  const e = err as Record<string, unknown>;
+  if (e.status === 429) return true;
+  const nested = e.error as Record<string, unknown> | undefined;
+  if (nested?.code === 'rate_limit_exceeded') return true;
+  const msg = String(e.message ?? nested?.message ?? '');
+  if (/rate_limit_exceeded/i.test(msg)) return true;
+  return false;
+}
+
+function parseJsonFromLlmText(text: string): Record<string, unknown> {
+  const cleaned = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+  try {
+    return JSON.parse(cleaned) as Record<string, unknown>;
+  } catch {
+    throw new InternalServerErrorException('Resposta da IA não é JSON válido');
+  }
+}
 
 const SUPPORTED_PRODUCTS = [InsuranceProduct.AUTO] as const;
 
@@ -242,6 +265,91 @@ Regras importantes:
 - Use exatamente os nomes de campos em inglês conforme especificado`;
 }
 
+function getItauAutoPrompt(): string {
+  return `Você está analisando uma Cotação de Seguro Auto da Itaú Seguro Auto (marca licenciada da Porto Seguro).
+O CNPJ no cabeçalho pode ser o da Porto Seguro — mesmo assim o campo "insurer" deve ser sempre "Itaú Seguro Auto".
+
+Há produtos comerciais distintos. Use o texto do documento para decidir qual caso aplica — NÃO assume compreensiva tradicional quando o produto é outro:
+
+1) ITAÚ TRADICIONAL (compreensiva/casco FIPE típico): extraia coberturas de veículo como em cotações completas (fipePercentage, deductible quando houver valor, deductibleType como "50% da Obrigatória" quando indicado).
+
+2) ITAÚ SEGURO AUTO COMPACTO / COMPACTO: indenização integral parcial (ex.: 85% FIPE) — campo "coverage.vehicle.fipePercentage" deve refletir o percentual REAL (85, 100, etc.). Se "Franquia: -" ou ausente para casco compacto, NÃO invente deductible de casco tradicional.
+
+3) ITAÚ ASSISTÊNCIA 24H: pode NÃO haver cobertura de COMPREENSIVA/casco tradicional — apenas reparos programados, APP, coberturas distintas, RCF opcional ou "não contratado". Omita coverage.vehicle inteiro se não existir Casco/compreensiva como no tradicional — isso não é erro de extração.
+
+Extraia TODOS os dados abaixo e retorne EXATAMENTE neste formato JSON (sem campos extras, sem markdown):
+
+{
+  "vehicle": {
+    "plate": "placa (campo Placa)",
+    "model": "marca e modelo completos",
+    "yearManufacture": ano fabricação inteiro,
+    "yearModel": ano modelo inteiro,
+    "chassis": "chassi",
+    "fipeCode": "código Fipe/FIPE",
+    "fipeValue": valor mercado FIPE em reais (não confundir com franquia nem com LMI de linhas de Coberturas — normalmente bem acima da franquia)
+  },
+  "driver": {
+    "name": "nome do proponente/segurado",
+    "cpf": "CPF com pontuação",
+    "birthDate": "DD/MM/AAAA",
+    "gender": "Masculino ou Feminino",
+    "maritalStatus": "estado civil"
+  },
+  "quoteNumber": "campo Orçamento (ex: 5634702819-0-2)",
+  "insurer": "Itaú Seguro Auto",
+  "segment": "valor exato do campo Segmento conforme PDF — ex.: ITAÚ TRADICIONAL, ITAÚ SEGURO AUTO COMPACTO (mesmo que em linhas separadas, normalize para uma única string completa), ITAÚ ASSISTÊNCIA 24H",
+  "validFrom": "início vigência DD/MM/AAAA",
+  "validUntil": "fim vigência DD/MM/AAAA",
+  "bonusClass": "classe de bônus (ex: Classe 0)",
+  "coverage": {
+    "vehicle": {
+      "fipePercentage": percentual FIPE coberto como inteiro (100 no tradicional, 85 no compacto observado, omita se não houver casco)",
+      "lmi": "LMI do veículo como string se fizer sentido",
+      "deductible": franquia em reais se existir para o casco (senão omita)",
+      "deductibleType": "ex.: 50% da Obrigatória, Normal — omita se não aplicável"
+    },
+    "rcf": {
+      "propertyDamage": LMI danos materiais ou null se não contratado,
+      "bodilyInjury": LMI danos corporais ou null,
+      "moralDamages": null ou valor se houver,
+      "combinedSingle": null ou valor se houver
+    },
+    "app": {
+      "death": LMI morte por passageiro se houver,
+      "disability": LMI invalidez se houver,
+      "medical": despesas médicas se houver,
+      "passengerCount": lotação se houver
+    },
+    "assistance": {
+      "towing": true se houver guincho/assistência de painel,
+      "glassProtection": true se vidros contratados,
+      "replacementVehicle": true se carro reserva,
+      "replacementDays": dias de reserva se houver
+    }
+  },
+  "deductibles": [
+    { "item": "nome", "value": valor em reais, "type": "opcional" }
+  ],
+  "premium": {
+    "base": Prêmio Total Líquido em reais,
+    "rcfTotal": soma prêmios RCF se separável, senão omita ou 0,
+    "appTotal": soma APP se separável,
+    "iof": IOF em reais,
+    "total": Prêmio Total final em reais
+  },
+  "paymentMethods": []
+}
+
+Regras importantes:
+- "paymentMethods" sempre []
+- Omita objetos ou campos inteiramente quando o produto não tiver aquele elemento (principalmente Assistência 24h sem casco)
+- Percentual FIPE do compacto deve ser extraído do texto (85.00%, etc.)
+- Numéricos como número, não string
+- Nunca preencher coverage.vehicle.fipePercentage=100 apenas porque o PDF é Porto/Itaú — respeite o produto`;
+
+}
+
 function getBradescoAutoPrompt(): string {
   return `Você está analisando um Demonstrativo de Cálculo do Bradesco Auto/RE.
 O documento tem até 5 páginas, sendo que apenas as 3 primeiras contêm dados relevantes (as demais são cláusulas contratuais).
@@ -321,7 +429,11 @@ Regras importantes:
 export class AiService {
   private readonly logger = new Logger(AiService.name);
 
-  constructor(@Inject(GROQ_CLIENT) private readonly groq: Groq) {}
+  constructor(
+    @Inject(GROQ_CLIENT) private readonly groq: Groq,
+    @Inject(GEMINI_CLIENT) private readonly gemini: GoogleGenerativeAI | null,
+    private readonly config: ConfigService,
+  ) {}
 
   async extractQuoteData(
     rawText: string,
@@ -334,7 +446,7 @@ export class AiService {
     }
 
     const prompt = this.buildExtractionPrompt(product, insurer, rawText);
-    return this.callGroq(
+    return this.completeJsonFromMessages(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: prompt },
@@ -352,7 +464,7 @@ export class AiService {
     context?: { quoteId: string },
   ): Promise<Record<string, unknown>> {
     const basePrompt = this.buildExtractionPrompt(product, insurer, '');
-    return this.callGroq(
+    return this.completeJsonFromMessages(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         {
@@ -376,6 +488,8 @@ export class AiService {
       prompt = getAzulAutoPrompt();
     } else if (product === InsuranceProduct.AUTO && insurer === Insurer.MITSUI_SUMITOMO) {
       prompt = getMitsuiSumitomoAutoPrompt();
+    } else if (product === InsuranceProduct.AUTO && insurer === Insurer.ITAU) {
+      prompt = getItauAutoPrompt();
     } else {
       prompt = `Extraia os dados da cotação de seguro ${product} da seguradora ${insurer} e retorne um objeto JSON estruturado com todas as informações relevantes.`;
     }
@@ -383,11 +497,41 @@ export class AiService {
     return rawText ? `${prompt}\n\nTexto da cotação:\n${rawText}` : prompt;
   }
 
-  private async callGroq(
+  private async completeJsonFromMessages(
     messages: { role: 'system' | 'user'; content: string }[],
-    label: 'extraction' | 'correction' = 'extraction',
+    label: 'extraction' | 'correction',
     ctx?: { quoteId: string; insurer: Insurer; product: InsuranceProduct },
   ): Promise<Record<string, unknown>> {
+    const ctxStr = ctx ? ` quoteId=${ctx.quoteId} insurer=${ctx.insurer} product=${ctx.product}` : '';
+
+    try {
+      const out = await this.invokeGroq(messages);
+      this.logger.log(
+        `[AI][${label}] provider=groq fallback=false${ctxStr} durationMs=${out.durationMs} tokens_in=${out.tokensIn} tokens_out=${out.tokensOut}`,
+      );
+      return parseJsonFromLlmText(out.body);
+    } catch (err) {
+      if (!isGroqRateLimitExceeded(err)) throw err;
+
+      if (!this.gemini) {
+        this.logger.warn(`[AI][${label}] provider=groq rate_limited=true fallback_unavailable=true${ctxStr}`);
+        throw new InternalServerErrorException(
+          'Groq rate limit (429 / rate_limit_exceeded). Defina GEMINI_API_KEY para usar fallback Gemini.',
+        );
+      }
+
+      this.logger.warn(`[AI][${label}] provider=groq rate_limited=true attempting_gemini_fallback=true${ctxStr}`);
+      const geminiOut = await this.invokeGemini(messages);
+      this.logger.log(
+        `[AI][${label}] provider=gemini fallback=true${ctxStr} durationMs=${geminiOut.durationMs}`,
+      );
+      return parseJsonFromLlmText(geminiOut.body);
+    }
+  }
+
+  private async invokeGroq(
+    messages: { role: 'system' | 'user'; content: string }[],
+  ): Promise<{ body: string; durationMs: number; tokensIn: string; tokensOut: string }> {
     const t0 = Date.now();
     const response = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -395,25 +539,46 @@ export class AiService {
       temperature: 0,
     });
     const durationMs = Date.now() - t0;
-
     const usage = response.usage;
-    const ctxStr = ctx ? ` quoteId=${ctx.quoteId} insurer=${ctx.insurer} product=${ctx.product}` : '';
-    this.logger.log(
-      `[Groq][${label}]${ctxStr} durationMs=${durationMs} tokens_in=${usage?.prompt_tokens ?? '?'} tokens_out=${usage?.completion_tokens ?? '?'}`,
-    );
-
-    const text = response.choices[0]?.message?.content;
-
-    if (!text) {
+    const raw = response.choices[0]?.message?.content;
+    if (!raw) {
       throw new InternalServerErrorException('Resposta da IA não contém texto');
     }
+    return {
+      body: raw,
+      durationMs,
+      tokensIn: String(usage?.prompt_tokens ?? '?'),
+      tokensOut: String(usage?.completion_tokens ?? '?'),
+    };
+  }
 
-    const cleaned = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
-
-    try {
-      return JSON.parse(cleaned) as Record<string, unknown>;
-    } catch {
-      throw new InternalServerErrorException('Resposta da IA não é JSON válido');
+  private async invokeGemini(
+    messages: { role: 'system' | 'user'; content: string }[],
+  ): Promise<{ body: string; durationMs: number }> {
+    if (!this.gemini) {
+      throw new InternalServerErrorException('Gemini não configurado');
     }
+    const systemInstruction =
+      messages.find((m) => m.role === 'system')?.content ?? SYSTEM_PROMPT;
+    const userText = messages
+      .filter((m) => m.role === 'user')
+      .map((m) => m.content)
+      .join('\n\n');
+
+    const modelName =
+      this.config.get<string>('GEMINI_MODEL')?.trim() || 'gemini-2.0-flash';
+    const model = this.gemini.getGenerativeModel({
+      model: modelName,
+      systemInstruction,
+    });
+
+    const t0 = Date.now();
+    const result = await model.generateContent(userText);
+    const durationMs = Date.now() - t0;
+    const body = result.response.text();
+    if (!body?.trim()) {
+      throw new InternalServerErrorException('Resposta da IA não contém texto');
+    }
+    return { body, durationMs };
   }
 }

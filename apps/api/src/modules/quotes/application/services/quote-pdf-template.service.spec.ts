@@ -96,6 +96,54 @@ describe('QuotePdfTemplateService — grupos de cobertura condicionais', () => {
       expect(html).toContain('cob-group-title">Assistências');
     });
   });
+
+  describe('Cobertura do Veículo (casco / FIPE)', () => {
+    it('renderiza quando há fipePercentage no payload (layout padrão)', () => {
+      const html = render({});
+      expect(html).toContain('Cobertura do Veículo');
+      expect(html).toContain('100%');
+      expect(html).toContain('do valor da tabela FIPE está coberto');
+    });
+
+    it('não renderiza quando coverage.vehicle está ausente (ex.: Assistência 24h sem casco)', () => {
+      const html = service.render({
+        insurer: 'ITAU',
+        name:    'Itaú',
+        extractedData: {
+          vehicle: { model: 'JEEP COMPASS' },
+          driver:  {},
+          coverage: {
+            app:        { death: 5000, passengerCount: 5 },
+            assistance: { towing: true },
+          },
+          deductibles:    [],
+          premium:        { total: 457.95 },
+          paymentMethods: [],
+        },
+      });
+      expect(html).not.toContain('Cobertura do Veículo');
+      expect(html).not.toContain('do valor da tabela FIPE está coberto');
+    });
+
+    it('não renderiza quando vehicle existe mas fipePercentage ausente (evita “—% FIPE”)', () => {
+      const html = service.render({
+        insurer: 'ITAU',
+        name:    'Itaú',
+        extractedData: {
+          vehicle: { model: 'JEEP COMPASS' },
+          driver:  {},
+          coverage: {
+            vehicle: { deductible: 6516, deductibleType: '50% da Obrigatória' },
+            rcf:     { propertyDamage: 100_000 },
+          },
+          deductibles:    [],
+          premium:        { total: 4095.25 },
+          paymentMethods: [],
+        },
+      });
+      expect(html).not.toContain('Cobertura do Veículo');
+    });
+  });
 });
 
 describe('QuotePdfTemplateService — franquia principal', () => {

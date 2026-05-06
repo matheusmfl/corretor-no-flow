@@ -1,0 +1,148 @@
+Orçamento de Seguro Auto
+CNPJ: 61.198.164.0001/60
+Orçamento válido 16/05/2026
+Realizado em 01/05/2026
+Orçamento: 5634702819-0-2
+Versão Condições Gerais: CG070
+ITAÚ TRADICIONAL e PROTEÇÃO COMBINADA v1.0
+Processo SUSEP: 15414.900655/2016-61
+
+FULANO DE TAL,
+Obrigado por solicitar um orçamento para seu veículo com a Itaú Seguro Auto.
+A seguir você conhecerá todos os benefícios que temos para oferecer, as formas de pagamento que melhor lhe convém,
+além de todos os detalhes das coberturas. Confira os dados abaixo e se seu perfil está de acordo com o informado.
+Itaú Seguro Auto é uma marca licenciada para uso da Porto Seguro Companhia de Seguros Gerais.
+
+PROPONENTE
+Proponente / Segurado(a)  Nascimento  CPF
+FULANO DE TAL             01/01/1970  000.000.000-00
+
+CORRETOR
+Corretor  SUSEP   Telefone      E-mail
+CORRETORA EXEMPLO  36110J  81-0000-0000  corretor@example.com
+
+*Modalidades de remuneração poderão se aplicar ao relacionamento entre a seguradora e o intermediário, conforme políticas internas.
+
+SEGURO
+Tipo de Operação  Segmento          Sucursal  Apólice  Item
+SEGURO NOVO       ITAÚ TRADICIONAL  -         -        -
+Vigência                            Bônus Único   Origem do Bônus
+01/05/2026 até 01/05/2027 (365 dias)  CLASSE 0    -
+
+VEÍCULO
+Veículo                           Ano Fabricação / Modelo   Portas/Combustível
+00000 - MODELO EXEMPLO 1.3 FLEX   2025 / 2026               5 / GASOLINA/ALCOOL
+Placa     Chassi                   Fipe    Categoria                    Veículo 0 Km
+ABC1D23   00000XXXXXTXX00000       170720  22 - PICKUPS SUV PESADAS     N
+Veículo Blindado   Isenção Fiscal      Quantidade de Passageiros
+NÃO POSSUI BLINDAGEM  SEM ISENÇÃO     5
+Câmbio Automático  Kit-Gás   Veículo de Pessoa com Deficiência
+SIM                NÃO       NÃO
+
+QUESTIONÁRIO
+Nome do principal Condutor: FULANO DE TAL  CPF: 000.000.000-00  CEP PERNOITE: 00000-000
+Tipo do Uso: PARTICULAR
+Possui um ou mais dos dispositivos antifurto/anti-roubo abaixo instalados no veículo?: OUTROS DISPOSITIVOS
+Seguro do corretor?: NÃO
+
+COBERTURAS
+COBERTURAS AUTO
+                       LMI (indenização)  Franquia     Var. de Opcionais  Depreciação  Valor do Prêmio
+Casco
+COMPREENSIVA 100.00%   R$ 6.516,00        0.00%        0.00%              R$ 2.315,56
+Colisão, Incêndio, Roubo ou Furto
+
+Foram oferecidas ao Segurado duas opções para a contratação do seguro: Valor de Mercado Referenciado e Valor Determinado.
+A opção escolhida foi indenização por Valor de Mercado Referenciado. Em caso de indenização integral, a mesma, será de 100.00%
+do valor do veículo referência da tabela FIPE divulgada no site www.fipe.org.br, vigente na data da ocorrência e região de contratação.
+Franquia: 50% da Obrigatória
+
+                                            LMI (indenização)  Franquia  Valor do Prêmio
+Vidros
+76 - VIDROS, RETROVISORES, LANTERNAS E      R$ 25.000,00       *         R$ 665,67
+FARÓIS - REFERENCIADA
+
+*Franquias: Vidros Para-Brisa, Teto Solar ou Panorâmico: R$ 650,00 / Vidros Traseiros: R$ 391,00 /
+Faróis Convencionais, Milha e Neblina: R$ 1.648,00 / Faróis de LED: R$ 3.003,00 /
+Faróis de Xenon: R$ 3.003,00 / Lanternas Convencionais: R$ 555,00 /
+Lanternas de LED: R$ 901,00 / Vidros Laterais: R$ 200,00 / Retrovisores: R$ 344,00
+
+Reparos no Veículo Por Serviço
+REPARO RÁPIDO E SUPERMARTELINHO DE OURO - REFERENCIADA  R$ 1.500,00  *  R$ 164,78
+
+*Franquias: Reparo Rápido: R$ 150,00 / Supermartelinho: R$ 90,00
+Limite de utilização por vigência: Reparo Rápido: R$ 1.500 / Supermartelinho de Ouro R$ 1.500.
+
+RCF
+RCF-V DANOS MATERIAIS   R$ 100.000,00   -   -   -   R$ 371,07
+RCF-V DANOS CORPORAIS   R$ 100.000,00   -   -   -   R$ 53,65
+CUSTOS DE DEFESA AUTO   R$ 20.000,00    -   -   -   R$ 30,59
+
+COBERTURAS ADICIONAIS, SERVIÇOS E BENEFÍCIOS
+ITAÚ ESSENCIAL 600 KM   Gratuita
+COLETA DE DOCUMENTOS (MOTO COLETA)   Gratuita
+EXTENSÃO DE PERÍMETRO BÁSICO         Gratuita
+
+DESCONTOS APLICADOS NO ORÇAMENTO
+Desconto Cartão Porto Bank - Aquisição (limitado a R$ 500,00): 10.00%
+Desconto à vista - Primeira Compra: 5.00%
+Desconto à vista - Demais formas de Pagamento : 5.00%
+
+PRÊMIO
+Prêmio Total Líquido:  R$ 3.813,79
+IOF:                 + R$ 281,46
+Prêmio Total:          R$ 4.095,25
+
+FORMAS DE PAGAMENTO
+TODAS CARTÃO DE CRÉDITO PORTO BANK (AQUISIÇÃO)*
+1x           2x           3x           4x           5x           6x           7x           8x           9x           10x          11x          12x
+R$ 3.500,26  R$ 1.842,85  R$ 1.228,57  R$ 921,43    R$ 737,14    R$ 614,28    R$ 526,53    R$ 460,71    R$ 409,52    R$ 368,57    R$ 335,06    R$ 307,14
+(s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros     (s/juros
+Até 15% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF) Até 10% OFF)
+
+TODAS CARTÃO DE CRÉDITO PORTO BANK SEM DESCONTO (OUTRO TITULAR)
+1x           2x           3x           4x           5x           6x           7x           8x           9x           10x          11x          12x
+R$ 3.890,47  R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 819,05    R$ 682,54    R$ 585,04    R$ 511,91    R$ 455,03    R$ 409,52    R$ 372,30    R$ 341,27
+(s/juros     (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)
+5% OFF)
+
+TODAS CARTÃO DE CRÉDITO - DEMAIS BANDEIRAS
+1x           2x           3x           4x           5x           6x           7x           8x           9x           10x
+R$ 3.890,47  R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 819,05    R$ 682,54    R$ 585,04    R$ 511,91    R$ 455,03    R$ 409,52
+(s/juros     (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)    (s/juros)
+5% OFF)
+
+TODAS DÉBITO C. CORRENTE
+1x           2x           3x           4x           5x                    6x                    7x                    8x                    9x                    10x
+             R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 861,89             R$ 727,38             R$ 631,31             R$ 578,61             R$ 523,19             R$ 478,94
+             (s/juros)    (s/juros)    (s/juros)    juros (R$ 199,46)     juros (R$ 250,57)     juros (R$ 301,67)     juros (R$ 496,94)     juros (R$ 571,31)     juros (R$ 646,44)
+
+1 BOLETO / DEMAIS CARNÊ
+2x           3x           4x           5x                    6x                    7x                    8x                    9x                    10x
+R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 902,10             R$ 769,70             R$ 675,42             R$ 604,87             R$ 550,17             R$ 506,58
+(s/juros)    (s/juros)    (s/juros)    juros (R$ 386,72)     juros (R$ 487,02)     juros (R$ 589,23)     juros (R$ 692,58)     juros (R$ 797,46)     juros (R$ 903,87)
+
+1 BOLETO / DEMAIS C. CORRENTE
+1x           2x           3x           4x           5x                    6x                    7x                    8x                    9x                    10x
+R$ 4.095,25  R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 861,89             R$ 727,38             R$ 631,31             R$ 578,61             R$ 523,19             R$ 478,94
+(s/juros)    (s/juros)    (s/juros)    (s/juros)    juros (R$ 199,46)     juros (R$ 250,57)     juros (R$ 301,67)     juros (R$ 496,94)     juros (R$ 571,31)     juros (R$ 646,44)
+
+1 DEBITO C. CORRENTE / DEMAIS CARNÊ
+1x           2x           3x           4x           5x                    6x                    7x                    8x                    9x                    10x
+             R$ 2.047,62  R$ 1.365,08  R$ 1.023,81  R$ 902,10             R$ 769,70             R$ 675,42             R$ 604,87             R$ 550,17             R$ 506,58
+             (s/juros)    (s/juros)    (s/juros)    juros (R$ 386,72)     juros (R$ 487,02)     juros (R$ 589,23)     juros (R$ 692,58)     juros (R$ 797,46)     juros (R$ 903,87)
+
+Boleto
+À vista
+5% de Desconto  R$ 3.890,47 (s/juros)
+
+Prêmio Total Líquido:  R$ 3.813,79
+IOF:                 + R$ 281,46
+Prêmio Total:          R$ 4.095,25
+
+Visite o nosso site: www.itauseguroautoeresidencia.com.br
+SAC Itaú: 0800 728 0728 (informação, reclamação e cancelamento)
+CPF/CNPJ: 000000000-00
+Uso Interno da Cia
+20260516.23.0015C.0000A.0000G.ACP000000
+36110J Pag. 5 de 5

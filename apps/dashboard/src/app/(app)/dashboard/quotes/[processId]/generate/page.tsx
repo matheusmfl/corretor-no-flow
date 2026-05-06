@@ -13,6 +13,8 @@ const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
   AZUL:         'Azul Seguro Auto',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo Seguros',
+  ITAU:         'Itaú Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',

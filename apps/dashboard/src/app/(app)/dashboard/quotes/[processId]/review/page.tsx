@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { AutoQuoteData, Quote } from '@corretor/types'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
 import { useReviewQuote } from '@/hooks/quotes/use-review-quote'
+import { ApiError } from '@/lib/api/client'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -12,6 +13,8 @@ const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
   AZUL:         'Azul Seguro Auto',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo Seguros',
+  ITAU:         'Itaú Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',
@@ -304,7 +307,9 @@ function SkeletonCard() {
 export default function ReviewPage({ params }: { params: Promise<{ processId: string }> }) {
   const { processId } = use(params)
   const router = useRouter()
-  const { data: process, isLoading } = useQuoteProcess(processId)
+  const { data: process, isLoading, isError, error } = useQuoteProcess(processId, {
+    refetchOnMount: 'always',
+  })
 
   const quotes = process?.quotes ?? []
   const allReady = quotes.length > 0 && quotes.every(
@@ -330,6 +335,20 @@ export default function ReviewPage({ params }: { params: Promise<{ processId: st
           <SkeletonCard />
           <SkeletonCard />
         </div>
+      ) : isError ? (
+        <div
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          role="alert"
+        >
+          {error instanceof ApiError && error.isNotFound
+            ? 'Processo não encontrado.'
+            : 'Não foi possível carregar as cotações. Tente novamente.'}
+        </div>
+      ) : quotes.length === 0 ? (
+        <p className="text-sm text-ink-muted rounded-xl border border-surface-strong bg-surface/40 px-4 py-3">
+          Nenhuma cotação neste processo ainda. Volte ao upload para adicionar PDFs ou aguarde o
+          processamento.
+        </p>
       ) : (
         <div className="space-y-4">
           {quotes.map((quote) => (

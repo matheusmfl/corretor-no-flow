@@ -1,4 +1,7 @@
 import Groq from 'groq-sdk';
+import { ConfigService } from '@nestjs/config';
+import type { GoogleGenerativeAI } from '@google/generative-ai';
+import { InternalServerErrorException } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { InsuranceProduct, Insurer } from '@prisma/client';
 
@@ -32,40 +35,63 @@ const VALID_AUTO_QUOTE = {
   ],
 };
 
-describe('AiService', () => {
-  let service: AiService;
-  let mockCreate: jest.Mock;
+function makeGroqRateLimitError(): Error & { status?: number } {
+  const err = new Error('429 rate_limit_exceeded') as Error & { status?: number };
+  err.status = 429;
+  return err;
+}
 
-  beforeEach(() => {
-    mockCreate = jest.fn();
-    const mockGroq = {
-      chat: { completions: { create: mockCreate } },
-    } as unknown as Groq;
-    service = new AiService(mockGroq);
+function buildAiService(
+  mockCreate: jest.Mock,
+  gemini: GoogleGenerativeAI | null,
+  mockGeminiGenerateContent?: jest.Mock,
+) {
+  const mockGroq = {
+    chat: { completions: { create: mockCreate } },
+  } as unknown as Groq;
+
+  const mockConfigGet = jest.fn().mockImplementation((key: string) => {
+    if (key === 'GEMINI_MODEL') return undefined;
+    return undefined;
   });
 
+  if (gemini && mockGeminiGenerateContent) {
+    (gemini as unknown as { getGenerativeModel: jest.Mock }).getGenerativeModel = jest.fn(() => ({
+      generateContent: mockGeminiGenerateContent,
+    }));
+  }
+
+  const config = { get: mockConfigGet } as unknown as ConfigService;
+  return new AiService(mockGroq, gemini, config);
+}
+
+describe('AiService', () => {
   describe('extractQuoteData', () => {
     it('retorna JSON parseado quando Groq responde com JSON válido', async () => {
-      mockCreate.mockResolvedValue(makeResponse(JSON.stringify(VALID_AUTO_QUOTE)));
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(JSON.stringify(VALID_AUTO_QUOTE)));
+      const svc = buildAiService(mockCreate, null);
 
-      const result = await service.extractQuoteData('texto bruto da cotação', InsuranceProduct.AUTO, Insurer.BRADESCO);
+      const result = await svc.extractQuoteData('texto bruto da cotação', InsuranceProduct.AUTO, Insurer.BRADESCO);
 
       expect(result).toEqual(VALID_AUTO_QUOTE);
     });
 
     it('remove markdown code fences antes de parsear o JSON', async () => {
+      const mockCreate = jest.fn();
       const withFences = `\`\`\`json\n${JSON.stringify(VALID_AUTO_QUOTE)}\n\`\`\``;
       mockCreate.mockResolvedValue(makeResponse(withFences));
+      const svc = buildAiService(mockCreate, null);
 
-      const result = await service.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
+      const result = await svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
 
       expect(result).toEqual(VALID_AUTO_QUOTE);
     });
 
     it('usa prompt Bradesco-específico quando insurer é BRADESCO', async () => {
-      mockCreate.mockResolvedValue(makeResponse(JSON.stringify(VALID_AUTO_QUOTE)));
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(JSON.stringify(VALID_AUTO_QUOTE)));
+      const svc = buildAiService(mockCreate, null);
 
-      await service.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
+      await svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
 
       const callArgs = mockCreate.mock.calls[0][0];
       const userMessage = callArgs.messages.find((m: { role: string }) => m.role === 'user');
@@ -73,42 +99,129 @@ describe('AiService', () => {
     });
 
     it('lança InternalServerErrorException quando Groq não retorna texto', async () => {
-      mockCreate.mockResolvedValue(makeResponse(''));
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(''));
+      const svc = buildAiService(mockCreate, null);
 
       await expect(
-        service.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO),
+        svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO),
       ).rejects.toThrow('Resposta da IA não contém texto');
     });
 
     it('lança InternalServerErrorException quando Groq retorna JSON inválido', async () => {
-      mockCreate.mockResolvedValue(makeResponse('isso não é json'));
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse('isso não é json'));
+      const svc = buildAiService(mockCreate, null);
 
       await expect(
-        service.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO),
+        svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO),
       ).rejects.toThrow('Resposta da IA não é JSON válido');
     });
 
     it('lança BadRequestException quando produto não é suportado', async () => {
+      const mockCreate = jest.fn();
+      const svc = buildAiService(mockCreate, null);
+
       await expect(
-        service.extractQuoteData('texto', InsuranceProduct.HEALTH, Insurer.BRADESCO),
+        svc.extractQuoteData('texto', InsuranceProduct.HEALTH, Insurer.BRADESCO),
       ).rejects.toThrow('Produto HEALTH não suportado');
+    });
+
+    it('Groq 429 rate_limit_exceeded + Gemini configurado: chama Gemini e retorna JSON', async () => {
+      const mockCreate = jest.fn().mockRejectedValue(makeGroqRateLimitError());
+      const mockGeminiGenerateContent = jest.fn().mockResolvedValue({
+        response: {
+          text: () => JSON.stringify(VALID_AUTO_QUOTE),
+        },
+      });
+      const mockGemini = {} as GoogleGenerativeAI;
+      const svc = buildAiService(mockCreate, mockGemini, mockGeminiGenerateContent);
+
+      const result = await svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
+
+      expect(result).toEqual(VALID_AUTO_QUOTE);
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+      expect(mockGeminiGenerateContent).toHaveBeenCalledTimes(1);
+    });
+
+    it('Groq 429 sem Gemini: erro claro sobre fallback não configurado', async () => {
+      const mockCreate = jest.fn().mockRejectedValue(makeGroqRateLimitError());
+      const svc = buildAiService(mockCreate, null);
+
+      try {
+        await svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+        const body = (e as InternalServerErrorException).getResponse();
+        const msg =
+          typeof body === 'object' && body !== null && 'message' in body
+            ? String((body as { message: string }).message)
+            : String(body);
+        expect(msg).toMatch(/GEMINI_API_KEY/i);
+      }
+    });
+
+    it('Groq erro não-429: não chama Gemini', async () => {
+      const mockCreate = jest.fn().mockRejectedValue(Object.assign(new Error('Internal server error'), { status: 500 }));
+      const mockGeminiGenerateContent = jest.fn();
+      const mockGemini = {} as GoogleGenerativeAI;
+      const svc = buildAiService(mockCreate, mockGemini, mockGeminiGenerateContent);
+
+      await expect(svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO)).rejects.toThrow(
+        'Internal server error',
+      );
+      expect(mockGeminiGenerateContent).not.toHaveBeenCalled();
+    });
+
+    it('Gemini retorna JSON em markdown fenced: parseia corretamente', async () => {
+      const mockCreate = jest.fn().mockRejectedValue(makeGroqRateLimitError());
+      const fenced = `\`\`\`json\n${JSON.stringify(VALID_AUTO_QUOTE)}\n\`\`\``;
+      const mockGeminiGenerateContent = jest.fn().mockResolvedValue({
+        response: {
+          text: () => fenced,
+        },
+      });
+      const mockGemini = {} as GoogleGenerativeAI;
+      const svc = buildAiService(mockCreate, mockGemini, mockGeminiGenerateContent);
+
+      const result = await svc.extractQuoteData('texto', InsuranceProduct.AUTO, Insurer.BRADESCO);
+      expect(result).toEqual(VALID_AUTO_QUOTE);
     });
   });
 
   describe('correctExtractedData', () => {
     it('chama Groq com o JSON inválido e o erro Zod e retorna JSON corrigido', async () => {
-      const corrected = { ...VALID_AUTO_QUOTE };
-      mockCreate.mockResolvedValue(makeResponse(JSON.stringify(corrected)));
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(JSON.stringify(VALID_AUTO_QUOTE)));
+      const svc = buildAiService(mockCreate, null);
 
       const invalid = { vehicle: { model: 'X' }, premium: { total: 0 } };
-      const result = await service.correctExtractedData(invalid, 'insurer: Required', InsuranceProduct.AUTO, Insurer.BRADESCO);
+      const result = await svc.correctExtractedData(invalid, 'insurer: Required', InsuranceProduct.AUTO, Insurer.BRADESCO);
 
-      expect(result).toEqual(corrected);
+      expect(result).toEqual(VALID_AUTO_QUOTE);
 
       const callArgs = mockCreate.mock.calls[0][0];
       const userMessage = callArgs.messages.find((m: { role: string }) => m.role === 'user');
       expect(userMessage.content).toContain('insurer: Required');
       expect(userMessage.content).toContain(JSON.stringify(invalid, null, 2));
+    });
+
+    it('fallback Gemini quando Groq 429 na correção', async () => {
+      const mockCreate = jest.fn().mockRejectedValue(makeGroqRateLimitError());
+      const mockGeminiGenerateContent = jest.fn().mockResolvedValue({
+        response: {
+          text: () => JSON.stringify(VALID_AUTO_QUOTE),
+        },
+      });
+      const mockGemini = {} as GoogleGenerativeAI;
+      const svc = buildAiService(mockCreate, mockGemini, mockGeminiGenerateContent);
+
+      const result = await svc.correctExtractedData(
+        { vehicle: { model: 'X' } },
+        'premium: Required',
+        InsuranceProduct.AUTO,
+        Insurer.BRADESCO,
+      );
+      expect(result).toEqual(VALID_AUTO_QUOTE);
+      expect(mockGeminiGenerateContent).toHaveBeenCalled();
     });
   });
 });

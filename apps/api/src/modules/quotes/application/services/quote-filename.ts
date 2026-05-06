@@ -10,6 +10,7 @@ const INSURER_SHORT: Record<string, string> = {
   ALIRO:        'Aliro',
   ALLIANZ:      'Allianz',
   YELLOW:       'Yellow',
+  ITAU:         'Itaú',
 };
 
 // Valores de deductibleType que descrevem o tipo de casco, não o nome comercial
@@ -22,6 +23,36 @@ const AZUL_SEGMENT_LABEL_MAP: Record<string, string> = {
   'AZUL TRADICIONAL': 'Seguro Auto',
   'AZUL AUTO ROUBO':  'Roubo e Furto',
 };
+
+const ITAU_SEGMENT_LABEL_MAP: Record<string, string> = {
+  'ITAÚ TRADICIONAL':              'Tradicional',
+  'ITAÚ SEGURO AUTO COMPACTO':    'Compacto',
+  'ITAÚ ASSISTÊNCIA 24H':           'Assistência 24h',
+};
+
+export function getItauProductLabel(data: Partial<AutoQuoteData>): string | undefined {
+  const raw = data.segment?.toUpperCase().trim() ?? '';
+  if (!raw) return undefined;
+
+  if (ITAU_SEGMENT_LABEL_MAP[raw]) {
+    const base = ITAU_SEGMENT_LABEL_MAP[raw];
+    if (raw.includes('COMPACTO')) {
+      const pct = data.coverage?.vehicle?.fipePercentage;
+      return pct != null && pct !== 100 ? `${base} · ${pct}% FIPE` : base;
+    }
+    return base;
+  }
+
+  if (/\bCOMPACTO\b/i.test(raw)) {
+    const pct = data.coverage?.vehicle?.fipePercentage;
+    if (pct != null && pct !== 100) return `Compacto · ${pct}% FIPE`;
+    return 'Compacto';
+  }
+  if (/\bASSIST[EÊ]NCIA\b/i.test(raw) && /\b24\s*H/i.test(raw)) return 'Assistência 24h';
+  if (/\bTRADICIONAL\b/i.test(raw)) return 'Tradicional';
+
+  return undefined;
+}
 
 export function getAzulProductLabel(data: Partial<AutoQuoteData>): string | undefined {
   const segment = data.segment?.toUpperCase().trim();
@@ -63,7 +94,9 @@ export function buildQuotePdfFilename(
 
   const deductibleType = insurer === 'AZUL'
     ? getAzulProductLabel(d)
-    : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
+    : insurer === 'ITAU'
+      ? getItauProductLabel(d)
+      : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
 
   // Fallback: quando extractedData não tem dados suficientes para identificar o produto,
   // usa quoteName (já confirmado pelo corretor) para montar um filename significativo.

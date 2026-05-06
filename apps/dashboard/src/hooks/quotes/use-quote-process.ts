@@ -5,11 +5,19 @@ import { quoteProcessApi } from '@/lib/api/quote-process.api'
 
 type RefetchInterval = NonNullable<UseQueryOptions<QuoteProcessDetail>['refetchInterval']>
 
-export function useQuoteProcess(id: string, options?: { refetchInterval?: RefetchInterval }) {
+export function useQuoteProcess(
+  id: string,
+  options?: {
+    refetchInterval?: RefetchInterval
+    /** Force refetch when entering processing/review after upload — avoids stale cache redirects */
+    refetchOnMount?: boolean | 'always'
+  },
+) {
   return useQuery({
     queryKey: ['quote-process', id],
     queryFn: () => quoteProcessApi.getById(id),
     enabled: !!id,
     refetchInterval: options?.refetchInterval,
+    refetchOnMount: options?.refetchOnMount,
   })
 }

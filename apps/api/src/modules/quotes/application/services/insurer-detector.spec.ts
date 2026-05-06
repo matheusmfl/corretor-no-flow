@@ -151,19 +151,31 @@ describe('detectInsurerFromText', () => {
   });
 
   describe('regras de família', () => {
+    it('retorna ITAU com alta confiança quando sinal forte presente (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_ITAU_TEXT);
+      expect(result.detectedInsurer).toBe('ITAU');
+      expect(result.confidence).toBe('high');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
+    });
+
     it('não retorna PORTO_SEGURO quando Itaú tem sinal forte (família Porto)', () => {
       const result = detectInsurerFromText(PORTO_ITAU_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
-      expect(result.reason).toMatch(/[Ii]ta[uú]/);
-      expect(result.notProcessable).toBe(true);
+    });
+
+    it('retorna ITAU com confiança média quando apenas marca presente (família Porto)', () => {
+      const result = detectInsurerFromText(PORTO_ITAU_MEDIUM_TEXT);
+      expect(result.detectedInsurer).toBe('ITAU');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
     });
 
     it('não retorna PORTO_SEGURO quando Itaú tem sinal médio (sem S/A)', () => {
       const result = detectInsurerFromText(PORTO_ITAU_MEDIUM_TEXT);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
       expect(result.family).toBe('porto');
-      expect(result.notProcessable).toBe(true);
     });
 
     it('detecta MITSUI_SUMITOMO com alta confiança quando sinal forte presente (família Porto)', () => {
@@ -331,6 +343,21 @@ describe('detectInsurerFromText', () => {
 
     it('não retorna PORTO_SEGURO para fixture Mitsui Sumitomo', () => {
       const text = fs.readFileSync(path.join(fixturesDir, 'mitsui-sumitomo-auto-complete.txt'), 'utf-8');
+      const result = detectInsurerFromText(text);
+      expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
+    });
+
+    it('detecta ITAU com alta confiança a partir do fixture real Itaú Tradicional', () => {
+      const text = fs.readFileSync(path.join(fixturesDir, 'itau-tradicional-auto-complete.txt'), 'utf-8');
+      const result = detectInsurerFromText(text);
+      expect(result.detectedInsurer).toBe('ITAU');
+      expect(result.confidence).toBe('high');
+      expect(result.family).toBe('porto');
+      expect(result.notProcessable).toBeUndefined();
+    });
+
+    it('não retorna PORTO_SEGURO para fixture Itaú Tradicional', () => {
+      const text = fs.readFileSync(path.join(fixturesDir, 'itau-tradicional-auto-complete.txt'), 'utf-8');
       const result = detectInsurerFromText(text);
       expect(result.detectedInsurer).not.toBe('PORTO_SEGURO');
     });

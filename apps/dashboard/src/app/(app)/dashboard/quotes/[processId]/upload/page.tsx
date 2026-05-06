@@ -2,6 +2,7 @@
 
 import { use, useReducer, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import type { DetectInsurerResponse, Insurer, Quote } from '@corretor/types'
 import { quoteProcessApi } from '@/lib/api/quote-process.api'
 
@@ -12,6 +13,7 @@ const SUPPORTED_INSURERS: { value: Insurer; label: string }[] = [
   { value: 'PORTO_SEGURO',    label: 'Porto Seguro'            },
   { value: 'AZUL',            label: 'Azul Seguros'            },
   { value: 'MITSUI_SUMITOMO', label: 'Mitsui Sumitomo Seguros' },
+  { value: 'ITAU',            label: 'Itaú Seguro Auto'        },
 ]
 
 const INSURER_LABEL: Record<Insurer, string> = {
@@ -25,6 +27,7 @@ const INSURER_LABEL: Record<Insurer, string> = {
   YELLOW:          'Yellow',
   AZUL:            'Azul Seguros',
   MITSUI_SUMITOMO: 'Mitsui Sumitomo',
+  ITAU:            'Itaú Seguro Auto',
 }
 
 // ─── State machine ────────────────────────────────────────────────────────────
@@ -337,24 +340,39 @@ function FileRow({
 
 function ExistingQuotesBanner({
   quotes,
+  replaceExisting,
+  onReplaceChange,
   onDismiss,
 }: {
   quotes: Quote[]
+  replaceExisting: boolean
+  onReplaceChange: (value: boolean) => void
   onDismiss: () => void
 }) {
   const count = quotes.length
   return (
     <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
       <IconWarning />
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-2">
         <p className="text-sm font-medium text-amber-800">
           {count === 1
             ? 'Este processo já tem 1 cotação de uma tentativa anterior.'
             : `Este processo já tem ${count} cotações de uma tentativa anterior.`}
         </p>
-        <p className="text-xs text-amber-700 mt-0.5">
-          Ao clicar em &ldquo;Processar&rdquo;, elas serão substituídas pelas novas cotações acima.
+        <p className="text-xs text-amber-700">
+          Por padrão, os PDFs acima serão <strong className="font-semibold">adicionados</strong> a este
+          processo. Para descartar todas as cotações anteriores e manter só este novo lote, marque a opção
+          abaixo.
         </p>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-amber-900">
+          <input
+            type="checkbox"
+            checked={replaceExisting}
+            onChange={(e) => onReplaceChange(e.target.checked)}
+            className="mt-0.5 rounded border-amber-400 text-mahogany focus:ring-mahogany"
+          />
+          <span>Substituir todas as cotações anteriores por este lote</span>
+        </label>
       </div>
       <button
         onClick={onDismiss}
@@ -372,11 +390,13 @@ function ExistingQuotesBanner({
 export default function UploadPage({ params }: { params: Promise<{ processId: string }> }) {
   const { processId } = use(params)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [entries, dispatch] = useReducer(reducer, [])
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [existingQuotes, setExistingQuotes] = useState<Quote[]>([])
   const [showExistingBanner, setShowExistingBanner] = useState(false)
+  const [replaceExisting, setReplaceExisting] = useState(false)
 
   // Load existing quotes on mount so the user knows what will be replaced
   useEffect(() => {
@@ -421,14 +441,12 @@ export default function UploadPage({ params }: { params: Promise<{ processId: st
     let anyFailed = false
 
     if (readyEntries.length > 0) {
-      // Reset only when this is a completely fresh batch (no items done yet).
-      // If doneCount > 0, some uploads already succeeded in this session —
-      // skip reset to preserve those quotes and only send the new ready ones.
-      if (doneCount === 0) {
+      if (replaceExisting) {
         try {
           await quoteProcessApi.resetBatch(processId)
           setExistingQuotes([])
           setShowExistingBanner(false)
+          setReplaceExisting(false)
         } catch {
           setIsProcessing(false)
           return
@@ -437,7 +455,16 @@ export default function UploadPage({ params }: { params: Promise<{ processId: st
 
       await Promise.all(
         readyEntries.map(async (entry) => {
-          const insurer = entry.override ?? entry.detection?.detectedInsurer!
+          const insurer = entry.override ?? entry.detection?.detectedInsurer
+          if (!insurer) {
+            anyFailed = true
+            dispatch({
+              type: 'SET_ERROR',
+              uid: entry.uid,
+              errorMsg: 'Seguradora não definida para este arquivo.',
+            })
+            return
+          }
           dispatch({ type: 'SET_SUBMITTING', uid: entry.uid })
           try {
             await quoteProcessApi.uploadAuto(processId, insurer, entry.file)
@@ -452,6 +479,8 @@ export default function UploadPage({ params }: { params: Promise<{ processId: st
 
     setIsProcessing(false)
     if (!anyFailed) {
+      await queryClient.invalidateQueries({ queryKey: ['quote-process', processId] })
+      await queryClient.refetchQueries({ queryKey: ['quote-process', processId] })
       router.push(`/dashboard/quotes/${processId}/processing`)
     }
   }
@@ -527,7 +556,12 @@ export default function UploadPage({ params }: { params: Promise<{ processId: st
       {showExistingBanner && existingQuotes.length > 0 && (
         <ExistingQuotesBanner
           quotes={existingQuotes}
-          onDismiss={() => setShowExistingBanner(false)}
+          replaceExisting={replaceExisting}
+          onReplaceChange={setReplaceExisting}
+          onDismiss={() => {
+            setReplaceExisting(false)
+            setShowExistingBanner(false)
+          }}
         />
       )}
 

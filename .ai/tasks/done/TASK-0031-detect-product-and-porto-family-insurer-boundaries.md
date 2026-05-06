@@ -1,9 +1,9 @@
 ---
 id: TASK-0031
 title: Refinar deteccao de produto e fronteiras da familia Porto
-status: review
+status: done
 kind: discovery
-lifecycle: review
+lifecycle: done
 area: product
 owner: codex
 reviewer: human
@@ -86,8 +86,19 @@ O corretor envia PDF Itau ou Mitsui, o sistema exibe Porto Seguro, processa com 
 
 ## Human QA Checklist
 
-- [ ] Human confirma quais marcas pertencem a qual grupo/estrutura comercial.
-- [ ] Human fornece exemplos reais ou extracoes para Itau e Mitsui Sumitomo quando possivel.
+- [x] Human confirma quais marcas pertencem a qual grupo/estrutura comercial.
+- [x] Human fornece exemplos reais ou extracoes para Itau e Mitsui Sumitomo quando possivel.
+
+## Done Notes - 2026-05-05
+
+Task encerrada por decisao humana. As regras conceituais desta discovery foram validadas pelas implementacoes posteriores:
+
+- `TASK-0032` implementou detector conservador de produto AUTO e familia Porto.
+- `TASK-0033` implementou Azul AUTO.
+- `TASK-0034` implementou Mitsui Sumitomo AUTO.
+- `TASK-0035` implementou Itau AUTO e validou PDFs reais em QA humano.
+
+O restante sobre classificacao rica de coberturas ausentes segue para `TASK-0022`.
 
 ## Human Notes - 2026-05-02
 

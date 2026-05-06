@@ -14,6 +14,7 @@ export type Insurer =
   | 'YELLOW'
   | 'AZUL'
   | 'MITSUI_SUMITOMO'
+  | 'ITAU'
 
 export type QuoteStatus =
   | 'PENDING'

@@ -4,12 +4,16 @@ import { use, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Quote, QuoteProcessDetail, QuoteStatus } from '@corretor/types'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
+import { shouldProcessingAutoRedirect } from '@/lib/quotes/quote-flow-guards'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const INSURER_LABELS: Record<string, string> = {
   BRADESCO:     'Bradesco Seguros',
   PORTO_SEGURO: 'Porto Seguro',
+  AZUL:         'Azul Seguro Auto',
+  MITSUI_SUMITOMO: 'Mitsui Sumitomo Seguros',
+  ITAU:         'Itaú Seguro Auto',
   TOKIO_MARINE: 'Tokio Marine',
   SULAMERICA:   'SulAmérica',
   SUHAI:        'Suhai',
@@ -181,7 +185,8 @@ export default function ProcessingPage({ params }: { params: Promise<{ processId
   const { processId } = use(params)
   const router = useRouter()
 
-  const { data: process, isLoading } = useQuoteProcess(processId, {
+  const { data: process, isLoading, isFetching } = useQuoteProcess(processId, {
+    refetchOnMount: 'always',
     refetchInterval: (query) => {
       const data = query.state.data as QuoteProcessDetail | undefined
       const quotes = data?.quotes ?? []
@@ -195,14 +200,20 @@ export default function ProcessingPage({ params }: { params: Promise<{ processId
   const hasFailures = quotes.some((q) => q.status === 'FAILED')
   const inProgress = quotes.some((q) => q.status === 'PROCESSING')
 
+  const canAutoRedirect = shouldProcessingAutoRedirect({
+    isLoading,
+    isFetching,
+    allDone,
+    hasFailures,
+  })
+
   useEffect(() => {
-    if (allDone && !hasFailures) {
-      const timer = setTimeout(() => {
-        router.push(`/dashboard/quotes/${processId}/review`)
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [allDone, hasFailures, processId, router])
+    if (!canAutoRedirect) return
+    const timer = setTimeout(() => {
+      router.push(`/dashboard/quotes/${processId}/review`)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [canAutoRedirect, processId, router])
 
   return (
     <div className="max-w-2xl space-y-6">

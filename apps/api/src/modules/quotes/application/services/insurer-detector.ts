@@ -27,7 +27,7 @@ const STRONG_PATTERNS: PatternDef[] = [
   { insurer: 'ALLIANZ',      source: 'razao_social', pattern: /allianz\s+seguros/i },
   { insurer: 'SUHAI',        source: 'razao_social', pattern: /suhai\s+seguradora/i },
   { insurer: 'YELLOW',       source: 'razao_social', pattern: /yellow\s+seguros/i },
-  // ITAU: não está no enum Prisma mas é emissor real em PDFs da família Porto
+  // ITAU: emissor em PDFs da família Porto (enum Prisma + fluxo AUTO)
   { insurer: 'ITAU',         source: 'razao_social', pattern: /ita[uú]\s+seguros\s+s\.?\s*\/?\s*a\.?/i },
   { insurer: 'ITAU',         source: 'produto',      pattern: /cota[cç][aã]o\s+ita[uú]/i },
   { insurer: 'ITAU',         source: 'produto',      pattern: /ita[uú]\s+(?:seguro\s+)?auto/i },
@@ -210,10 +210,6 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
     const winner = [...strongInsurerSet][0];
 
     if (!PRISMA_INSURERS.has(winner)) {
-      const LABEL: Record<string, string> = {
-        ITAU: 'Itaú Seguros',
-      };
-      const label = LABEL[winner] ?? winner;
       return {
         detectedInsurer: null,
         confidence: 'medium',
@@ -222,7 +218,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
         ...familyProp,
         candidates,
         signals,
-        reason: `${label} detectado como emissor mas não registrado como seguradora processável`,
+        reason: `${winner} detectado como emissor mas não registrado como seguradora processável`,
       };
     }
 
@@ -254,10 +250,6 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
   if (mediumInsurerSet.size === 1) {
     const winner = [...mediumInsurerSet][0];
     if (!PRISMA_INSURERS.has(winner)) {
-      const LABEL: Record<string, string> = {
-        ITAU: 'Itaú Seguros',
-      };
-      const label = LABEL[winner] ?? winner;
       return {
         detectedInsurer: null,
         confidence: 'low',
@@ -266,7 +258,7 @@ export function detectInsurerFromText(text: string): InsurerDetectionResult {
         ...familyProp,
         candidates,
         signals,
-        reason: `${label} reconhecido mas sem parser suportado`,
+        reason: `${winner} reconhecido mas sem parser suportado`,
       };
     }
     return {

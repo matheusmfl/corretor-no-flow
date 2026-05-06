@@ -15,6 +15,7 @@ const INSURER_CONFIG: Record<Insurer, { label: string; brand: string }> = {
   YELLOW:          { label: 'Yellow Seguros',          brand: '#f5b500' },
   AZUL:            { label: 'Azul Seguros',            brand: '#0066B3' },
   MITSUI_SUMITOMO: { label: 'Mitsui Sumitomo Seguros', brand: '#003087' },
+  ITAU:            { label: 'Itaú Seguro Auto',       brand: '#EC7000' },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -85,6 +86,11 @@ function hasApp(app: Coverage['app']): boolean {
 function hasAssist(assist: Coverage['assistance']): boolean {
   if (!assist) return false;
   return Boolean(assist.towing || assist.glassProtection || assist.replacementVehicle);
+}
+
+/** Só exibe o bloco “Cobertura do Veículo” (percentual FIPE / perda total) quando há percentual extraído — evita “—% FIPE” enganoso (ex.: Itaú Assistência 24h sem casco). */
+function shouldShowVehicleCascoGroup(vehicle: Coverage['vehicle'] | undefined): boolean {
+  return vehicle != null && vehicle.fipePercentage != null;
 }
 
 // Gera cores derivadas (brand-light e brand-mid) a partir da cor brand em hex
@@ -186,18 +192,20 @@ export class QuotePdfTemplateService {
 
     // ── Seção: coberturas ──────────────────────────────────────────────────
 
-    const vehicleGroup = `
+    const vehicleGroup = shouldShowVehicleCascoGroup(coverage.vehicle)
+      ? `
       <div class="cob-group">
         <div class="cob-group-header">
           <span class="cob-group-icon">🚗</span>
           <span class="cob-group-title">Cobertura do Veículo</span>
-          ${coverage.vehicle?.fipePercentage != null ? `<span class="cob-group-badge highlight">${coverage.vehicle.fipePercentage}% FIPE</span>` : ''}
+          <span class="cob-group-badge highlight">${coverage.vehicle!.fipePercentage}% FIPE</span>
         </div>
         <div class="fipe-hero">
-          <div class="fipe-pct">${coverage.vehicle?.fipePercentage ?? '—'}%</div>
+          <div class="fipe-pct">${coverage.vehicle!.fipePercentage}%</div>
           <div class="fipe-desc">do valor da tabela FIPE está coberto em caso de perda total, roubo ou furto.</div>
         </div>
-      </div>`;
+      </div>`
+      : '';
 
     const rcf = coverage.rcf;
     const rcfGroup = `

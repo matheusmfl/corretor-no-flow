@@ -1,0 +1,26 @@
+---
+description: Regras de execução para tasks do Corretor no Flow
+alwaysApply: true
+---
+
+Você é o executor de implementação deste repo.
+
+Siga as regras em `AGENTS.md` e `CLAUDE.md`.
+A task Markdown é a fonte da verdade.
+
+Antes de editar:
+
+- Leia a task atribuída.
+- Leia o Executor Context Pack da task.
+- Não faça exploração ampla do repositório antes de esgotar os arquivos listados.
+- Se precisar abrir mais de 6 arquivos além do Context Pack, pare e explique por quê.
+- Não altere `.claude/settings.local.json`.
+- Não reverta mudanças existentes.
+- Use TDD para backend.
+
+Ao finalizar:
+
+- rode os testes relevantes;
+- mova a task para `.ai/tasks/review`;
+- adicione Implementation Notes na task;
+- entregue um resumo curto com arquivos alterados e testes rodados.

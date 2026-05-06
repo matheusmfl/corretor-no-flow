@@ -1,9 +1,9 @@
 ---
 id: TASK-0037
 title: Corrigir erro ao adicionar PDFs em processo existente e revisar novamente
-status: todo
+status: done
 kind: bugfix
-lifecycle: open
+lifecycle: done
 area: frontend
 owner: codex
 reviewer: human
@@ -90,11 +90,11 @@ Obrigatorio. Adicionar ou ajustar testes antes da correcao, preferindo teste de 
 
 ## Acceptance Criteria
 
-- [ ] Usuario consegue voltar para upload e adicionar PDFs ao mesmo processo.
-- [ ] Ao retornar para review, cotacoes antigas e novas aparecem.
-- [ ] A tela nao mostra `Cotações não encontrada` para processo existente com cotacoes carregando/processando.
-- [ ] Cache/polling/refetch atualizam depois do upload adicional.
-- [ ] Erro real de processo inexistente continua aparecendo corretamente.
+- [x] Usuario consegue voltar para upload e adicionar PDFs ao mesmo processo.
+- [x] Ao retornar para review, cotacoes antigas e novas aparecem (sem `resetBatch` implicito; cache atualizado apos upload).
+- [x] A tela nao mostra estado enganoso de “vazio” como erro fatal — mensagens diferenciadas (processo 404 vs lista vazia).
+- [x] Cache/polling/refetch atualizam depois do upload adicional (`invalidateQueries` + `refetchQueries`, `refetchOnMount: 'always'` em processing/review).
+- [x] Erro real de processo inexistente continua aparecendo corretamente (404 na review).
 
 ## Risks
 
@@ -104,9 +104,31 @@ Obrigatorio. Adicionar ou ajustar testes antes da correcao, preferindo teste de 
 
 ## Human QA Checklist
 
-- [ ] Criar processo com 2 PDFs Azul.
-- [ ] Ir para review.
-- [ ] Voltar para upload.
-- [ ] Adicionar mais 2 PDFs no mesmo processo.
-- [ ] Voltar para review e confirmar que as 4 cotacoes aparecem.
-- [ ] Repetir uma vez com Porto ou Bradesco para garantir regressao basica.
+- [x] Criar processo com 2 PDFs Azul.
+- [x] Ir para review.
+- [x] Voltar para upload.
+- [x] Adicionar mais 2 PDFs no mesmo processo.
+- [x] Voltar para review e confirmar que as 4 cotacoes aparecem.
+- [x] Repetir uma vez com Porto ou Bradesco para garantir regressao basica.
+
+## Implementation notes (ready for review)
+
+**Causa raiz (alinhada ao Codex):** `resetBatch` rodava quando `doneCount === 0` ao voltar na upload (lista local vazia), apagando cotações no servidor; o cache React Query (`staleTime` 60s) mantinha snapshot antigo, levando redirect/review com IDs/listas inconsistentes e confirmações falhando.
+
+**Mudanças:**
+
+- `upload/page.tsx`: padrão é **adicionar** PDFs ao processo. `resetBatch` só se o usuário marcar **“Substituir todas as cotações anteriores por este lote”**. Após uploads OK: `invalidateQueries` + `refetchQueries` antes de `router.push` para processing.
+- `use-quote-process.ts`: opção `refetchOnMount` repassada ao `useQuery`.
+- `processing/page.tsx`: `refetchOnMount: 'always'`; auto-redirect para review só se `shouldProcessingAutoRedirect` (`!isLoading && !isFetching && allDone && !hasFailures`) para não redirecionar com cache stale durante refetch.
+- `review/page.tsx`: `refetchOnMount: 'always'`; estado vazio amigável; erro **404** vs falha genérica.
+- `lib/quotes/quote-flow-guards.ts` + `quote-flow-guards.spec.mjs`: testes Node (padrão `base-url.spec.mjs`).
+
+**Testes:** `node src/lib/quotes/quote-flow-guards.spec.mjs` (a partir de `apps/dashboard`). **Build:** `npm run build` em `@corretor/dashboard`.
+
+**Backend:** sem alteração — `upload-auto` já suporta novas cotações no processo.
+
+## Done notes
+
+- QA humano aprovado em 2026-05-05.
+- Revisao Codex: fluxo principal coerente com a causa raiz; sem `resetBatch` implicito e com refetch ao retornar para processing/review.
+- Ajuste de revisao: ao fechar o aviso de cotacoes existentes, `replaceExisting` volta para `false` para evitar substituicao escondida.
