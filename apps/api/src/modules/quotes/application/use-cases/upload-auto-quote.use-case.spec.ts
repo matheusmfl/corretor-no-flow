@@ -51,4 +51,14 @@ describe('UploadAutoQuoteUseCase — guarda de seguradoras suportadas', () => {
       expect.any(Object),
     );
   });
+
+  it('deleta a quote criada quando o enqueue falha e repropaga o erro', async () => {
+    const enqueueError = new Error('Redis indisponível');
+    (queue.add as jest.Mock).mockRejectedValueOnce(enqueueError);
+    prisma.quote.delete.mockResolvedValue({ id: 'q1' } as any);
+
+    await expect(useCase.execute('c1', 'p1', Insurer.BRADESCO, '/file.pdf')).rejects.toThrow(enqueueError);
+
+    expect(prisma.quote.delete).toHaveBeenCalledWith({ where: { id: 'q1' } });
+  });
 });

@@ -53,6 +53,16 @@ describe('ExtractPdfProcessor', () => {
       aiService,
     );
     prisma.quote.update.mockResolvedValue({} as any);
+    prisma.quote.findUnique.mockResolvedValue({ id: jobData.quoteId } as any);
+  });
+
+  it('encerra sem erro quando a quote não existe (removida pelo usuário)', async () => {
+    prisma.quote.findUnique.mockResolvedValue(null);
+
+    await expect(processor.process(makeJob(jobData))).resolves.toBeUndefined();
+
+    expect(pdfExtractor.extractText).not.toHaveBeenCalled();
+    expect(prisma.quote.update).not.toHaveBeenCalled();
   });
 
   it('extrai texto (máx 3 páginas para Bradesco), chama a IA e persiste extractedData com status PENDING_REVIEW', async () => {

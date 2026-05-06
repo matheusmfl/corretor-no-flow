@@ -110,6 +110,12 @@ export class ExtractPdfProcessor extends WorkerHost {
     const maxPage = INSURER_PAGE_LIMITS[insurer];
     const jobStart = Date.now();
 
+    const quoteExists = await this.prisma.quote.findUnique({ where: { id: quoteId }, select: { id: true } });
+    if (!quoteExists) {
+      this.logger.warn(`[${quoteId}] quote não encontrada — provavelmente removida pelo usuário. Ignorando job.`);
+      return;
+    }
+
     let rawText: string;
 
     const pdfStart = Date.now();

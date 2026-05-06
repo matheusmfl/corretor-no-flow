@@ -60,10 +60,16 @@ export class UploadAutoQuoteUseCase {
       product: process.product,
       insurer,
     };
-    await this.extractPdfQueue.add('extract-pdf', jobData, {
-      attempts: 2,
-      backoff: { type: 'fixed', delay: 5000 },
-    });
+
+    try {
+      await this.extractPdfQueue.add('extract-pdf', jobData, {
+        attempts: 2,
+        backoff: { type: 'fixed', delay: 5000 },
+      });
+    } catch (enqueueError) {
+      await this.prisma.quote.delete({ where: { id: quote.id } }).catch(() => undefined);
+      throw enqueueError;
+    }
 
     return { quoteId: quote.id, processId, status: 'queued' };
   }
