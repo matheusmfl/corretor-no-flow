@@ -7,7 +7,7 @@ import { PdfExtractorService } from '../application/services/pdf-extractor.servi
 import { AiService } from '../../ai/ai.service';
 import { ExtractPdfProcessor } from './extract-pdf.processor';
 import { ExtractPdfJobData } from '../../queue/queue.types';
-import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
+import { QuoteProcessStatus, QuoteStatus } from '../domain/value-objects/quote-status.vo';
 
 jest.mock('../domain/schemas/auto-quote.schema', () => ({
   parseAutoQuoteData: jest.fn(),
@@ -54,6 +54,11 @@ describe('ExtractPdfProcessor', () => {
     );
     prisma.quote.update.mockResolvedValue({} as any);
     prisma.quote.findUnique.mockResolvedValue({ id: jobData.quoteId } as any);
+    prisma.quoteProcess.findUnique.mockResolvedValue({
+      status: QuoteProcessStatus.PROCESSING,
+      quotes: [{ status: QuoteStatus.PENDING_REVIEW }],
+    } as any);
+    prisma.quoteProcess.update.mockResolvedValue({} as any);
   });
 
   it('encerra sem erro quando a quote não existe (removida pelo usuário)', async () => {
@@ -140,6 +145,134 @@ describe('ExtractPdfProcessor', () => {
     expect(prisma.quote.update).toHaveBeenCalledWith({
       where: { id: jobData.quoteId },
       data: { status: QuoteStatus.FAILED },
+    });
+  });
+
+  describe('syncProcessStatus — status agregado do processo', () => {
+    beforeEach(() => {
+      pdfExtractor.extractText.mockResolvedValue(rawText);
+      aiService.extractQuoteData.mockResolvedValue(rawAiData);
+      mockParseAutoQuoteData.mockReturnValue(parsedData);
+    });
+
+    it('atualiza processo para PENDING_REVIEW quando nenhuma quote está PROCESSING', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PROCESSING,
+        quotes: [{ status: QuoteStatus.PENDING_REVIEW }],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: QuoteProcessStatus.PENDING_REVIEW } }),
+      );
+    });
+
+    it('não atualiza status quando outra quote ainda está PROCESSING', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PROCESSING,
+        quotes: [
+          { status: QuoteStatus.PENDING_REVIEW },
+          { status: QuoteStatus.PROCESSING },
+        ],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      const statusCall = (prisma.quoteProcess.update.mock.calls as any[]).find(
+        (args) => args[0]?.data?.status !== undefined,
+      );
+      expect(statusCall).toBeUndefined();
+    });
+
+    it('atualiza processo para PENDING_REVIEW quando todas as quotes falharam (falha de IA)', async () => {
+      aiService.extractQuoteData.mockRejectedValue(new InternalServerErrorException('AI falhou'));
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PROCESSING,
+        quotes: [{ status: QuoteStatus.FAILED }, { status: QuoteStatus.FAILED }],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: QuoteProcessStatus.PENDING_REVIEW } }),
+      );
+    });
+
+    it('atualiza processo para PENDING_REVIEW quando todas as quotes falharam (falha de PDF)', async () => {
+      pdfExtractor.extractText.mockRejectedValue(new Error('PDF corrompido'));
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PROCESSING,
+        quotes: [{ status: QuoteStatus.FAILED }],
+      } as any);
+
+      await expect(processor.process(makeJob(jobData))).rejects.toThrow();
+
+      expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: QuoteProcessStatus.PENDING_REVIEW } }),
+      );
+    });
+
+    it('atualiza processo para READY quando nao ha pendencia e existe quote READY', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PENDING_REVIEW,
+        quotes: [{ status: QuoteStatus.READY }, { status: QuoteStatus.FAILED }],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: QuoteProcessStatus.READY } }),
+      );
+    });
+
+    it('não altera processo PUBLISHED mesmo que quote termine PENDING_REVIEW', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PUBLISHED,
+        quotes: [{ status: QuoteStatus.PENDING_REVIEW }],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      const statusCall = (prisma.quoteProcess.update.mock.calls as any[]).find(
+        (args) => args[0]?.data?.status !== undefined,
+      );
+      expect(statusCall).toBeUndefined();
+    });
+
+    it('não altera processo ARCHIVED mesmo que quote termine PENDING_REVIEW', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.ARCHIVED,
+        quotes: [{ status: QuoteStatus.PENDING_REVIEW }],
+      } as any);
+
+      await processor.process(makeJob(jobData));
+
+      const statusCall = (prisma.quoteProcess.update.mock.calls as any[]).find(
+        (args) => args[0]?.data?.status !== undefined,
+      );
+      expect(statusCall).toBeUndefined();
+    });
+
+    it('não reverte quote extraída para FAILED quando sync de status do processo falha', async () => {
+      prisma.quoteProcess.findUnique.mockResolvedValue({
+        status: QuoteProcessStatus.PROCESSING,
+        quotes: [{ status: QuoteStatus.PENDING_REVIEW }],
+      } as any);
+      prisma.quoteProcess.update.mockRejectedValueOnce(new Error('db indisponível'));
+
+      await expect(processor.process(makeJob(jobData))).resolves.toBeUndefined();
+
+      expect(prisma.quote.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: QuoteStatus.PENDING_REVIEW }),
+        }),
+      );
+      expect(prisma.quote.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: QuoteStatus.FAILED }),
+        }),
+      );
     });
   });
 

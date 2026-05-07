@@ -1,9 +1,9 @@
 ---
 id: TASK-0041
 title: Sincronizar status do processo apos extracao assíncrona de PDFs
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: api
 owner: claude
 reviewer: codex
@@ -86,13 +86,13 @@ Suggested test cases:
 
 ## Acceptance Criteria
 
-- [ ] Worker atualiza o status agregado do processo apos sucesso (`PENDING_REVIEW`).
-- [ ] Worker atualiza o status agregado do processo apos falha (`FAILED`) sem deixar processo preso em `PROCESSING`.
-- [ ] Processo com qualquer quote ainda `PROCESSING` continua `PROCESSING`.
-- [ ] Processo com pelo menos uma quote `PENDING_REVIEW` e nenhuma em `PROCESSING` aparece como `PENDING_REVIEW`.
-- [ ] Processo todo falho fica em estado navegavel para o corretor revisar/remover/refazer, sem sumir como `DRAFT`.
-- [ ] `PUBLISHED` e `ARCHIVED` nao sao reabertos pelo worker.
-- [ ] Testes focados passam.
+- [x] Worker atualiza o status agregado do processo apos sucesso (`PENDING_REVIEW`).
+- [x] Worker atualiza o status agregado do processo apos falha (`FAILED`) sem deixar processo preso em `PROCESSING`.
+- [x] Processo com qualquer quote ainda `PROCESSING` continua `PROCESSING`.
+- [x] Processo com pelo menos uma quote `PENDING_REVIEW` e nenhuma em `PROCESSING` aparece como `PENDING_REVIEW`.
+- [x] Processo todo falho fica em estado navegavel para o corretor revisar/remover/refazer, sem sumir como `DRAFT`.
+- [x] `PUBLISHED` e `ARCHIVED` nao sao reabertos pelo worker.
+- [x] Testes focados passam.
 
 ## Risks
 
@@ -111,3 +111,26 @@ O corretor sobe o servidor depois de uma fila pendente, as cotacoes sao extraida
 - [ ] Abrir a lista de cotacoes e confirmar que o processo aparece como `Revisar`.
 - [ ] Entrar no processo e confirmar que os dados extraidos persistiram.
 - [ ] Confirmar uma cotacao e seguir para gerar PDF/link sem reprocessar.
+
+## Implementation Notes - 2026-05-07
+
+- `deriveProcessStatus()` criado como funcao pura em `quote-status.vo.ts`.
+- `ExtractPdfProcessor` chama sincronizacao de status apos sucesso, falha de PDF e falha de IA.
+- Sincronizacao e best-effort: falha ao atualizar `QuoteProcess.status` nao reverte quote extraida para `FAILED`.
+- Regra final:
+  - `PUBLISHED`/`ARCHIVED`: nao reabrir.
+  - qualquer quote `PROCESSING`/`PENDING`: processo `PROCESSING`.
+  - qualquer quote `PENDING_REVIEW` sem ativa: processo `PENDING_REVIEW`.
+  - nenhuma pendente e alguma quote `READY`: processo `READY`.
+  - todas `FAILED`: processo `PENDING_REVIEW`, para continuar acionavel.
+
+## Codex Review - 2026-05-07
+
+- Ajustado durante review: sync no caminho de sucesso passou a ser best-effort para nao transformar uma extracao bem-sucedida em `FAILED` se apenas o update agregado falhar.
+- Ajustado durante review: `READY` nao e mais rebaixado para `PENDING_REVIEW` quando nao ha quote pendente de revisao.
+- Testes rodados:
+  - `extract-pdf.processor.spec.ts`
+  - `upload-auto-quote.use-case.spec.ts`
+  - `remove-quote-from-process.use-case.spec.ts`
+  - `list-quotes.use-case.spec.ts`
+- Resultado: 41 testes passando, 0 falhas.

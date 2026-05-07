@@ -17,7 +17,7 @@ import {
 } from '../application/services/quote-filename';
 import { QUEUE_NAMES } from '../../queue/queue.constants';
 import { ExtractPdfJobData } from '../../queue/queue.types';
-import { QuoteStatus } from '../domain/value-objects/quote-status.vo';
+import { QuoteProcessStatus, QuoteStatus, deriveProcessStatus } from '../domain/value-objects/quote-status.vo';
 
 const INSURER_PAGE_LIMITS: Partial<Record<Insurer, number>> = {
   [Insurer.BRADESCO]: 3,
@@ -82,6 +82,25 @@ export class ExtractPdfProcessor extends WorkerHost {
     super();
   }
 
+  private async syncProcessStatus(processId: string): Promise<void> {
+    const process = await this.prisma.quoteProcess.findUnique({
+      where: { id: processId },
+      select: { status: true, quotes: { select: { status: true } } },
+    });
+    if (!process) return;
+
+    const newStatus = deriveProcessStatus(
+      process.quotes.map((q) => q.status as QuoteStatus),
+      process.status as QuoteProcessStatus,
+    );
+    if (newStatus === null || newStatus === (process.status as string)) return;
+
+    await this.prisma.quoteProcess.update({
+      where: { id: processId },
+      data: { status: newStatus },
+    });
+  }
+
   private async parseWithRetry(quoteId: string, raw: Record<string, unknown>, product: string, insurer: Insurer) {
     const zodStart = Date.now();
     try {
@@ -106,7 +125,7 @@ export class ExtractPdfProcessor extends WorkerHost {
   }
 
   async process(job: Job<ExtractPdfJobData>): Promise<void> {
-    const { quoteId, filePath, product, insurer } = job.data;
+    const { quoteId, processId, filePath, product, insurer } = job.data;
     const maxPage = INSURER_PAGE_LIMITS[insurer];
     const jobStart = Date.now();
 
@@ -130,6 +149,9 @@ export class ExtractPdfProcessor extends WorkerHost {
         where: { id: quoteId },
         data: { status: QuoteStatus.FAILED },
       });
+      await this.syncProcessStatus(processId).catch((e) =>
+        this.logger.error(`[${quoteId}] syncProcessStatus failed: ${(e as Error).message}`),
+      );
       throw error;
     }
 
@@ -177,6 +199,9 @@ export class ExtractPdfProcessor extends WorkerHost {
       this.logger.log(
         `[TIMING] quoteId=${quoteId} insurer=${insurer} product=${product} totalMs=${Date.now() - jobStart}`,
       );
+      await this.syncProcessStatus(processId).catch((e) =>
+        this.logger.error(`[${quoteId}] syncProcessStatus failed: ${(e as Error).message}`),
+      );
     } catch (error) {
       this.logger.error(
         `[${quoteId}] Falha definitiva na extração após ${Date.now() - jobStart}ms: ${(error as Error).message}`,
@@ -186,6 +211,9 @@ export class ExtractPdfProcessor extends WorkerHost {
         where: { id: quoteId },
         data: { rawText, status: QuoteStatus.FAILED },
       });
+      await this.syncProcessStatus(processId).catch((e) =>
+        this.logger.error(`[${quoteId}] syncProcessStatus failed: ${(e as Error).message}`),
+      );
     }
   }
 }
