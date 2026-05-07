@@ -96,6 +96,54 @@ function ErrorPage({ status }: { status: 404 | 410 | 500 }) {
   )
 }
 
+// ─── Catalog tooltips (static, from insurer portal knowledge — not from PDF) ──
+
+const TOKIO_ASSIST_TOOLTIP: Record<string, string> = {
+  Completa: '200 km de reboque com possibilidade de ampliação, mecânico, transporte para retorno ao domicílio, hospedagem, chaveiro, entre outros.',
+  VIP: 'Cobertura Completa + 2 utilizações para pane, 2 dias de carro reserva para pane, higienização do veículo, serviço de leva e traz do carro reserva, reparos residenciais, entre outros.',
+}
+
+const TOKIO_GLASS_TOOLTIP: Record<string, string> = {
+  Básico: 'Reparo do para-brisa quando possível ou reposição dos vidros laterais, para-brisa e traseiro.',
+  Completo: 'Garantias do plano Básico + faróis, lanternas, retrovisores, máquina dos vidros, teto solar e panorâmico.',
+}
+
+function assistTooltip(insurer: string, planName: string | undefined): string | undefined {
+  if (insurer === 'TOKIO_MARINE' && planName) return TOKIO_ASSIST_TOOLTIP[planName]
+  return undefined
+}
+
+function glassTooltip(insurer: string, tier: string | undefined): string | undefined {
+  if (insurer === 'TOKIO_MARINE' && tier) return TOKIO_GLASS_TOOLTIP[tier]
+  return undefined
+}
+
+// Complement text (non-km services) for Tokio plans — used to build rich titles with km breakdown.
+const TOKIO_ASSIST_SERVICES: Record<string, string> = {
+  Completa: 'mecânico, transporte para retorno ao domicílio, hospedagem, chaveiro, entre outros',
+  VIP: '2 utilizações para pane, 2 dias de carro reserva para pane, higienização do veículo, serviço de leva e traz do carro reserva, reparos residenciais, entre outros',
+}
+
+type AssistDetails = NonNullable<NonNullable<AutoQuoteData['coverageDetails']>['assistance']>
+
+function buildAssistTitle(
+  insurer: string,
+  assist: AssistDetails | undefined,
+): string | undefined {
+  if (!assist?.planName) return undefined
+  const catalogText = assistTooltip(insurer, assist.planName)
+  if (!catalogText) return undefined
+
+  const { towingKmBase: base, towingKmAdditional: add, towingKmTotal: total } = assist
+  if (base != null && add != null && total != null) {
+    const services = TOKIO_ASSIST_SERVICES[assist.planName]
+    const servicesText = services ? ` Inclui também: ${services}.` : ''
+    return `Plano ${assist.planName}: ${base} km padrão + ${add} km adicional = ${total} km.${servicesText}`
+  }
+
+  return catalogText
+}
+
 // ─── Quote card ───────────────────────────────────────────────────────────────
 
 function QuoteCard({
@@ -164,21 +212,91 @@ function QuoteCard({
         )}
 
         {/* Coberturas rápidas */}
-        {d.coverage && (
+        {(d.coverage || d.coverageDetails) && (
           <div className="flex flex-wrap gap-1.5">
-            {d.coverage.vehicle?.fipePercentage != null && (
+            {d.coverage?.vehicle?.fipePercentage != null && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
                 {d.coverage.vehicle.fipePercentage}% FIPE
               </span>
             )}
-            {d.coverage.rcf?.propertyDamage != null && (
+            {d.coverage?.rcf?.propertyDamage != null && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
                 RCF {fmt(d.coverage.rcf.propertyDamage)}
               </span>
             )}
-            {d.coverage.assistance?.towing && (
+            {d.coverage?.assistance?.towing && (() => {
+              const assistTitle = buildAssistTitle(quote.insurer, d.coverageDetails?.assistance)
+              const label = [
+                'Assistência 24h',
+                d.coverageDetails?.assistance?.planName,
+                d.coverageDetails?.assistance?.towingKmTotal
+                  ? `${d.coverageDetails.assistance.towingKmTotal} km`
+                  : undefined,
+              ].filter(Boolean).join(' · ')
+              return (
+                <span
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]"
+                  title={assistTitle ?? undefined}
+                >
+                  {label}{assistTitle ? ' ⓘ' : ''}
+                </span>
+              )
+            })()}
+            {d.coverage?.assistance?.glassProtection === true && d.coverageDetails?.glass?.tier && (() => {
+              const tier = d.coverageDetails!.glass!.tier!
+              const glassTitle = glassTooltip(quote.insurer, tier)
+              return (
+                <span
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]"
+                  title={glassTitle ?? undefined}
+                >
+                  Vidros {tier}{glassTitle ? ' ⓘ' : ''}
+                </span>
+              )
+            })()}
+            {d.coverage?.assistance?.glassProtection === false && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#9a9590] line-through">
+                Vidros não contratado
+              </span>
+            )}
+            {d.coverage?.assistance?.replacementVehicle === true && d.coverage.assistance.replacementDays != null && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
-                Guincho
+                Reserva {d.coverage.assistance.replacementDays}d
+              </span>
+            )}
+            {d.coverage?.assistance?.replacementVehicle === false && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#9a9590] line-through">
+                Sem veículo reserva
+              </span>
+            )}
+            {d.coverageDetails?.services?.martelinho != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.martelinho ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Martelinho
+              </span>
+            )}
+            {d.coverageDetails?.services?.latariaEPintura != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.latariaEPintura ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Lataria e pintura
+              </span>
+            )}
+            {d.coverageDetails?.services?.rodaPneuSuspensao != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.rodaPneuSuspensao ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Roda/pneu
+              </span>
+            )}
+            {d.coverageDetails?.services?.logoMarcaVidros != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.logoMarcaVidros ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Logomarca
+              </span>
+            )}
+            {d.coverageDetails?.repair?.shopType && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
+                {d.coverageDetails.repair.shopType}
+              </span>
+            )}
+            {d.coverageDetails?.repair?.partsType && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
+                {d.coverageDetails.repair.partsType}
               </span>
             )}
           </div>

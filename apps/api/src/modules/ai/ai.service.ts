@@ -407,9 +407,33 @@ Extraia TODOS os dados abaixo e retorne EXATAMENTE neste formato JSON (sem campo
     },
     "assistance": {
       "towing": true se Assistência 24 horas contratada,
-      "glassProtection": true se Vidros contratados (não presente em Proteção Mensal e Assistência Exclusiva),
-      "replacementVehicle": true se Carro reserva contratado,
-      "replacementDays": número de dias de carro reserva como inteiro
+      "glassProtection": true se Vidros contratados, false se 'Não possui' ou 'Não contratada' — omitir se ausente,
+      "replacementVehicle": true se Carro reserva contratado, false se 'Não possui',
+      "replacementDays": número de dias de carro reserva como inteiro (ex: 15 em '15 diárias Básico') — omitir se não contratado
+    }
+  },
+  "coverageDetails": {
+    "assistance": {
+      "planName": "plano de assistência exatamente como aparece (ex: Completa, VIP) — omitir se não disponível",
+      "towingKmBase": km padrão do plano como número inteiro quando o PDF exibe a fórmula (ex: '200 km (padrão)' → 200) — omitir se não disponível,
+      "towingKmAdditional": km adicional contratado como número inteiro (campo 'Km adicional de reboque' — ex: 100) — omitir se 'Não possui' ou ausente,
+      "towingKmTotal": total de km como número inteiro quando o PDF exibe o resultado (ex: '= 300 KM' → 300) — omitir se não disponível
+    },
+    "glass": {
+      "tier": "tier de vidro exatamente como aparece (ex: Completo, Básico, Não possui) — omitir se campo vidros não aparecer"
+    },
+    "replacementVehicle": {
+      "category": "categoria do carro reserva exatamente como aparece (ex: Básico (Mecânico)) — omitir se não contratado"
+    },
+    "services": {
+      "martelinho": true se 'Martelinho e para-choque' = 'Possui', false se 'Não possui' — omitir se campo não aparecer no documento,
+      "latariaEPintura": true se 'Lataria e pintura' = 'Possui', false se 'Não possui' — omitir se campo não aparecer,
+      "rodaPneuSuspensao": true se 'Roda, pneu e suspensão' = 'Possui', false se 'Não possui' — omitir se campo não aparecer,
+      "logoMarcaVidros": true se 'Logomarca (vidros)' = 'Possui', false se 'Não possui' — omitir se campo não aparecer
+    },
+    "repair": {
+      "shopType": "tipo de oficina exatamente como aparece (ex: Livre Escolha, Rede Referenciada) — omitir se não disponível",
+      "partsType": "tipo de peça exatamente como aparece (ex: Novas originais, Novas Compatíveis) — omitir se não disponível"
     }
   },
   "deductibles": [
@@ -429,6 +453,8 @@ Regras importantes:
 - Para Assistência Exclusiva: omitir coverage.vehicle, coverage.rcf, coverage.app inteiramente
 - Para Auto Roubo + Rastreador: coverage.vehicle.fipePercentage = 100, NÃO classificar como compreensiva
 - Para Auto Proteção Mensal: coverage.vehicle.fipePercentage = 90, produto é mensal
+- Para campos de serviço (coverageDetails.services): usar exatamente o que o PDF mostra — NÃO inferir pelo produto. Se o campo não aparecer na tabela de serviços, omitir (não colocar false)
+- coverageDetails pode ser omitido inteiramente quando nenhum campo de enriquecimento estiver disponível
 - Campos numéricos como números, não strings
 - Se campo não existir no documento, use null ou omita`;
 }

@@ -86,14 +86,18 @@ describe('QuotePdfTemplateService — grupos de cobertura condicionais', () => {
       expect(html).not.toContain('cob-group-title">Assistências');
     });
 
-    it('não renderiza bloco Assistências quando todos os campos são false', () => {
+    it('renderiza bloco Assistências com badge "Detalhes" e "Não contratado" quando todos são false (anyKnown)', () => {
       const html = render({ assistance: { towing: false, glassProtection: false } });
-      expect(html).not.toContain('cob-group-title">Assistências');
+      expect(html).toContain('cob-group-title">Assistências');
+      expect(html).toContain('Não contratado');
+      expect(html).toContain('cob-group-badge">Detalhes');
+      expect(html).not.toContain('cob-group-badge">Contratado');
     });
 
-    it('renderiza bloco Assistências quando towing = true', () => {
+    it('renderiza bloco Assistências com badge "Contratado" quando towing = true', () => {
       const html = render({ assistance: { towing: true } });
       expect(html).toContain('cob-group-title">Assistências');
+      expect(html).toContain('cob-group-badge">Contratado');
     });
   });
 
@@ -143,6 +147,178 @@ describe('QuotePdfTemplateService — grupos de cobertura condicionais', () => {
       });
       expect(html).not.toContain('Cobertura do Veículo');
     });
+  });
+});
+
+describe('QuotePdfTemplateService — Tokio Marine enriquecido', () => {
+  const TOKIO_BASE = {
+    insurer: 'TOKIO_MARINE' as const,
+    name: 'Tokio Marine Auto',
+    extractedData: {
+      vehicle: { model: 'VOLKSWAGEN GOL 2014', plate: 'OKB-0A62' },
+      driver: {},
+      insurer: 'Tokio Marine',
+      segment: 'Auto',
+      coverage: {
+        vehicle: { fipePercentage: 100, deductible: 2582 },
+        rcf: { propertyDamage: 50000, bodilyInjury: 50000 },
+        app: { death: 5000, disability: 5000, passengerCount: 5 },
+        assistance: {
+          towing: true,
+          glassProtection: true,
+          replacementVehicle: true,
+          replacementDays: 15,
+        },
+      },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+        glass: { tier: 'Completo' },
+        replacementVehicle: { category: 'Básico (Mecânico)' },
+        services: { martelinho: true, latariaEPintura: true, rodaPneuSuspensao: true, logoMarcaVidros: false },
+        repair: { shopType: 'Livre Escolha', partsType: 'Novas originais' },
+      },
+      deductibles: [],
+      premium: { total: 3675.43 },
+      paymentMethods: [],
+    },
+  };
+
+  it('exibe km total de reboque (300 km)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('300 km');
+  });
+
+  it('exibe plano de assistência (Completa)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Completa');
+  });
+
+  it('exibe tier de vidros (Completo) em vez de "Incluso"', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Completo');
+  });
+
+  it('exibe dias e categoria do carro reserva (15 dias · Básico (Mecânico))', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('15 dias');
+    expect(html).toContain('Básico (Mecânico)');
+  });
+
+  it('exibe martelinho e para-choque como contratado', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Martelinho');
+  });
+
+  it('exibe lataria e pintura como contratado', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Lataria');
+  });
+
+  it('exibe roda, pneu e suspensão como contratado', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Roda');
+  });
+
+  it('exibe logomarca (vidros) como não contratado', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Logomarca');
+    expect(html).toContain('Não contratado');
+  });
+
+  it('exibe tipo de oficina (Livre Escolha)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Livre Escolha');
+  });
+
+  it('exibe tipo de peça (Novas originais)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('Novas originais');
+  });
+
+  it('Proteção Mensal: vidro not_contracted mostra "Não contratado"', () => {
+    const html = service.render({
+      insurer: 'TOKIO_MARINE' as const,
+      name: 'Proteção Mensal',
+      extractedData: {
+        ...TOKIO_BASE.extractedData,
+        segment: 'Auto Proteção Mensal',
+        coverage: {
+          vehicle: { fipePercentage: 90 },
+          assistance: {
+            towing: true,
+            glassProtection: false,
+            replacementVehicle: false,
+          },
+        },
+        coverageDetails: {
+          glass: { tier: 'Não possui' },
+        },
+      },
+    });
+    expect(html).toContain('Não contratado');
+  });
+
+  it('não há elemento inline class="cob-note" antigo no PDF (substituído por cob-notes externo)', () => {
+    const html = service.render(TOKIO_BASE);
+    // '"cob-note"' sem 's' no final — garante que a classe antiga não está presente
+    expect(html).not.toContain('"cob-note"');
+  });
+
+  it('marcador de rodapé (cob-fn) presente quando planName+km estão disponíveis', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('cob-fn');
+  });
+
+  it('notas ficam em área <div class="cob-notes"> fora dos cob-groups de coberturas', () => {
+    const html = service.render(TOKIO_BASE);
+    // Verifica presença do elemento HTML (não só do seletor CSS)
+    expect(html).toContain('<div class="cob-notes">');
+    // Notas devem aparecer DEPOIS do último row de Assistências (Veículo Reserva)
+    const lastAssistRow = html.lastIndexOf('Veículo Reserva');
+    const notesDiv = html.indexOf('<div class="cob-notes">');
+    expect(notesDiv).toBeGreaterThan(lastAssistRow);
+  });
+
+  it('área de notas tem label "Notas"', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('cob-notes-label');
+    expect(html).toContain('Notas');
+  });
+
+  it('rodapé contém breakdown de km (200 padrão + 100 adicional = 300)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('200 km padrão');
+    expect(html).toContain('100 km adicional');
+    expect(html).toContain('totalizando 300 km');
+  });
+
+  it('rodapé não exibe texto literal "200 km de reboque" que causava contradição', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).not.toContain('200 km de reboque com possibilidade');
+  });
+
+  it('Tokio Marine usa cor verde institucional (não vermelho)', () => {
+    const html = service.render(TOKIO_BASE);
+    expect(html).toContain('#005C35');
+    expect(html).not.toContain('#d4001a');
+  });
+
+  it('campo ausente (not_found) não aparece no HTML de serviços', () => {
+    const html = service.render({
+      insurer: 'TOKIO_MARINE' as const,
+      name: 'Tokio sem serviços',
+      extractedData: {
+        ...TOKIO_BASE.extractedData,
+        coverage: {
+          vehicle: { fipePercentage: 100 },
+          assistance: { towing: true },
+        },
+        coverageDetails: undefined, // sem enrichment → serviços not_found → não aparecem
+      },
+    });
+    // martelinho não extraído → not_found → não aparece no HTML
+    expect(html).not.toContain('Martelinho');
+    expect(html).not.toContain('Lataria');
   });
 });
 

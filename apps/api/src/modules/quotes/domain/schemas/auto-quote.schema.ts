@@ -48,6 +48,31 @@ const AssistanceCoverageSchema = z.object({
   replacementDays: z.number().optional(),
 });
 
+const CoverageDetailsSchema = z.object({
+  assistance: z.object({
+    planName: z.string().optional(),
+    towingKmBase: z.number().optional(),
+    towingKmAdditional: z.number().optional(),
+    towingKmTotal: z.number().optional(),
+  }).optional(),
+  glass: z.object({
+    tier: z.string().optional(),
+  }).optional(),
+  replacementVehicle: z.object({
+    category: z.string().optional(),
+  }).optional(),
+  services: z.object({
+    martelinho: z.boolean().optional(),
+    latariaEPintura: z.boolean().optional(),
+    rodaPneuSuspensao: z.boolean().optional(),
+    logoMarcaVidros: z.boolean().optional(),
+  }).optional(),
+  repair: z.object({
+    shopType: z.string().optional(),
+    partsType: z.string().optional(),
+  }).optional(),
+});
+
 const DeductibleItemSchema = z.object({
   item: z.string(),
   value: z.number(),
@@ -92,6 +117,7 @@ const AutoQuoteDataSchema = z.object({
     app: AppCoverageSchema.optional(),
     assistance: AssistanceCoverageSchema.optional(),
   }),
+  coverageDetails: CoverageDetailsSchema.optional(),
   deductibles: z.array(DeductibleItemSchema),
   premium: PremiumSchema,
   paymentMethods: z.array(PaymentMethodSchema),

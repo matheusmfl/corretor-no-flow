@@ -21,6 +21,8 @@ created_at: 2026-05-01
 
 We should not expand the MVP implementation with every Porto-specific field immediately, but the data model should have a clear path for insurer-specific extras.
 
+Update after `TASK-0044`: Tokio Marine introduced a practical first slice of the pattern via `coverageDetails`, separating universal coverage flags from insurer/product-specific enrichment. This task should treat that as the baseline discovery outcome, then generalize it for Bradesco, Porto family, Azul, Itau, Mitsui and future insurers.
+
 ## Objective
 
 Design a small, safe contract proposal for insurer-specific extras in AUTO quotes without breaking the common AUTO core.
@@ -31,6 +33,11 @@ Design a small, safe contract proposal for insurer-specific extras in AUTO quote
 - Propose how insurer-specific extras should be represented.
 - Decide whether extras should be typed by insurer, generic key/value, or a hybrid.
 - Define what belongs in common AUTO core vs Porto extras.
+- Incorporate the `coverageDetails` direction proven in Tokio:
+  - `coverage` for stable cross-insurer facts;
+  - `coverageDetails` for richer facts extracted from PDF;
+  - static catalog/tooltips outside parser facts.
+- Document how Bradesco and Porto-family rich coverage details should extend the same pattern.
 - Document compatibility rules for API, dashboard review, PDF, and public link.
 
 ## Out Of Scope
@@ -45,6 +52,8 @@ Design a small, safe contract proposal for insurer-specific extras in AUTO quote
 - `packages/types/src/quote.types.ts`
 - `.ai/discovery/PORTO-FAMILY-AUTO.md`
 - `.ai/discovery/AUTOQUOTE-EXTRAS-CONTRACT.md`
+- `.ai/tasks/review/TASK-0044-enrich-tokio-coverage-display-details.md`
+- `.ai/discovery/BRADESCO-AUTO-EXTRA-FIELDS.md`
 
 ## TDD Requirement
 
@@ -55,6 +64,9 @@ No implementation in this task. If this becomes a types/API change later, backen
 - [ ] A proposal document exists for AUTO insurer extras.
 - [ ] Common core fields are separated from insurer-specific fields.
 - [ ] Porto extras are listed and categorized.
+- [ ] Tokio `coverageDetails` learnings are documented as the initial pattern.
+- [ ] Bradesco and Porto-family extension notes exist.
+- [ ] Static catalog/tooltips are separated from PDF-extracted facts.
 - [ ] Recommendation exists for first implementation approach.
 - [ ] Risks for frontend/PDF/public-link compatibility are documented.
 

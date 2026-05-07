@@ -43,8 +43,8 @@ describe('buildCoverageDisplay — Assistência Exclusiva (sem casco)', () => {
     expect(display.replacementVehicle.status).toBe('contracted');
     expect(display.replacementVehicle.days).toBe(6);
   });
-  it('fastRepair = not_found (produto não expõe)', () => {
-    expect(display.fastRepair.status).toBe('not_found');
+  it('martelinho = not_found (não extraído)', () => {
+    expect(display.martelinho.status).toBe('not_found');
   });
 });
 
@@ -198,4 +198,261 @@ describe('buildCoverageDisplay — Bradesco (sem segment, casco + vidros)', () =
   it('rcf.moralDamages = 10000', () => expect(display.rcf.moralDamages).toBe(10000));
   it('glass = contracted', () => expect(display.glass.status).toBe('contracted'));
   it('replacementVehicle.days = 10', () => expect(display.replacementVehicle.days).toBe(10));
+  it('martelinho = not_found (não extraído para Bradesco ainda)', () => {
+    expect(display.martelinho.status).toBe('not_found');
+  });
+  it('Bradesco sem glassTier → glass.tooltip = undefined', () => {
+    expect(display.glass.tooltip).toBeUndefined();
+  });
+});
+
+// ── Tokio Auto: serviços enriquecidos (referência positiva) ──────────────────
+describe('buildCoverageDisplay — Tokio Auto enriquecido (referência positiva)', () => {
+  let display: ReturnType<typeof buildCoverageDisplay>;
+
+  beforeAll(() => {
+    display = buildCoverageDisplay(
+      makeData({
+        insurer: 'TOKIO_MARINE',
+        segment: 'AUTO',
+        coverage: {
+          vehicle: { fipePercentage: 100, deductible: 2582 },
+          rcf: { propertyDamage: 50000, bodilyInjury: 50000 },
+          app: { death: 5000, disability: 5000, passengerCount: 5 },
+          assistance: {
+            towing: true,
+            glassProtection: true,
+            replacementVehicle: true,
+            replacementDays: 15,
+          },
+        },
+        coverageDetails: {
+          assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+          glass: { tier: 'Completo' },
+          replacementVehicle: { category: 'Básico (Mecânico)' },
+          services: { martelinho: true, latariaEPintura: true, rodaPneuSuspensao: true, logoMarcaVidros: false },
+          repair: { shopType: 'Livre Escolha', partsType: 'Novas originais' },
+        },
+      }),
+    );
+  });
+
+  it('towing.kmTotal = 300', () => expect(display.towing.kmTotal).toBe(300));
+  it('towing.planName = Completa', () => expect(display.towing.planName).toBe('Completa'));
+  it('towing.tooltip contém texto do catálogo Tokio Completa', () => {
+    expect(display.towing.tooltip).toContain('200 km de reboque');
+  });
+
+  it('glass.tier = Completo', () => expect(display.glass.tier).toBe('Completo'));
+  it('glass.tooltip contém texto do catálogo Tokio Completo', () => {
+    expect(display.glass.tooltip).toContain('faróis');
+  });
+
+  it('replacementVehicle.days = 15', () => expect(display.replacementVehicle.days).toBe(15));
+  it('replacementVehicle.category = Básico (Mecânico)', () => {
+    expect(display.replacementVehicle.category).toBe('Básico (Mecânico)');
+  });
+
+  it('martelinho = contracted (Possui no PDF)', () => {
+    expect(display.martelinho.status).toBe('contracted');
+  });
+  it('latariaEPintura = contracted', () => {
+    expect(display.latariaEPintura.status).toBe('contracted');
+  });
+  it('rodaPneuSuspensao = contracted', () => {
+    expect(display.rodaPneuSuspensao.status).toBe('contracted');
+  });
+  it('logoMarcaVidros = not_contracted (Não possui no PDF)', () => {
+    expect(display.logoMarcaVidros.status).toBe('not_contracted');
+  });
+
+  it('repairShopType = Livre Escolha', () => {
+    expect(display.repairShopType).toBe('Livre Escolha');
+  });
+  it('partsType = Novas originais', () => {
+    expect(display.partsType).toBe('Novas originais');
+  });
+});
+
+// ── Tokio Auto Proteção Mensal: serviços not_contracted explícitos ────────────
+describe('buildCoverageDisplay — Tokio Proteção Mensal (serviços não contratados)', () => {
+  let display: ReturnType<typeof buildCoverageDisplay>;
+
+  beforeAll(() => {
+    display = buildCoverageDisplay(
+      makeData({
+        insurer: 'TOKIO_MARINE',
+        segment: 'AUTO PROTEÇÃO MENSAL',
+        coverage: {
+          vehicle: { fipePercentage: 90 },
+          rcf: { propertyDamage: 25000, bodilyInjury: 25000 },
+          assistance: {
+            towing: true,
+            glassProtection: false,
+            replacementVehicle: false,
+          },
+        },
+        coverageDetails: {
+          assistance: { planName: 'Completa' },
+          glass: { tier: 'Não possui' },
+          services: { martelinho: false, latariaEPintura: false, rodaPneuSuspensao: false, logoMarcaVidros: false },
+          repair: { shopType: 'Rede Referenciada', partsType: 'Novas Compatíveis' },
+        },
+      }),
+    );
+  });
+
+  it('glass.status = not_contracted (glassProtection=false)', () => {
+    expect(display.glass.status).toBe('not_contracted');
+  });
+  it('glass.tier = Não possui (extraído do PDF)', () => {
+    expect(display.glass.tier).toBe('Não possui');
+  });
+  it('glass.tooltip = undefined (tier Não possui não tem catálogo)', () => {
+    expect(display.glass.tooltip).toBeUndefined();
+  });
+  it('replacementVehicle = not_contracted', () => {
+    expect(display.replacementVehicle.status).toBe('not_contracted');
+  });
+  it('replacementVehicle.category = undefined', () => {
+    expect(display.replacementVehicle.category).toBeUndefined();
+  });
+  it('martelinho = not_contracted', () => {
+    expect(display.martelinho.status).toBe('not_contracted');
+  });
+  it('repairShopType = Rede Referenciada', () => {
+    expect(display.repairShopType).toBe('Rede Referenciada');
+  });
+});
+
+// ── triState: campo ausente vs false ─────────────────────────────────────────
+describe('buildCoverageDisplay — triState semântica (serviços opcionais)', () => {
+  it('martelinho undefined → not_found', () => {
+    const d = makeData({ coverage: { assistance: { towing: true } } });
+    expect(buildCoverageDisplay(d).martelinho.status).toBe('not_found');
+  });
+
+  it('martelinho false → not_contracted', () => {
+    const d = makeData({ coverageDetails: { services: { martelinho: false } } });
+    expect(buildCoverageDisplay(d).martelinho.status).toBe('not_contracted');
+  });
+
+  it('martelinho true → contracted', () => {
+    const d = makeData({ coverageDetails: { services: { martelinho: true } } });
+    expect(buildCoverageDisplay(d).martelinho.status).toBe('contracted');
+  });
+
+  it('towing.tooltip = undefined quando planName não está no catálogo', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: 'Desconhecido' } },
+    });
+    expect(buildCoverageDisplay(d).towing.tooltip).toBeUndefined();
+  });
+
+  it('towing.tooltip = undefined quando insurer não é Tokio', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: 'Completa' } },
+    });
+    expect(buildCoverageDisplay(d).towing.tooltip).toBeUndefined();
+  });
+
+  it('towing.tooltip correto para Tokio VIP assistência', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: 'VIP' } },
+    });
+    expect(buildCoverageDisplay(d).towing.tooltip).toContain('leva e traz');
+  });
+});
+
+// ── towing.footnote: nota de rodapé estruturada para PDF ─────────────────────
+describe('buildCoverageDisplay — towing.footnote', () => {
+  it('footnote contém breakdown de km quando base/adicional/total estão presentes', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+      },
+    });
+    const { footnote } = buildCoverageDisplay(d).towing;
+    expect(footnote).toContain('200 km padrão');
+    expect(footnote).toContain('100 km adicional');
+    expect(footnote).toContain('totalizando 300 km');
+  });
+
+  it('footnote não menciona "200 km de reboque" como texto fixo quando breakdown está disponível', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+      },
+    });
+    const { footnote } = buildCoverageDisplay(d).towing;
+    // Não deve exibir o texto do catálogo literal "200 km de reboque" que causava contradição visual
+    expect(footnote).not.toContain('200 km de reboque com possibilidade');
+  });
+
+  it('footnote contém serviços do plano Completa quando breakdown presente', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+      },
+    });
+    const { footnote } = buildCoverageDisplay(d).towing;
+    expect(footnote).toMatch(/mecânico|hospedagem|chaveiro/);
+  });
+
+  it('footnote usa texto de catálogo quando km base/adicional não estão disponíveis', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmTotal: 300 },
+      },
+    });
+    const { footnote } = buildCoverageDisplay(d).towing;
+    // Sem breakdown → usa catálogo
+    expect(footnote).toContain('Plano Completa');
+    expect(footnote).toContain('200 km de reboque');
+  });
+
+  it('footnote = undefined quando planName não está no catálogo', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: 'Desconhecido' } },
+    });
+    expect(buildCoverageDisplay(d).towing.footnote).toBeUndefined();
+  });
+
+  it('footnote = undefined para seguradora sem catálogo (Bradesco)', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: 'Completa' } },
+    });
+    expect(buildCoverageDisplay(d).towing.footnote).toBeUndefined();
+  });
+
+  it('towing.kmBase e towing.kmAdditional são populados do coverageDetails', () => {
+    const d = makeData({
+      insurer: 'TOKIO_MARINE',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: {
+        assistance: { planName: 'Completa', towingKmBase: 200, towingKmAdditional: 100, towingKmTotal: 300 },
+      },
+    });
+    const towing = buildCoverageDisplay(d).towing;
+    expect(towing.kmBase).toBe(200);
+    expect(towing.kmAdditional).toBe(100);
+  });
 });

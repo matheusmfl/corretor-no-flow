@@ -183,6 +183,42 @@ describe('Tokio Marine AUTO — getTokioProductLabel', () => {
   });
 });
 
+// Fixture baseada no PDF de referência positiva:
+// .ai/pdf-lab/output/auto_tokio_services_positive_reference.json
+// Representa o que a IA retornaria ao processar o PDF com serviços contratados.
+const SERVICES_POSITIVE_AI_RESPONSE = {
+  ...AUTO_AI_RESPONSE,
+  coverage: {
+    ...AUTO_AI_RESPONSE.coverage,
+    assistance: {
+      towing: true,
+      glassProtection: true,
+      replacementVehicle: true,
+      replacementDays: 15,
+    },
+  },
+  coverageDetails: {
+    assistance: {
+      planName: 'Completa',
+      towingKmBase: 200,
+      towingKmAdditional: 100,
+      towingKmTotal: 300,
+    },
+    glass: { tier: 'Completo' },
+    replacementVehicle: { category: 'Básico (Mecânico)' },
+    services: {
+      martelinho: true,
+      latariaEPintura: true,
+      rodaPneuSuspensao: true,
+      logoMarcaVidros: false,
+    },
+    repair: {
+      shopType: 'Livre Escolha',
+      partsType: 'Novas originais',
+    },
+  },
+};
+
 describe('Tokio Marine AUTO — parseAutoQuoteData (validação Zod)', () => {
   it('valida payload do produto Auto sem erros Zod', () => {
     expect(() => parseAutoQuoteData(AUTO_AI_RESPONSE as any)).not.toThrow();
@@ -212,5 +248,49 @@ describe('Tokio Marine AUTO — parseAutoQuoteData (validação Zod)', () => {
   it('Proteção Mensal tem fipePercentage 90 após validação', () => {
     const data = parseAutoQuoteData(PROTECAO_MENSAL_AI_RESPONSE as any);
     expect(data.coverage?.vehicle?.fipePercentage).toBe(90);
+  });
+
+  it('valida fixture de referência positiva (serviços contratados) sem erros Zod', () => {
+    expect(() => parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any)).not.toThrow();
+  });
+
+  it('referência positiva: martelinho = true após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.services?.martelinho).toBe(true);
+  });
+
+  it('referência positiva: latariaEPintura = true após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.services?.latariaEPintura).toBe(true);
+  });
+
+  it('referência positiva: rodaPneuSuspensao = true após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.services?.rodaPneuSuspensao).toBe(true);
+  });
+
+  it('referência positiva: logoMarcaVidros = false (Não possui) após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.services?.logoMarcaVidros).toBe(false);
+  });
+
+  it('referência positiva: towingKmTotal = 300 após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.assistance?.towingKmTotal).toBe(300);
+  });
+
+  it('referência positiva: glass.tier = Completo após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.glass?.tier).toBe('Completo');
+  });
+
+  it('referência positiva: repair.shopType = Livre Escolha após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.repair?.shopType).toBe('Livre Escolha');
+  });
+
+  it('referência positiva: replacementVehicle.category = Básico (Mecânico) após validação', () => {
+    const data = parseAutoQuoteData(SERVICES_POSITIVE_AI_RESPONSE as any);
+    expect(data.coverageDetails?.replacementVehicle?.category).toBe('Básico (Mecânico)');
   });
 });

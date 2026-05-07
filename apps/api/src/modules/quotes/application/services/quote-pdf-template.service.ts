@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Insurer } from '@prisma/client';
-import type { AutoQuoteData } from '@corretor/types';
+import type { AutoQuoteData, RichCoverage, CoverageStatus } from '@corretor/types';
 import { UNRELIABLE_DEDUCTIBLE_TYPES } from './quote-filename';
+import { buildCoverageDisplay } from './coverage-display';
 
 // ── Brand colors por seguradora ──────────────────────────────────────────────
 const INSURER_CONFIG: Record<Insurer, { label: string; brand: string }> = {
   BRADESCO:        { label: 'Bradesco Seguros',        brand: '#cc0000' },
   PORTO_SEGURO:    { label: 'Porto Seguro',            brand: '#003087' },
-  TOKIO_MARINE:    { label: 'Tokio Marine',            brand: '#d4001a' },
+  TOKIO_MARINE:    { label: 'Tokio Marine',            brand: '#005C35' },
   SULAMERICA:      { label: 'SulAmérica',              brand: '#e30613' },
   SUHAI:           { label: 'Suhai',                   brand: '#0066cc' },
   ALIRO:           { label: 'Aliro',                   brand: '#1f2d3d' },
@@ -140,6 +141,122 @@ function renderPaymentTable(method: AutoQuoteData['paymentMethods'][0]): string 
     </table>`;
 }
 
+// ── Rich coverage render helpers ──────────────────────────────────────────────
+
+function crVal(text: string): string {
+  return `<span class="cr-val">${esc(text)}</span>`;
+}
+
+function crZero(text = 'Não contratado'): string {
+  return `<span class="cr-zero">${esc(text)}</span>`;
+}
+
+function cobRow(label: string, status: CoverageStatus, valueHtml: string): string {
+  if (status === 'not_found' || status === 'not_applicable') return '';
+  return `
+      <div class="cob-row">
+        <span class="cr-label">${esc(label)}</span>
+        ${status === 'contracted' ? valueHtml : crZero()}
+      </div>`;
+}
+
+interface AssistGroupResult {
+  html: string;
+  notes: string[]; // plain-text footnote entries; caller renders them in the Notes block
+}
+
+function richAssistGroup(rich: RichCoverage): AssistGroupResult {
+  const known = (s: CoverageStatus) => s !== 'not_found' && s !== 'not_applicable';
+  const anyKnown = known(rich.towing.status) || known(rich.glass.status) || known(rich.replacementVehicle.status);
+  if (!anyKnown) return { html: '', notes: [] };
+
+  const anyContractedAssist = rich.towing.status === 'contracted' ||
+    rich.glass.status === 'contracted' ||
+    rich.replacementVehicle.status === 'contracted';
+  const assistBadge = anyContractedAssist ? 'Contratado' : 'Detalhes';
+
+  // Notes are collected here and rendered OUTSIDE the cob-group by the caller,
+  // so they don't appear to be a visual continuation of the last coverage row.
+  const notes: string[] = [];
+
+  function crValWithFn(text: string, noteText: string | undefined): string {
+    if (!noteText) return crVal(text);
+    const marker = notes.length + 1;
+    notes.push(`${marker}. ${noteText}`);
+    return `<span class="cr-val">${esc(text)}<sup class="cob-fn">${marker}</sup></span>`;
+  }
+
+  const towingDetail = [rich.towing.planName, rich.towing.kmTotal ? `${rich.towing.kmTotal} km` : undefined]
+    .filter(Boolean).join(' — ') || 'Incluso';
+  const glassDetail = rich.glass.tier || 'Incluso';
+  const carDetail = [
+    rich.replacementVehicle.days ? `${rich.replacementVehicle.days} dias` : undefined,
+    rich.replacementVehicle.category,
+  ].filter(Boolean).join(' · ') || 'Incluso';
+
+  const towingRow = cobRow('Assistência 24h', rich.towing.status, crValWithFn(towingDetail, rich.towing.footnote));
+  const glassRow = cobRow('Proteção de Vidros', rich.glass.status, crValWithFn(glassDetail, rich.glass.tooltip));
+  const carRow = cobRow('Veículo Reserva', rich.replacementVehicle.status, crVal(carDetail));
+
+  const html = `
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🛠️</span>
+        <span class="cob-group-title">Assistências</span>
+        <span class="cob-group-badge">${assistBadge}</span>
+      </div>
+      ${towingRow}
+      ${glassRow}
+      ${carRow}
+    </div>`;
+
+  return { html, notes };
+}
+
+function richServicesGroup(rich: RichCoverage): string {
+  const items: { label: string; status: CoverageStatus }[] = [
+    { label: 'Martelinho e para-choque', status: rich.martelinho.status },
+    { label: 'Lataria e pintura',        status: rich.latariaEPintura.status },
+    { label: 'Roda, pneu e suspensão',   status: rich.rodaPneuSuspensao.status },
+    { label: 'Logomarca (vidros)',        status: rich.logoMarcaVidros.status },
+  ];
+  const visible = items.filter((i) => i.status !== 'not_found' && i.status !== 'not_applicable');
+  if (visible.length === 0) return '';
+
+  const rows = visible.map((i) => cobRow(i.label, i.status, crVal('Incluso'))).join('');
+  return `
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🔧</span>
+        <span class="cob-group-title">Serviços</span>
+        <span class="cob-group-badge">Detalhes</span>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function richRepairConditionsGroup(rich: RichCoverage): string {
+  if (!rich.repairShopType && !rich.partsType) return '';
+  return `
+    <div class="cob-group">
+      <div class="cob-group-header">
+        <span class="cob-group-icon">🏭</span>
+        <span class="cob-group-title">Condições de Reparo</span>
+        <span class="cob-group-badge">Detalhes</span>
+      </div>
+      ${rich.repairShopType ? `
+      <div class="cob-row">
+        <span class="cr-label">Tipo de oficina</span>
+        ${crVal(rich.repairShopType)}
+      </div>` : ''}
+      ${rich.partsType ? `
+      <div class="cob-row">
+        <span class="cr-label">Tipo de peça</span>
+        ${crVal(rich.partsType)}
+      </div>` : ''}
+    </div>`;
+}
+
 // ── Tipos internos ────────────────────────────────────────────────────────────
 
 interface CompanyData {
@@ -182,6 +299,18 @@ export class QuotePdfTemplateService {
     const deductibles = (d.deductibles ?? []).filter((x) => x.value > 0);
     const premium   = d.premium   ?? { total: 0 };
     const methods   = d.paymentMethods ?? [];
+
+    const rich = buildCoverageDisplay({
+      vehicle: vehicle as AutoQuoteData['vehicle'],
+      driver: driver as AutoQuoteData['driver'],
+      insurer: quote.insurer, // DB enum — used for tooltip catalog lookup
+      segment: d.segment,
+      coverage: coverage as AutoQuoteData['coverage'],
+      coverageDetails: d.coverageDetails as AutoQuoteData['coverageDetails'],
+      deductibles: (d.deductibles ?? []) as AutoQuoteData['deductibles'],
+      premium: premium as AutoQuoteData['premium'],
+      paymentMethods: (d.paymentMethods ?? []) as AutoQuoteData['paymentMethods'],
+    });
 
     const best = bestInstallment(methods, premium.total);
     const mainDeductible = coverage.vehicle?.deductible;
@@ -259,28 +388,18 @@ export class QuotePdfTemplateService {
         </div>
       </div>`;
 
-    const assist = coverage.assistance;
-    const assistGroup = `
-      <div class="cob-group">
-        <div class="cob-group-header">
-          <span class="cob-group-icon">🛠️</span>
-          <span class="cob-group-title">Assistências</span>
-          <span class="cob-group-badge">Contratado</span>
-        </div>
-        <div class="cob-row">
-          <span class="cr-label">Guincho</span>
-          ${assist?.towing ? '<span class="cr-val">Incluso</span>' : '<span class="cr-zero">Não contratado</span>'}
-        </div>
-        <div class="cob-row">
-          <span class="cr-label">Proteção de Vidros</span>
-          ${assist?.glassProtection ? '<span class="cr-val">Incluso</span>' : '<span class="cr-zero">Não contratado</span>'}
-        </div>
-        ${assist?.replacementVehicle ? `
-        <div class="cob-row">
-          <span class="cr-label">Veículo Reserva</span>
-          <span class="cr-val">${assist.replacementDays ? `${assist.replacementDays} dias` : 'Incluso'}</span>
-        </div>` : ''}
-      </div>`;
+    const assistResult = richAssistGroup(rich);
+    const assistGroupHtml = assistResult.html;
+    const coverageNotes = assistResult.notes;
+    const notesBlockHtml = coverageNotes.length > 0
+      ? `<div class="cob-notes">
+          <div class="cob-notes-label">Notas</div>
+          ${coverageNotes.map((n) => `<p class="cob-fn-text">${esc(n)}</p>`).join('')}
+        </div>`
+      : '';
+
+    const servicesGroupHtml = richServicesGroup(rich);
+    const repairConditionsGroupHtml = richRepairConditionsGroup(rich);
 
     // ── Seção: franquias ───────────────────────────────────────────────────
 
@@ -602,6 +721,37 @@ body {
 .fipe-pct { font-size: 32px; font-weight: 800; color: var(--brand); letter-spacing: -0.03em; line-height: 1; }
 .fipe-desc { font-size: 12px; color: var(--text-2); line-height: 1.4; }
 
+/* Footnote superscript marker on coverage value */
+sup.cob-fn {
+  font-size: 8px;
+  vertical-align: super;
+  line-height: 0;
+  color: var(--text-3);
+  margin-left: 1px;
+}
+/* Notes block — rendered AFTER all cob-groups, clearly separated from coverage rows */
+.cob-notes {
+  margin-top: 8px;
+  padding: 8px 12px 10px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.cob-notes-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+.cob-fn-text {
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.cob-fn-text + .cob-fn-text { margin-top: 3px; }
+
 /* ── FRANQUIAS ───────────────────────────────────────── */
 .franquia-row {
   display: flex;
@@ -838,7 +988,10 @@ body {
     ${vehicleGroup}
     ${hasRcf(rcf) ? rcfGroup : ''}
     ${hasApp(app) ? appGroup : ''}
-    ${hasAssist(assist) ? assistGroup : ''}
+    ${assistGroupHtml}
+    ${servicesGroupHtml}
+    ${repairConditionsGroupHtml}
+    ${notesBlockHtml}
   </div>
 
   <!-- FRANQUIAS POR ITEM -->

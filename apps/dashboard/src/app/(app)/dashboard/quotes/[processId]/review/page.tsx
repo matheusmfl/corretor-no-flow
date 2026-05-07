@@ -182,15 +182,77 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
                   {d.coverage.app.passengerCount != null && <DataRow label="APP — Passageiros" value={`${d.coverage.app.passengerCount} pessoas`} />}
                 </>
               )}
-              {d.coverage.assistance && (
+              {d.coverage.assistance?.towing != null && (
+                <>
+                  <DataRow
+                    label="Assistência 24h"
+                    value={
+                      d.coverage.assistance.towing
+                        ? [
+                            d.coverageDetails?.assistance?.planName,
+                            d.coverageDetails?.assistance?.towingKmTotal
+                              ? `${d.coverageDetails.assistance.towingKmTotal} km`
+                              : undefined,
+                          ].filter(Boolean).join(' — ') || 'Incluso'
+                        : 'Não contratado'
+                    }
+                  />
+                </>
+              )}
+              {d.coverage.assistance?.glassProtection != null && (
                 <DataRow
-                  label="Assistências"
-                  value={[
-                    d.coverage.assistance.towing && 'Guincho',
-                    d.coverage.assistance.glassProtection && 'Vidros',
-                    d.coverage.assistance.replacementVehicle && `Veículo reserva${d.coverage.assistance.replacementDays ? ` (${d.coverage.assistance.replacementDays}d)` : ''}`,
-                  ].filter(Boolean).join(' · ') || null}
+                  label="Proteção de Vidros"
+                  value={
+                    d.coverage.assistance.glassProtection
+                      ? (d.coverageDetails?.glass?.tier ?? 'Incluso')
+                      : 'Não contratado'
+                  }
                 />
+              )}
+              {d.coverage.assistance?.replacementVehicle != null && (
+                <DataRow
+                  label="Veículo Reserva"
+                  value={
+                    d.coverage.assistance.replacementVehicle
+                      ? [
+                          d.coverage.assistance.replacementDays
+                            ? `${d.coverage.assistance.replacementDays}d`
+                            : undefined,
+                          d.coverageDetails?.replacementVehicle?.category,
+                        ].filter(Boolean).join(' · ') || 'Incluso'
+                      : 'Não contratado'
+                  }
+                />
+              )}
+              {d.coverageDetails?.services?.martelinho != null && (
+                <DataRow
+                  label="Martelinho e para-choque"
+                  value={d.coverageDetails.services.martelinho ? 'Possui' : 'Não possui'}
+                />
+              )}
+              {d.coverageDetails?.services?.latariaEPintura != null && (
+                <DataRow
+                  label="Lataria e pintura"
+                  value={d.coverageDetails.services.latariaEPintura ? 'Possui' : 'Não possui'}
+                />
+              )}
+              {d.coverageDetails?.services?.rodaPneuSuspensao != null && (
+                <DataRow
+                  label="Roda, pneu e suspensão"
+                  value={d.coverageDetails.services.rodaPneuSuspensao ? 'Possui' : 'Não possui'}
+                />
+              )}
+              {d.coverageDetails?.services?.logoMarcaVidros != null && (
+                <DataRow
+                  label="Logomarca (vidros)"
+                  value={d.coverageDetails.services.logoMarcaVidros ? 'Possui' : 'Não possui'}
+                />
+              )}
+              {d.coverageDetails?.repair?.shopType && (
+                <DataRow label="Tipo de oficina" value={d.coverageDetails.repair.shopType} />
+              )}
+              {d.coverageDetails?.repair?.partsType && (
+                <DataRow label="Tipo de peça" value={d.coverageDetails.repair.partsType} />
               )}
             </div>
           )}
