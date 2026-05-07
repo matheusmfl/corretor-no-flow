@@ -13,6 +13,7 @@ import { GetProcessMetricsUseCase } from '../application/use-cases/get-process-m
 import { DetectInsurerUseCase } from '../application/use-cases/detect-insurer.use-case';
 import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
+import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
 
 function makeUseCaseMock() {
   return { execute: jest.fn() };
@@ -40,6 +41,7 @@ describe('QuoteController — downloadPdf', () => {
         { provide: DetectInsurerUseCase,            useValue: makeUseCaseMock() },
         { provide: UploadAutoQuoteUseCase,          useValue: makeUseCaseMock() },
         { provide: ResetQuoteBatchUseCase,          useValue: makeUseCaseMock() },
+        { provide: RemoveQuoteFromProcessUseCase,   useValue: makeUseCaseMock() },
       ],
     }).compile();
 

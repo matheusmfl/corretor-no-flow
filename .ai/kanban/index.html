@@ -252,13 +252,13 @@
     <header>
       <div>
         <h1>Kanban<br />Pré-Venda V1</h1>
-        <p class="subtitle">27 tasks lidas de <code>.ai/tasks</code>. Gerado em 01/05/2026, 19:32:06.</p>
+        <p class="subtitle">44 tasks lidas de <code>.ai/tasks</code>. Gerado em 06/05/2026, 21:18:59.</p>
       </div>
       <div class="toolbar" aria-label="Filtros">
         <input id="search" type="search" placeholder="Buscar task..." />
         <select id="area">
           <option value="">Todas as areas</option>
-          <option value="api">api</option><option value="dashboard">dashboard</option><option value="product">product</option><option value="types">types</option>
+          <option value="api">api</option><option value="backend">backend</option><option value="dashboard">dashboard</option><option value="frontend">frontend</option><option value="product">product</option><option value="types">types</option>
         </select>
         <select id="risk">
           <option value="">Todos os riscos</option>
@@ -268,7 +268,7 @@
         </select>
         <select id="kind">
           <option value="">Todos os tipos</option>
-          <option value="discovery">discovery</option><option value="documentation">documentation</option><option value="human">human</option><option value="implementation">implementation</option>
+          <option value="bugfix">bugfix</option><option value="discovery">discovery</option><option value="documentation">documentation</option><option value="feature">feature</option><option value="human">human</option><option value="implementation">implementation</option><option value="qa">qa</option>
         </select>
         <select id="lifecycle">
           <option value="">Open e closed</option>
@@ -286,7 +286,7 @@
         <section class="column" data-column="todo">
           <div class="column__header">
             <h2>Todo</h2>
-            <span class="count" data-count="todo">13</span>
+            <span class="count" data-count="todo">17</span>
           </div>
           <div class="column__body">
             
@@ -296,10 +296,10 @@
       data-file="TASK-0004-public-link-comparison-highlights.md"
       data-status="todo"
       data-title="task-0004 adicionar destaques de comparacao no link publico"
-      data-area="dashboard"
+      data-area="product"
       data-risk="medium"
       data-complexity="medium"
-      data-kind="implementation"
+      data-kind="discovery"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
@@ -308,10 +308,10 @@
         <span class="pill pill--life-open">open</span>
       </div>
       <h3>Adicionar destaques de comparacao no link publico</h3>
-      <p>Show a &quot;Destaques da comparacao&quot; section on the public quote page for AUTO processes.</p>
+      <p>Define a safe comparison-highlight contract for AUTO public links and prepare one or more small implementation tasks.</p>
       <div class="task-meta">
-        <span>dashboard</span>
-        <span>implementation</span>
+        <span>product</span>
+        <span>discovery</span>
         <span>medium</span>
         
       </div>
@@ -324,10 +324,10 @@
       data-file="TASK-0005-rule-based-commercial-score.md"
       data-status="todo"
       data-title="task-0005 criar score comercial por regras"
-      data-area="api"
+      data-area="product"
       data-risk="medium"
       data-complexity="medium"
-      data-kind="implementation"
+      data-kind="discovery"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
@@ -336,12 +336,12 @@
         <span class="pill pill--life-open">open</span>
       </div>
       <h3>Criar score comercial por regras</h3>
-      <p>Compute a deterministic commercial score for each quote process: cold, warm, or hot.</p>
+      <p>Define a deterministic commercial score v0 for each quote process: cold, warm, or hot.</p>
       <div class="task-meta">
-        <span>api</span>
-        <span>implementation</span>
+        <span>product</span>
+        <span>discovery</span>
         <span>medium</span>
-        <span>TDD</span>
+        
       </div>
       <a href="/tasks/todo/TASK-0005-rule-based-commercial-score.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
@@ -517,34 +517,6 @@
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0022-design-rich-auto-coverage-display-contract.md"
-      data-status="todo"
-      data-title="task-0022 desenhar contrato rico de coberturas auto para pdf e link publico"
-      data-area="product"
-      data-risk="medium"
-      data-complexity="medium"
-      data-kind="discovery"
-      data-lifecycle="open"
-    >
-      <div class="task-card__topline">
-        <span class="task-id">TASK-0022</span>
-        <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-open">open</span>
-      </div>
-      <h3>Desenhar contrato rico de coberturas AUTO para PDF e link publico</h3>
-      <p>Definir um contrato de exibicao de coberturas AUTO que seja comum o suficiente para comparar seguradoras, mas permita detalhes especificos por seguradora.</p>
-      <div class="task-meta">
-        <span>product</span>
-        <span>discovery</span>
-        <span>medium</span>
-        
-      </div>
-      <a href="/tasks/todo/TASK-0022-design-rich-auto-coverage-display-contract.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
-    </article>
-  
-    <article
-      class="task-card"
-      draggable="true"
       data-file="TASK-0023-collect-insurer-svg-logos.md"
       data-status="todo"
       data-title="task-0023 coletar svgs oficiais das seguradoras para pdf e link"
@@ -654,6 +626,146 @@
       <a href="/tasks/todo/TASK-0027-public-link-identity-display.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0030-collect-future-insurer-pdf-samples.md"
+      data-status="todo"
+      data-title="task-0030 coletar e extrair pdfs auto de seguradoras futuras"
+      data-area="product"
+      data-risk="low"
+      data-complexity="medium"
+      data-kind="human"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0030</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Coletar e extrair PDFs AUTO de seguradoras futuras</h3>
+      <p>Coletar PDFs reais de seguradoras futuras, extrair texto pelo PDF lab e documentar sinais de identidade/estrutura sem criar implementacao tecnica ainda.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>human</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0030-collect-future-insurer-pdf-samples.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0041-sync-process-status-after-async-pdf-extraction.md"
+      data-status="todo"
+      data-title="task-0041 sincronizar status do processo apos extracao assíncrona de pdfs"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0041</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Sincronizar status do processo apos extracao assíncrona de PDFs</h3>
+      <p>Garantir que o status agregado do processo reflita o estado real das cotacoes apos processamento assíncrono, especialmente quando jobs pendentes rodam depois que o servidor reinicia.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0041-sync-process-status-after-async-pdf-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0042-select-quotes-before-pdf-and-public-link-generation.md"
+      data-status="todo"
+      data-title="task-0042 permitir escolher cotacoes incluidas no pdf e link publico"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0042</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Permitir escolher cotacoes incluidas no PDF e link publico</h3>
+      <p>Adicionar uma etapa simples antes de gerar PDF/link para o corretor selecionar quais cotacoes confirmadas devem entrar no material final.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0042-select-quotes-before-pdf-and-public-link-generation.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0043-improve-public-quote-navigation-and-context.md"
+      data-status="todo"
+      data-title="task-0043 melhorar navegacao e contexto da cotacao no link publico"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0043</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Melhorar navegacao e contexto da cotacao no link publico</h3>
+      <p>Melhorar a experiencia do link publico para que o cliente saiba em qual cotacao/produto esta, consiga voltar e consiga transitar entre opcoes sem se perder.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0043-improve-public-quote-navigation-and-context.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0044-enrich-tokio-coverage-display-details.md"
+      data-status="todo"
+      data-title="task-0044 enriquecer detalhes de coberturas tokio marine no review pdf e link"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0044</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Enriquecer detalhes de coberturas Tokio Marine no review PDF e link</h3>
+      <p>Melhorar a exibicao das principais coberturas Tokio Marine no review, PDF e link publico, sem inventar dados ausentes.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0044-enrich-tokio-coverage-display-details.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
           </div>
         </section>
@@ -683,38 +795,10 @@
         <section class="column" data-column="qa">
           <div class="column__header">
             <h2>QA</h2>
-            <span class="count" data-count="qa">1</span>
+            <span class="count" data-count="qa">0</span>
           </div>
           <div class="column__body">
             
-    <article
-      class="task-card"
-      draggable="true"
-      data-file="TASK-0017-validate-porto-review-pdf-public-link.md"
-      data-status="qa"
-      data-title="task-0017 validar review pdf e link publico com porto"
-      data-area="dashboard"
-      data-risk="medium"
-      data-complexity="medium"
-      data-kind="implementation"
-      data-lifecycle="open"
-    >
-      <div class="task-card__topline">
-        <span class="task-id">TASK-0017</span>
-        <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-open">open</span>
-      </div>
-      <h3>Validar review PDF e link publico com Porto</h3>
-      <p>Validate and adjust the frontend/PDF/public-link surfaces for Porto Seguro AUTO core fields.</p>
-      <div class="task-meta">
-        <span>dashboard</span>
-        <span>implementation</span>
-        <span>medium</span>
-        
-      </div>
-      <a href="/tasks/qa/TASK-0017-validate-porto-review-pdf-public-link.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
-    </article>
-  
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
           </div>
         </section>
@@ -722,7 +806,7 @@
         <section class="column" data-column="done">
           <div class="column__header">
             <h2>Done</h2>
-            <span class="count" data-count="done">13</span>
+            <span class="count" data-count="done">27</span>
           </div>
           <div class="column__body">
             
@@ -958,6 +1042,34 @@ Bradesco_Jeep_Compass_Redu</p>
     <article
       class="task-card"
       draggable="true"
+      data-file="TASK-0017-validate-porto-review-pdf-public-link.md"
+      data-status="done"
+      data-title="task-0017 validar review pdf e link publico com porto"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0017</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Validar review PDF e link publico com Porto</h3>
+      <p>Validate and adjust the frontend/PDF/public-link surfaces for Porto Seguro AUTO core fields.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0017-validate-porto-review-pdf-public-link.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
       data-file="TASK-0018-fix-auth-offline-expired-session-loop.md"
       data-status="done"
       data-title="task-0018 corrigir estado de auth quando api esta offline ou sessao expira"
@@ -1075,6 +1187,34 @@ o backend responde `401`.</p>
     <article
       class="task-card"
       draggable="true"
+      data-file="TASK-0022-design-rich-auto-coverage-display-contract.md"
+      data-status="done"
+      data-title="task-0022 desenhar contrato rico de coberturas auto para pdf e link publico"
+      data-area="product"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0022</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Desenhar contrato rico de coberturas AUTO para PDF e link publico</h3>
+      <p>Definir um contrato de exibicao de coberturas AUTO que seja comum o suficiente para comparar seguradoras, mas permita detalhes especificos por seguradora.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0022-design-rich-auto-coverage-display-contract.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
       data-file="TASK-0024-fix-dashboard-processing-state-after-extraction.md"
       data-status="done"
       data-title="task-0024 corrigir estado de processamento no dashboard apos extracao concluir"
@@ -1098,6 +1238,342 @@ o backend responde `401`.</p>
         <span>TDD</span>
       </div>
       <a href="/tasks/done/TASK-0024-fix-dashboard-processing-state-after-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0028-auto-pdf-insurer-detection-backend.md"
+      data-status="done"
+      data-title="task-0028 criar deteccao conservadora de seguradora no upload auto"
+      data-area="api"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0028</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Criar deteccao conservadora de seguradora no upload AUTO</h3>
+      <p>Criar uma camada backend de deteccao conservadora de seguradora para PDFs AUTO, capa</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0028-auto-pdf-insurer-detection-backend.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0029-single-dropzone-multipdf-insurer-review.md"
+      data-status="done"
+      data-title="task-0029 substituir upload por seguradora por dropzone unico multi-pdf"
+      data-area="dashboard"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0029</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Substituir upload por seguradora por dropzone unico multi-PDF</h3>
+      <p>Criar uma experiencia de upload unico multi-PDF no dashboard, usando a deteccao backend da `TASK-0028` para mostrar uma etapa de revisao antes do processamento final.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>high</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0029-single-dropzone-multipdf-insurer-review.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0031-detect-product-and-porto-family-insurer-boundaries.md"
+      data-status="done"
+      data-title="task-0031 refinar deteccao de produto e fronteiras da familia porto"
+      data-area="product"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0031</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Refinar deteccao de produto e fronteiras da familia Porto</h3>
+      <p>Definir regras de deteccao para distinguir seguradora especifica e produto/ramo antes de processar PDFs AUTO.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0031-detect-product-and-porto-family-insurer-boundaries.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0032-implement-conservative-auto-product-and-family-detector.md"
+      data-status="done"
+      data-title="task-0032 implementar detector conservador de produto auto e familia porto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0032</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Implementar detector conservador de produto AUTO e familia Porto</h3>
+      <p>Evoluir o detector backend para classificar seguradora e produto/ramo de forma conservadora antes do processamento final.</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0032-implement-conservative-auto-product-and-family-detector.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0033-implement-azul-auto-processing.md"
+      data-status="done"
+      data-title="task-0033 implementar suporte inicial azul auto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0033</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Implementar suporte inicial Azul AUTO</h3>
+      <p>Adicionar suporte real a processamento AUTO A</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0033-implement-azul-auto-processing.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0034-implement-mitsui-sumitomo-auto-processing.md"
+      data-status="done"
+      data-title="task-0034 implementar suporte mitsui sumitomo auto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0034</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Implementar suporte Mitsui Sumitomo AUTO</h3>
+      <p>Adicionar suporte real a processamento AUTO Mitsui Sumitomo com identidade correta, sem exibir Porto Seguro como seguradora final.</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0034-implement-mitsui-sumitomo-auto-processing.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0035-discover-and-implement-itau-auto-products.md"
+      data-status="done"
+      data-title="task-0035 descobrir e implementar produtos itau auto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0035</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Descobrir e implementar produtos Itau AUTO</h3>
+      <p>Implementar suporte Itau AUTO por produto comercial, preservando diferencas de cobertura e evitando interpretar ausencias esperadas como erro de extracao.</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0035-discover-and-implement-itau-auto-products.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0036-qa-azul-auto-review-identification-and-fipe.md"
+      data-status="done"
+      data-title="task-0036 qa azul auto - corrigir identificacao, fipe e nomes dos pdfs"
+      data-area="product"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="qa"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0036</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>QA Azul AUTO - corrigir identificacao, FIPE e nomes dos PDFs</h3>
+      <p>Corrigir os problemas encontrados no QA A</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>qa</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0036-qa-azul-auto-review-identification-and-fipe.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0037-fix-add-more-pdfs-to-existing-process-review-not-found.md"
+      data-status="done"
+      data-title="task-0037 corrigir erro ao adicionar pdfs em processo existente e revisar novamente"
+      data-area="frontend"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="bugfix"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0037</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Corrigir erro ao adicionar PDFs em processo existente e revisar novamente</h3>
+      <p>Permitir que o corretor volte para upload, adicione mais PDFs ao mesmo processo e retorne para revisao sem cair em `Cotações não encontrada`.</p>
+      <div class="task-meta">
+        <span>frontend</span>
+        <span>bugfix</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0037-fix-add-more-pdfs-to-existing-process-review-not-found.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0038-implement-gemini-fallback-for-ai-extraction.md"
+      data-status="done"
+      data-title="task-0038 implementar fallback gemini para extracao ia quando groq limitar quota"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0038</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Implementar fallback Gemini para extracao IA quando Groq limitar quota</h3>
+      <p>Adicionar suporte a Gemini como fallback de extracao/correcao IA para redu</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0038-implement-gemini-fallback-for-ai-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0039-discover-tokio-marine-auto-products.md"
+      data-status="done"
+      data-title="task-0039 descobrir produtos tokio marine auto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0039</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Descobrir produtos Tokio Marine AUTO</h3>
+      <p>Mapear PDFs Tokio Marine AUTO reais e produ</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0039-discover-tokio-marine-auto-products.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0040-implement-tokio-marine-auto-processing.md"
+      data-status="done"
+      data-title="task-0040 implementar processamento tokio marine auto"
+      data-area="backend"
+      data-risk="high"
+      data-complexity="high"
+      data-kind="feature"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0040</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Implementar processamento Tokio Marine AUTO</h3>
+      <p>Habilitar processamento AUTO para Tokio Marine com extracao segura de dados essenciais, labels de produto e pagamentos, sem gerar coberturas enganosas para produtos sem casco, assistencia-only ou protecao mensal.</p>
+      <div class="task-meta">
+        <span>backend</span>
+        <span>feature</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0040-implement-tokio-marine-auto-processing.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>

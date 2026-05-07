@@ -115,6 +115,54 @@ export interface AutoQuoteData {
   }>
 }
 
+// ─── Rich coverage display ────────────────────────────────────────────────────
+
+/**
+ * Four-state semantic for a coverage field shown in PDF/public link.
+ *
+ * - contracted     : coverage is present and active in the quote
+ * - not_contracted : coverage exists in the product but was not taken (e.g. vidros false)
+ * - not_applicable : coverage does not apply to this product line
+ *                    (e.g. vehicle casco in Assistência Exclusiva, roubo-only products)
+ * - not_found      : extraction did not return data — unknown, render nothing or "—"
+ */
+export type CoverageStatus = 'contracted' | 'not_contracted' | 'not_applicable' | 'not_found'
+
+export interface CoverageItem {
+  status: CoverageStatus
+  /** Human-readable summary, e.g. "100% FIPE", "15 dias", "R$ 50.000". */
+  detail?: string
+}
+
+/** Computed rich coverage ready for rendering. Produced by buildCoverageDisplay(). */
+export interface RichCoverage {
+  vehicle: CoverageItem & {
+    fipePercentage?: number
+    deductible?: number
+    deductibleType?: string
+  }
+  rcf: CoverageItem & {
+    propertyDamage?: number
+    bodilyInjury?: number
+    moralDamages?: number
+  }
+  app: CoverageItem & {
+    death?: number
+    disability?: number
+    passengerCount?: number
+  }
+  towing: CoverageItem & { kmLimit?: number }
+  /** Glass protection tier: repair = only windshield repair, basic = replacement, plus = enhanced. */
+  glass: CoverageItem & { tier?: 'repair' | 'basic' | 'plus' }
+  replacementVehicle: CoverageItem & { days?: number }
+  /** Fast repair / martelinho de ouro. */
+  fastRepair: CoverageItem
+  /** e.g. "Rede Referenciada", "Livre Escolha". Undefined until parsed. */
+  repairShopType?: string
+  /** e.g. "Novas Originais", "Novas Compatíveis". Undefined until parsed. */
+  partsType?: string
+}
+
 // ─── Insurer detection ────────────────────────────────────────────────────────
 
 export interface InsurerDetectionSignal {

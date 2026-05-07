@@ -1,9 +1,9 @@
 ---
 id: TASK-0040
 title: Implementar processamento Tokio Marine AUTO
-status: qa
+status: done
 kind: feature
-lifecycle: qa
+lifecycle: closed
 area: backend
 owner: codex
 reviewer: human
@@ -261,3 +261,10 @@ Required. Suggested red-green path:
 - Alguns campos comerciais importantes, como tipo de peca/oficina, podem nao ter lugar no contrato atual.
 - Carne/debito podem exigir extensao do parser Tokio assim que houver PDF real dessas variantes.
 - A presenca de Bradesco na renovacao pode causar falso positivo se o detector pesar razao social sem contexto.
+
+## Human acceptance - 2026-05-07
+
+- Human validou os 5 produtos reais Tokio Marine.
+- Labels dos produtos apareceram corretamente.
+- Geracao de PDF ficou correta na validacao humana.
+- Task aceita como concluida.

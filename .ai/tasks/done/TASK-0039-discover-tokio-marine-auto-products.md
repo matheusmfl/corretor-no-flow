@@ -1,9 +1,9 @@
 ---
 id: TASK-0039
 title: Descobrir produtos Tokio Marine AUTO
-status: review
+status: done
 kind: discovery
-lifecycle: review
+lifecycle: closed
 area: backend
 owner: codex
 reviewer: human
@@ -175,3 +175,9 @@ No implementation in this task. Se a discovery revelar bug no detector atual, cr
 - Conclusao parcial: Tokio usa layout proprio; precisa prompt e parser de pagamento dedicados.
 - Risco de detector encontrado: por serem renovacoes, o texto traz `Nome da Congenere` com `BRADESCO SEGUROS S/A`; isso deve ser tratado como seguradora anterior, nunca emissora atual.
 - Observacao de pagamento: os PDFs extraidos usam o padrao de impressao com Cartao de Credito. O corretor pode optar por incluir tambem carne e debito em conta; isso deve entrar como variacao de parser ou ficar pendente ate haver amostra.
+
+## Human acceptance - 2026-05-07
+
+- Discovery aprovada junto da implementacao `TASK-0040`.
+- Produtos reais e labels foram validados em QA humano.
+- Discovery fechada.
