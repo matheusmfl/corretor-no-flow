@@ -1,9 +1,9 @@
 ---
 id: TASK-0048
 title: Corrigir titulo do card Bradesco e labels de vidros
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: dashboard
 owner: claude
 reviewer: codex

@@ -25,6 +25,30 @@ Tambem surgiram ideias futuras para checkboxes de comportamento do link, como "m
 
 Adicionar uma etapa simples antes de gerar PDF/link para o corretor selecionar quais cotacoes confirmadas devem entrar no material final.
 
+## UX Direction
+
+This selection is a valid product decision because it turns the final PDF/public link from "everything that is ready" into a curated sales material. The broker may intentionally hide quotes that are duplicated, commercially weak, confusing, too expensive, or not part of the intended recommendation.
+
+The interaction must be careful not to suggest that a quote is being deleted from the process. A deselected quote should remain visible as an available quote, but clearly marked as not included in the client material.
+
+Important constraint: this control can become visually large when a process has many quotes. Avoid making quote selection dominate the main generation screen. Prefer a compact default experience with the selection available in a settings/advanced area, such as:
+
+- a collapsed section named `Opcoes avancadas do envio`;
+- a compact summary like `5 cotacoes prontas - 5 selecionadas`;
+- an edit action such as `Escolher cotacoes`;
+- a modal, drawer, or expandable panel for the full quote checklist.
+
+The default path should stay fast: all `READY` quotes selected by default, one primary action to generate/publish, and advanced selection only when the broker needs curation.
+
+Suggested micro-interactions:
+
+- Live counter: `3 de 5 cotacoes selecionadas`.
+- Disabled generate/publish action when zero quotes are selected.
+- Deselected quote remains visible with muted styling and label `Nao sera enviada ao cliente`.
+- Quick actions: `Selecionar todas`, `Limpar selecao`.
+- Final summary before generation/publication listing the selected insurers/products.
+- Reserved space for future link options such as showing comparison, highlighting lowest price, or highlighting broader coverage, without implementing these rules in this task.
+
 ## Scope
 
 - Mostrar lista de cotacoes `READY` com checkbox.
@@ -33,6 +57,7 @@ Adicionar uma etapa simples antes de gerar PDF/link para o corretor selecionar q
 - Enviar ao backend quais quoteIds devem ser usados na geracao.
 - Garantir que PDF e link publico usem apenas as cotacoes selecionadas.
 - Preparar a UI para opcoes futuras sem implementar comparativo agora.
+- Manter a selecao em uma area compacta/avancada para nao gerar uma experiencia pesada com muitas cotacoes.
 
 ## Out Of Scope
 
@@ -83,6 +108,8 @@ Add backend tests if API payload/use-case behavior changes. Frontend tests are o
 - [ ] PDF gerado inclui apenas as cotacoes selecionadas.
 - [ ] Link publico inclui apenas as cotacoes selecionadas.
 - [ ] Espaco para opcoes futuras existe sem ativar comparativo ainda.
+- [ ] A selecao nao domina visualmente a tela quando existem muitas cotacoes; ela aparece como configuracao/opcao avancada, drawer, modal ou painel recolhivel.
+- [ ] Cotacoes desmarcadas continuam claramente presentes no processo e sao comunicadas apenas como ocultas do material do cliente.
 
 ## Risks
 
@@ -92,6 +119,16 @@ Add backend tests if API payload/use-case behavior changes. Frontend tests are o
 ## Failure Scenario
 
 O corretor revisa cinco cotacoes, quer enviar apenas tres, mas o sistema publica todas e confunde o cliente.
+
+## Review findings addressed
+
+**Finding 1 — Selecao pode divergir entre PDFs e link (P1)**
+Corrigido: `QuoteSelector` recebe `locked={pdfsGenerated}`. Apos gerar os PDFs, o componente exibe a selecao como somente-leitura (sem botao "Escolher cotacoes", sem checkboxes interativos, borda verde + label "confirmado"). A selecao nao pode mais mudar antes da publicacao.
+Arquivo: `apps/dashboard/src/app/(app)/dashboard/quotes/[processId]/generate/page.tsx`
+
+**Finding 2 — Body de quoteIds nao validado em runtime (P2)**
+Corrigido: criado `SelectQuotesDto` com `@IsOptional()`, `@IsArray()`, `@IsString({ each: true })` via class-validator. Controller agora recebe `@Body() body: SelectQuotesDto` nos endpoints `generate` e `publish`. Um body malformado retorna 400 antes de chegar ao use case.
+Arquivo: `apps/api/src/modules/quotes/application/dtos/select-quotes.dto.ts`
 
 ## Human QA Checklist
 

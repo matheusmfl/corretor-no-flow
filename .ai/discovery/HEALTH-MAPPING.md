@@ -6,6 +6,14 @@ This document is for human product discovery before implementing Health quotes.
 
 Define what a broker and insured client need to understand from a Health quote before any schema, prompt, PDF, or public link is implemented.
 
+## Insurer Discoveries
+
+- Bradesco Saude: `.ai/discovery/BRADESCO-HEALTH.md`
+- Bradesco Saude sales materials: `.ai/discovery/BRADESCO-HEALTH-SALES-MATERIALS.md`
+- Bradesco Saude Pernambuco network: `.ai/discovery/BRADESCO-HEALTH-PE-NETWORK.md`
+- Bradesco Saude Pernambuco network extracted list: `.ai/discovery/BRADESCO-HEALTH-PE-NETWORK-LIST.md`
+- Bradesco Saude public preview MVC: `.ai/discovery/BRADESCO-HEALTH-PUBLIC-PREVIEW-MVC.md`
+
 ## PDF Samples Needed
 
 - Insurer:

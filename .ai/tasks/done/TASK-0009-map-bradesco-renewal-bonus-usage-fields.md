@@ -1,9 +1,9 @@
 ---
 id: TASK-0009
 title: Mapear renovacao bonus e uso do veiculo no PDF Bradesco
-status: todo
+status: done
 kind: discovery
-lifecycle: open
+lifecycle: closed
 area: product
 owner: claude
 reviewer: codex

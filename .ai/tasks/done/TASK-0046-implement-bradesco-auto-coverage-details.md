@@ -1,9 +1,9 @@
 ---
 id: TASK-0046
 title: Implementar enriquecimento Bradesco Auto com catalogo versionavel
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: api
 owner: claude
 reviewer: codex

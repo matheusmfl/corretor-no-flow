@@ -293,7 +293,7 @@ Regra de seguranca: se o parser nao conseguir entender uma tabela com confianca,
 
 ### Dados Gerais Encontrados
 
-- Orcamento: `5634702819-0-1`.
+- Orcamento: valor removido por privacidade.
 - Validade do orcamento: `16/05/2026`.
 - Realizado em: `01/05/2026`.
 - Produto/segmento: `AUTO SENIOR e PROTECAO COMBINADA`.
@@ -301,15 +301,15 @@ Regra de seguranca: se o parser nao conseguir entender uma tabela com confianca,
 - Vigencia: `01/05/2026 ate 01/05/2027`.
 - Bonus: `Classe 0`.
 - Origem do bonus: `-`.
-- Segurado: `MARGARETE OLIVEIRA PEREIRA`.
+- Segurado: valor removido por privacidade.
 - Segurado e principal condutor: `Sim`.
 
 ### Veiculo E Risco
 
 - Veiculo: `15476 - COMPASS SPORT 1.3 T 270 FLEX`.
 - Ano fabricacao/modelo: `2025 / 2026`.
-- Placa: `PCI4A59`.
-- Chassi aparece no PDF.
+- Placa: valor removido por privacidade.
+- Chassi: valor removido por privacidade.
 - Fipe: `170720`.
 - Categoria: `22 - PICKUPS SUV PESADAS`.
 - Veiculo 0 KM: no PDF completo aparece `N`; no incompleto aparece `Nao`.

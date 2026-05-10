@@ -1,9 +1,9 @@
 ---
 id: TASK-0047
 title: QA Bradesco Auto coverage details
-status: qa
+status: done
 kind: qa
-lifecycle: open
+lifecycle: closed
 area: dashboard
 owner: human
 reviewer: codex
