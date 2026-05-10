@@ -170,11 +170,11 @@ function FlowDemo() {
           <strong>Porto Seguro</strong>
         </div>
         <div className="flow-full-intro">
-          <p>Olá <strong>MARGARETE OLIVEIRA PEREIRA</strong>, aqui está a cotação do seu COMPASS SPORT.</p>
+          <p>Olá <strong>CLIENTE EXEMPLO</strong>, aqui está a cotação do seu COMPASS SPORT.</p>
           <div>
-            <span>PCI4A59</span>
+            <span>ABC1D23</span>
             <span>ANO 2026</span>
-            <span>CHASSI 988...9231</span>
+            <span>CHASSI 000...0000</span>
           </div>
         </div>
         <div className="flow-full-price">
