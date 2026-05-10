@@ -32,6 +32,7 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/presentation/decorators/current-user.decorator';
 import { ReviewQuoteDto } from '../application/dtos/review-quote.dto';
+import { SelectQuotesDto } from '../application/dtos/select-quotes.dto';
 import { QuoteProcessListResponseDto } from '../application/dtos/quote-list-item.dto';
 import { QuoteProcessResponseDto } from '../application/dtos/quote-response.dto';
 import { CreateQuoteProcessDto } from '../application/dtos/upload-quote.dto';
@@ -141,9 +142,13 @@ export class QuoteController {
   }
 
   @Post(':id/generate')
-  @ApiOperation({ summary: 'Gera PDFs para todas as cotações confirmadas do processo' })
-  generate(@CurrentUser() user: { companyId: string }, @Param('id') id: string) {
-    return this.generatePdf.execute(user.companyId, id);
+  @ApiOperation({ summary: 'Gera PDFs para as cotações selecionadas do processo' })
+  generate(
+    @CurrentUser() user: { companyId: string },
+    @Param('id') id: string,
+    @Body() body: SelectQuotesDto,
+  ) {
+    return this.generatePdf.execute(user.companyId, id, body?.quoteIds);
   }
 
   @Get(':processId/quotes/:quoteId/pdf')
@@ -163,9 +168,13 @@ export class QuoteController {
   }
 
   @Post(':id/publish')
-  @ApiOperation({ summary: 'Gera link público para o segurado visualizar as cotações' })
-  publish(@CurrentUser() user: { companyId: string }, @Param('id') id: string) {
-    return this.generateLink.execute(user.companyId, id);
+  @ApiOperation({ summary: 'Gera link público para o segurado visualizar as cotações selecionadas' })
+  publish(
+    @CurrentUser() user: { companyId: string },
+    @Param('id') id: string,
+    @Body() body: SelectQuotesDto,
+  ) {
+    return this.generateLink.execute(user.companyId, id, body?.quoteIds);
   }
 
   @Post('detect-insurer')

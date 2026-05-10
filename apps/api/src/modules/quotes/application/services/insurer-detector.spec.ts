@@ -137,7 +137,7 @@ Proposta de Seguro Automóvel — Bradesco Auto/RE
 Tipo Seguro: Renovação Congênere
 Nome da Congênere: Tokio Marine Seguros
 Placa: ABC1D23
-Chassi: 9BWAA45U3EP506205
+Chassi: 00000000000000000
 Código FIPE: 005227-2
 RCF-V Danos Materiais R$ 50.000,00
 `;
@@ -152,7 +152,7 @@ Selecionamos o produto ideal para você:
 Auto
 Valor Referenciado (VMR), Colisão, Incêndio e Roubo/Furto
 Tipo Seguro Vigência
-Renovação Congênere 06/05/2026 - 06/05/2027 Sim OKB-0A62
+Renovação Congênere 06/05/2026 - 06/05/2027 Sim ABC-0A00
 VOLKSWAGEN GOL CITY/TREND 1.0 MI TOTAL FLEX 8V 2P
 Código FIPE: 005227-2
 Nome da Congênere Número da apólice Fim de vigência Classe de Bônus

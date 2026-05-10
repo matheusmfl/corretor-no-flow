@@ -38,12 +38,12 @@ export const quoteProcessApi = {
     return apiClient.patch(`/api/quotes/${processId}/quote/${quoteId}/review`, dto)
   },
 
-  generatePdf(processId: string): Promise<{ quoteId: string; filePath: string }[]> {
-    return apiClient.post(`/api/quotes/${processId}/generate`)
+  generatePdf(processId: string, quoteIds?: string[]): Promise<{ quoteId: string; filePath: string }[]> {
+    return apiClient.post(`/api/quotes/${processId}/generate`, quoteIds ? { quoteIds } : undefined)
   },
 
-  publishProcess(processId: string): Promise<{ publicToken: string; publicUrl: string; expiresAt: string }> {
-    return apiClient.post(`/api/quotes/${processId}/publish`)
+  publishProcess(processId: string, quoteIds?: string[]): Promise<{ publicToken: string; publicUrl: string; expiresAt: string }> {
+    return apiClient.post(`/api/quotes/${processId}/publish`, quoteIds ? { quoteIds } : undefined)
   },
 
   detectInsurer(file: File): Promise<DetectInsurerResponse> {

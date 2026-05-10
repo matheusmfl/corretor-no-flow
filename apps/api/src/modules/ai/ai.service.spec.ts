@@ -10,8 +10,8 @@ const makeResponse = (text: string) => ({
 });
 
 const VALID_AUTO_QUOTE = {
-  vehicle: { model: 'Jeep Compass Sport 1.3', plate: 'PCI4A59', yearManufacture: 2025, yearModel: 2026, chassis: '988675CA2TKV89231', fipeCode: '13398', fipeValue: 7866.50 },
-  driver: { name: 'Fabiano Alves da Silveira', cpf: '547.154.404-82', birthDate: '21/07/1971', gender: 'Masculino', maritalStatus: 'Casado' },
+  vehicle: { model: 'Jeep Compass Sport 1.3', plate: 'ABC1D23', yearManufacture: 2025, yearModel: 2026, chassis: '00000000000000000', fipeCode: '13398', fipeValue: 7866.50 },
+  driver: { name: 'Cliente Exemplo', cpf: '000.000.000-00', birthDate: '01/01/1970', gender: 'Masculino', maritalStatus: 'Casado' },
   quoteNumber: '0788270607/03',
   insurer: 'Bradesco Auto/RE',
   validFrom: '11/03/2026',

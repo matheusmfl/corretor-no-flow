@@ -13,6 +13,7 @@ export class GenerateLinkUseCase {
   async execute(
     companyId: string,
     processId: string,
+    quoteIds?: string[],
   ): Promise<{ publicToken: string; publicUrl: string; expiresAt: Date }> {
     const process = await this.prisma.quoteProcess.findUnique({
       where: { id: processId },
@@ -22,15 +23,27 @@ export class GenerateLinkUseCase {
     if (!process) throw new NotFoundException('Processo não encontrado');
     if (process.companyId !== companyId) throw new ForbiddenException();
 
-    const hasReady = process.quotes.some((q) => q.status === QuoteStatus.READY);
-    if (!hasReady) throw new BadRequestException('Nenhuma cotação confirmada para publicar');
+    const allReady = process.quotes.filter((q) => q.status === QuoteStatus.READY);
+
+    if (quoteIds !== undefined) {
+      const notReady = quoteIds.filter((id) => !allReady.some((q) => q.id === id));
+      if (notReady.length > 0) {
+        throw new BadRequestException(`Cotações não confirmadas não podem ser incluídas: ${notReady.join(', ')}`);
+      }
+    }
+
+    const selectedIds = quoteIds !== undefined
+      ? allReady.filter((q) => quoteIds.includes(q.id)).map((q) => q.id)
+      : allReady.map((q) => q.id);
+
+    if (selectedIds.length === 0) throw new BadRequestException('Nenhuma cotação confirmada para publicar');
 
     const publicToken = process.publicToken ?? crypto.randomUUID();
     const expiresAt = new Date(Date.now() + EXPIRES_IN_DAYS * 24 * 60 * 60 * 1000);
 
     await this.prisma.quoteProcess.update({
       where: { id: processId },
-      data: { publicToken, expiresAt, status: 'PUBLISHED' },
+      data: { publicToken, expiresAt, status: 'PUBLISHED', publicQuoteIds: selectedIds },
     });
 
     return {

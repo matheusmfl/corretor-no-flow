@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { PrismaClient, QuoteStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -96,6 +96,45 @@ describe('GeneratePdfUseCase', () => {
     prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
 
     await expect(useCase.execute('comp-1', 'proc-1')).rejects.toThrow(
+      'Nenhuma cotação confirmada para gerar PDF',
+    );
+  });
+
+  it('quando quoteIds é informado, gera PDF apenas para as quotes especificadas', async () => {
+    const process = makeProcess({
+      quotes: [
+        { id: 'q1', insurer: 'BRADESCO', status: QuoteStatus.READY, name: 'B', extractedData: {} },
+        { id: 'q2', insurer: 'PORTO_SEGURO', status: QuoteStatus.READY, name: 'P', extractedData: {} },
+      ],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+    renderer.renderToPdf.mockResolvedValue(Buffer.from('pdf'));
+    prisma.quote.update.mockResolvedValue({} as any);
+
+    const result = await useCase.execute('comp-1', 'proc-1', ['q1']);
+
+    expect(renderer.renderToPdf).toHaveBeenCalledTimes(1);
+    expect(result).toHaveLength(1);
+    expect(result[0].quoteId).toBe('q1');
+  });
+
+  it('lança BadRequestException quando quoteId especificado não é READY', async () => {
+    const process = makeProcess({
+      quotes: [
+        { id: 'q1', insurer: 'BRADESCO', status: QuoteStatus.READY, name: 'B', extractedData: {} },
+        { id: 'q2', insurer: 'PORTO_SEGURO', status: QuoteStatus.PENDING_REVIEW, name: 'P', extractedData: {} },
+      ],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+
+    await expect(useCase.execute('comp-1', 'proc-1', ['q1', 'q2'])).rejects.toThrow(BadRequestException);
+  });
+
+  it('lança BadRequestException quando quoteIds é array vazio', async () => {
+    const process = makeProcess();
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+
+    await expect(useCase.execute('comp-1', 'proc-1', [])).rejects.toThrow(
       'Nenhuma cotação confirmada para gerar PDF',
     );
   });

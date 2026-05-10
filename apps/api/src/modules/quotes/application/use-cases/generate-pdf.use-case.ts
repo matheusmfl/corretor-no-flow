@@ -16,7 +16,7 @@ export class GeneratePdfUseCase {
     private readonly template: QuotePdfTemplateService = new QuotePdfTemplateService(),
   ) {}
 
-  async execute(companyId: string, processId: string): Promise<{ quoteId: string; filePath: string }[]> {
+  async execute(companyId: string, processId: string, quoteIds?: string[]): Promise<{ quoteId: string; filePath: string }[]> {
     const process = await this.prisma.quoteProcess.findUnique({
       where: { id: processId },
       include: {
@@ -43,7 +43,19 @@ export class GeneratePdfUseCase {
     if (!process) throw new NotFoundException('Processo não encontrado');
     if (process.companyId !== companyId) throw new ForbiddenException();
 
-    const readyQuotes = process.quotes.filter((q) => q.status === QuoteStatus.READY);
+    const allReady = process.quotes.filter((q) => q.status === QuoteStatus.READY);
+
+    if (quoteIds !== undefined) {
+      const notReady = quoteIds.filter((id) => !allReady.some((q) => q.id === id));
+      if (notReady.length > 0) {
+        throw new BadRequestException(`Cotações não confirmadas não podem ser incluídas: ${notReady.join(', ')}`);
+      }
+    }
+
+    const readyQuotes = quoteIds !== undefined
+      ? allReady.filter((q) => quoteIds.includes(q.id))
+      : allReady;
+
     if (readyQuotes.length === 0) {
       throw new BadRequestException('Nenhuma cotação confirmada para gerar PDF');
     }

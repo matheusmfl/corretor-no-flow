@@ -10,20 +10,24 @@ import { quoteProcessApi } from '@/lib/api/quote-process.api'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const INSURER_LABELS: Record<string, string> = {
-  BRADESCO:     'Bradesco Seguros',
-  PORTO_SEGURO: 'Porto Seguro',
-  AZUL:         'Azul Seguro Auto',
+  BRADESCO:        'Bradesco Seguros',
+  PORTO_SEGURO:    'Porto Seguro',
+  AZUL:            'Azul Seguro Auto',
   MITSUI_SUMITOMO: 'Mitsui Sumitomo Seguros',
-  ITAU:         'Itaú Seguro Auto',
-  TOKIO_MARINE: 'Tokio Marine',
-  SULAMERICA:   'SulAmérica',
-  SUHAI:        'Suhai',
-  ALIRO:        'Aliro',
-  ALLIANZ:      'Allianz',
-  YELLOW:       'Yellow',
+  ITAU:            'Itaú Seguro Auto',
+  TOKIO_MARINE:    'Tokio Marine',
+  SULAMERICA:      'SulAmérica',
+  SUHAI:           'Suhai',
+  ALIRO:           'Aliro',
+  ALLIANZ:         'Allianz',
+  YELLOW:          'Yellow',
 }
 
-// ─── Copy button ──────────────────────────────────────────────────────────────
+function quoteLabel(quote: { name?: string | null; insurer: string }) {
+  return quote.name?.replace(/\s*—\s*\(R\$[^)]*\)\s*$/, '').trim() ?? INSURER_LABELS[quote.insurer] ?? quote.insurer
+}
+
+// ─── CopyButton ───────────────────────────────────────────────────────────────
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -45,7 +49,7 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-// ─── Section wrapper ──────────────────────────────────────────────────────────
+// ─── Section ──────────────────────────────────────────────────────────────────
 
 function Section({
   step,
@@ -78,6 +82,130 @@ function Section({
   )
 }
 
+// ─── QuoteSelector ────────────────────────────────────────────────────────────
+
+function QuoteSelector({
+  quotes,
+  selectedIds,
+  onChange,
+  locked = false,
+}: {
+  quotes: { id: string; insurer: string; name?: string | null }[]
+  selectedIds: Set<string>
+  onChange: (ids: Set<string>) => void
+  locked?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+
+  const selectedCount = selectedIds.size
+  const total = quotes.length
+  const allSelected = selectedCount === total
+
+  function toggle(id: string) {
+    if (locked) return
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    onChange(next)
+  }
+
+  function selectAll() {
+    if (locked) return
+    onChange(new Set(quotes.map((q) => q.id)))
+  }
+
+  function clearAll() {
+    if (locked) return
+    onChange(new Set())
+  }
+
+  return (
+    <div className={`rounded-xl border bg-white p-4 space-y-3 ${locked ? 'border-green-200 bg-green-50/40' : 'border-surface-strong'}`}>
+      {/* Compact summary row */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-ink-muted">
+          <IconList />
+          <span>
+            <span className={selectedCount === 0 ? 'text-red-600 font-semibold' : 'text-ink font-semibold'}>
+              {selectedCount}
+            </span>
+            {' '}de {total} cotaç{total !== 1 ? 'ões' : 'ão'} selecionada{selectedCount !== 1 ? 's' : ''}
+          </span>
+          {locked && <span className="text-xs text-green-700 font-medium">· confirmado</span>}
+        </div>
+        {!locked && (
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-1 text-xs font-medium text-mahogany hover:underline"
+          >
+            Escolher cotações
+            <IconChevron className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+        )}
+      </div>
+
+      {/* Expandable checklist */}
+      {open && (
+        <div className="border-t border-surface-strong pt-3 space-y-2">
+          {/* Quick actions */}
+          <div className="flex gap-3 pb-1">
+            <button
+              onClick={selectAll}
+              disabled={allSelected}
+              className="text-xs text-mahogany hover:underline disabled:text-ink-faint disabled:no-underline"
+            >
+              Selecionar todas
+            </button>
+            <span className="text-ink-faint text-xs">·</span>
+            <button
+              onClick={clearAll}
+              disabled={selectedCount === 0}
+              className="text-xs text-mahogany hover:underline disabled:text-ink-faint disabled:no-underline"
+            >
+              Limpar seleção
+            </button>
+          </div>
+
+          {/* Quote list */}
+          <div className="space-y-1">
+            {quotes.map((q) => {
+              const checked = selectedIds.has(q.id)
+              return (
+                <label
+                  key={q.id}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer transition-colors ${
+                    checked
+                      ? 'bg-surface/60 text-ink'
+                      : 'bg-white text-ink-faint'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggle(q.id)}
+                    className="accent-mahogany h-4 w-4 shrink-0"
+                  />
+                  <span className="flex-1 text-sm font-medium">{quoteLabel(q)}</span>
+                  {!checked && (
+                    <span className="text-xs text-ink-faint italic">Não será enviada ao cliente</span>
+                  )}
+                </label>
+              )
+            })}
+          </div>
+
+          {/* Reserved space for future link options */}
+          <div className="border-t border-surface-strong pt-3 mt-1">
+            <p className="text-xs text-ink-faint italic">
+              Opções adicionais do link (comparativo, destaque de preço…) serão disponibilizadas em breve.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GeneratePage({ params }: { params: Promise<{ processId: string }> }) {
@@ -90,6 +218,11 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
 
   const quotes = process?.quotes ?? []
   const readyQuotes = quotes.filter((q) => q.status === 'READY')
+
+  const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null)
+  const effectiveSelected = selectedIds ?? new Set(readyQuotes.map((q) => q.id))
+  const selectedArray = Array.from(effectiveSelected)
+  const noneSelected = effectiveSelected.size === 0
 
   const pdfResults = generatePdf.data ?? []
   const pdfsGenerated = pdfResults.length > 0
@@ -118,17 +251,34 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
         </p>
       </div>
 
+      {/* Quote selection — compact, collapsed by default; locked once PDFs are generated */}
+      {!isPublished && readyQuotes.length > 0 && (
+        <QuoteSelector
+          quotes={readyQuotes}
+          selectedIds={effectiveSelected}
+          onChange={setSelectedIds}
+          locked={pdfsGenerated}
+        />
+      )}
+
+      {/* Zero-selection warning */}
+      {noneSelected && !isPublished && (
+        <p className="text-sm text-red-600 font-medium px-1">
+          Selecione pelo menos uma cotação para gerar o material.
+        </p>
+      )}
+
       {/* Step 1 — Generate PDFs */}
       <Section
         step={1}
         title="Gerar PDFs"
-        description="Cria um PDF profissional para cada cotação confirmada"
+        description="Cria um PDF profissional para cada cotação selecionada"
         done={pdfsGenerated}
       >
         {!pdfsGenerated ? (
           <button
-            onClick={() => generatePdf.mutate()}
-            disabled={generatePdf.isPending || readyQuotes.length === 0}
+            onClick={() => generatePdf.mutate(selectedArray)}
+            disabled={generatePdf.isPending || readyQuotes.length === 0 || noneSelected}
             className="rounded-lg bg-mahogany px-4 py-2.5 text-sm font-semibold text-gold hover:bg-mahogany-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {generatePdf.isPending ? (
@@ -136,16 +286,14 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
                 <Spinner size={14} /> Gerando…
               </span>
             ) : (
-              `Gerar ${readyQuotes.length} PDF${readyQuotes.length !== 1 ? 's' : ''}`
+              `Gerar ${effectiveSelected.size} PDF${effectiveSelected.size !== 1 ? 's' : ''}`
             )}
           </button>
         ) : (
           <div className="space-y-2">
             {pdfResults.map((r) => {
               const quote = quotes.find((q) => q.id === r.quoteId)
-              const label = quote
-                ? (quote.name?.replace(/\s*—\s*\(R\$[^)]*\)\s*$/, '').trim() ?? INSURER_LABELS[quote.insurer] ?? quote.insurer)
-                : r.quoteId
+              const label = quote ? quoteLabel(quote) : r.quoteId
               const downloadUrl = quoteProcessApi.pdfDownloadUrl(processId, r.quoteId)
 
               return (
@@ -175,8 +323,8 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
       >
         {!isPublished ? (
           <button
-            onClick={() => publishProcess.mutate()}
-            disabled={publishProcess.isPending}
+            onClick={() => publishProcess.mutate(selectedArray)}
+            disabled={publishProcess.isPending || noneSelected}
             className="rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors bg-ember text-white hover:bg-ember-light disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {publishProcess.isPending ? (
@@ -200,7 +348,6 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
               <p className="text-xs text-ink-faint">Expira em {expiresAt}</p>
             )}
 
-            {/* Status de visualização */}
             <div className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium ${
               openedAt
                 ? 'bg-green-50 text-green-700'
@@ -260,6 +407,29 @@ function Spinner({ size = 16 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="animate-spin">
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2" />
       <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconList() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  )
+}
+
+function IconChevron({ className }: { className?: string }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="6 9 12 15 18 9" />
     </svg>
   )
 }

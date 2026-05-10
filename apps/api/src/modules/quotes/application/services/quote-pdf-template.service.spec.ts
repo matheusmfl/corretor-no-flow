@@ -155,7 +155,7 @@ describe('QuotePdfTemplateService — Tokio Marine enriquecido', () => {
     insurer: 'TOKIO_MARINE' as const,
     name: 'Tokio Marine Auto',
     extractedData: {
-      vehicle: { model: 'VOLKSWAGEN GOL 2014', plate: 'OKB-0A62' },
+      vehicle: { model: 'VOLKSWAGEN GOL 2014', plate: 'ABC-0A00' },
       driver: {},
       insurer: 'Tokio Marine',
       segment: 'Auto',

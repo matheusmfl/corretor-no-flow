@@ -3,7 +3,7 @@ import { buildQuotePdfFilename, getBradescoProductLabel } from './quote-filename
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
 const bradescoReduzida = {
-  vehicle: { model: 'JEEP COMPASS SPORT T270 1.3 TB 4X2', plate: 'PCI4A59' },
+  vehicle: { model: 'JEEP COMPASS SPORT T270 1.3 TB 4X2', plate: 'ABC1D23' },
   coverage: { vehicle: { deductibleType: 'Reduzida', deductible: 3866.5 } },
   premium:  { total: 4200 },
 };

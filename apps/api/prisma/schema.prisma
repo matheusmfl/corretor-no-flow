@@ -136,9 +136,10 @@ model QuoteProcess {
   clientPhone String?
 
   // Link público para o segurado
-  publicToken String?   @unique
-  expiresAt   DateTime?
-  openedAt    DateTime?
+  publicToken    String?   @unique
+  expiresAt      DateTime?
+  openedAt       DateTime?
+  publicQuoteIds String[]
 
   quotes   Quote[]
   sessions QuoteSession[]

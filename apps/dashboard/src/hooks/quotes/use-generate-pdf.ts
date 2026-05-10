@@ -6,7 +6,7 @@ export function useGeneratePdf(processId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => quoteProcessApi.generatePdf(processId),
+    mutationFn: (quoteIds?: string[]) => quoteProcessApi.generatePdf(processId, quoteIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quote-process', processId] })
     },

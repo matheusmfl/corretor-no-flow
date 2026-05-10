@@ -6,17 +6,17 @@ import { parseAutoQuoteData } from '../../domain/schemas/auto-quote.schema';
 
 const AUTO_AI_RESPONSE = {
   vehicle: {
-    plate: 'OKB-0A62',
+    plate: 'ABC-0A00',
     model: 'VOLKSWAGEN GOL CITY/TREND 1.0 MI TOTAL FLEX 8V 2P',
     yearManufacture: 2014,
     yearModel: 2014,
-    chassis: '9BWAA45U3EP506205',
+    chassis: '00000000000000000',
     fipeCode: '005227-2',
     fipeValue: 29659,
   },
   driver: {
-    name: 'DIVA CALIXTO DE MELO',
-    cpf: '624.282.924-04',
+    name: 'Cliente Exemplo',
+    cpf: '000.000.000-00',
     birthDate: null,
     gender: null,
     maritalStatus: 'Casado(a) ou vive em união estável',

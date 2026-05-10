@@ -56,11 +56,11 @@ const ITAU_TRADICIONAL_AI_RESPONSE = {
 
 const ITAU_COMPACTO_AI_RESPONSE = {
   vehicle: {
-    plate:           'PCI4A59',
+    plate:           'ABC1D23',
     model:           'COMPASS SPORT 1.3 T 270 FLEX',
     yearManufacture: 2025,
     yearModel:       2026,
-    chassis:         '988675CA2TKV89231',
+    chassis:         '00000000000000000',
     fipeCode:        '170720',
     fipeValue:       125_400.0,
   },
@@ -101,11 +101,11 @@ const ITAU_COMPACTO_AI_RESPONSE = {
 
 const ITAU_ASSISTENCIA_AI_RESPONSE = {
   vehicle: {
-    plate:           'PCI4A59',
+    plate:           'ABC1D23',
     model:           'COMPASS SPORT 1.3 T 270 FLEX',
     yearManufacture: 2025,
     yearModel:       2026,
-    chassis:         '988675CA2TKV89231',
+    chassis:         '00000000000000000',
     fipeCode:        '170720',
     fipeValue:       125_400.0,
   },

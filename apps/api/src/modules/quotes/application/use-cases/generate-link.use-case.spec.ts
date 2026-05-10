@@ -91,4 +91,66 @@ describe('GenerateLinkUseCase', () => {
       'Nenhuma cotação confirmada para publicar',
     );
   });
+
+  it('quando quoteIds é informado, persiste publicQuoteIds no processo', async () => {
+    const process = makeProcess({
+      quotes: [
+        { id: 'q1', status: QuoteStatus.READY },
+        { id: 'q2', status: QuoteStatus.READY },
+      ],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+    prisma.quoteProcess.update.mockResolvedValue({} as any);
+
+    await useCase.execute('comp-1', 'proc-1', ['q1']);
+
+    expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          publicQuoteIds: ['q1'],
+        }),
+      }),
+    );
+  });
+
+  it('quando quoteIds não é informado, persiste todos os IDs READY como publicQuoteIds', async () => {
+    const process = makeProcess({
+      quotes: [
+        { id: 'q1', status: QuoteStatus.READY },
+        { id: 'q2', status: QuoteStatus.READY },
+      ],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+    prisma.quoteProcess.update.mockResolvedValue({} as any);
+
+    await useCase.execute('comp-1', 'proc-1');
+
+    expect(prisma.quoteProcess.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          publicQuoteIds: ['q1', 'q2'],
+        }),
+      }),
+    );
+  });
+
+  it('lança BadRequestException quando quoteId especificado não é READY', async () => {
+    const process = makeProcess({
+      quotes: [
+        { id: 'q1', status: QuoteStatus.READY },
+        { id: 'q2', status: QuoteStatus.PENDING_REVIEW },
+      ],
+    });
+    prisma.quoteProcess.findUnique.mockResolvedValue(process as any);
+
+    await expect(useCase.execute('comp-1', 'proc-1', ['q1', 'q2'])).rejects.toThrow(BadRequestException);
+  });
+
+  it('lança BadRequestException quando quoteIds é array vazio', async () => {
+    prisma.quoteProcess.findUnique.mockResolvedValue(makeProcess() as any);
+
+    await expect(useCase.execute('comp-1', 'proc-1', [])).rejects.toThrow(
+      'Nenhuma cotação confirmada para publicar',
+    );
+  });
 });

@@ -17,7 +17,7 @@ const makeProcess = (overrides: Record<string, unknown> = {}) => ({
   publicToken: TOKEN,
   expiresAt:   FUTURE,
   openedAt:    null,
-  clientName:  'Fabiano Alves',
+  clientName:  'Cliente Exemplo',
   clientPhone: null,
   company: {
     displayName:  'Corretora Teste',
@@ -64,7 +64,7 @@ describe('GetPublicProcessUseCase', () => {
     const result = await useCase.execute(TOKEN);
 
     expect(result.process.id).toBe('proc-1');
-    expect(result.process.clientName).toBe('Fabiano Alves');
+    expect(result.process.clientName).toBe('Cliente Exemplo');
     expect(result.quotes).toHaveLength(1);
     expect(result.quotes[0].id).toBe('q-ready');
     expect(result.quotes[0].insurer).toBe(Insurer.BRADESCO);

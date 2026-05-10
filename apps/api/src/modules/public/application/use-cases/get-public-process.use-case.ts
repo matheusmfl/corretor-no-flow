@@ -49,7 +49,10 @@ export class GetPublicProcessUseCase {
       throw new GoneException('Este link de cotação expirou');
     }
 
-    const readyQuotes = process.quotes.filter((q) => q.status === QuoteStatus.READY);
+    const selectedIds: string[] = (process as any).publicQuoteIds ?? [];
+    const readyQuotes = process.quotes.filter((q) =>
+      q.status === QuoteStatus.READY && (selectedIds.length === 0 || selectedIds.includes(q.id)),
+    );
 
     if (readyQuotes.length === 0) {
       throw new NotFoundException('Nenhuma cotação disponível neste link');
