@@ -3,7 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "API_INTERNAL_URL",
+        "NEXT_ALLOWED_DEV_ORIGINS",
+        "NEXT_PUBLIC_*"
+      ]
     },
     "dev": {
       "cache": false,
