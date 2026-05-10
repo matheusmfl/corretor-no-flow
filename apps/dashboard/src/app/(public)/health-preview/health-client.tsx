@@ -17,7 +17,7 @@ const COMPANY = {
   website:      null as string | null,
 }
 
-const WHATSAPP_URL = `https://wa.me/${COMPANY.whatsapp}`
+const WHATSAPP_URL = `https://api.whatsapp.com/send?phone=${COMPANY.whatsapp}`
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
