@@ -325,6 +325,192 @@ describe('buildCoverageDisplay — Tokio Proteção Mensal (serviços não contr
   });
 });
 
+// ── Bradesco Classic: assistência 200 km, vidro Plus, sem carro reserva ──────
+describe('buildCoverageDisplay — Bradesco Classic (200 km, sem reserva)', () => {
+  let display: ReturnType<typeof buildCoverageDisplay>;
+
+  beforeAll(() => {
+    display = buildCoverageDisplay(
+      makeData({
+        insurer: 'BRADESCO',
+        segment: '1583 - BRADESCO SEGURO AUTO CLASSIC',
+        vehicleUsage: 'Particular',
+        bonusClass: '02',
+        coverage: {
+          vehicle: { fipePercentage: 100, deductible: 2893.69, deductibleType: 'Reduzida' },
+          rcf: { propertyDamage: 100000, bodilyInjury: 120000, moralDamages: 10000 },
+          app: { death: 5000, disability: 5000, medical: 5000, passengerCount: 5 },
+          assistance: { towing: true, glassProtection: true, replacementVehicle: false },
+        },
+        coverageDetails: {
+          assistance: { planName: '(043) Assist Dia/Noite 200Km', towingKmTotal: 200 },
+          glass: { tier: 'Vidro Protegido Plus' },
+          services: { martelinho: true, repareFacil: true, logoMarcaVidros: false },
+        },
+      }),
+    );
+  });
+
+  it('towing.kmTotal = 200', () => expect(display.towing.kmTotal).toBe(200));
+  it('towing.planName contém clausula extraída', () => expect(display.towing.planName).toContain('043'));
+  it('towing.tooltip vem do catálogo Bradesco', () => expect(display.towing.tooltip).toContain('200'));
+  it('glass.tier = Vidro Protegido Plus', () => expect(display.glass.tier).toBe('Vidro Protegido Plus'));
+  it('glass.status = contracted', () => expect(display.glass.status).toBe('contracted'));
+  it('replacementVehicle.status = not_contracted', () => {
+    expect(display.replacementVehicle.status).toBe('not_contracted');
+  });
+  it('martelinho = contracted', () => expect(display.martelinho.status).toBe('contracted'));
+  it('repareFacil = contracted', () => expect(display.repareFacil.status).toBe('contracted'));
+  it('trocaParaChoque = not_found (ausente neste PDF)', () => {
+    expect(display.trocaParaChoque.status).toBe('not_found');
+  });
+  it('rodaPneuSuspensao = not_found (ausente neste PDF)', () => {
+    expect(display.rodaPneuSuspensao.status).toBe('not_found');
+  });
+  it('logoMarcaVidros = not_contracted', () => {
+    expect(display.logoMarcaVidros.status).toBe('not_contracted');
+  });
+});
+
+// ── Bradesco Seguro Auto Lar: 400 km, sem poluição residencial ────────────────
+describe('buildCoverageDisplay — Bradesco Auto Lar (400 km, reserva 7 dias)', () => {
+  let display: ReturnType<typeof buildCoverageDisplay>;
+
+  beforeAll(() => {
+    display = buildCoverageDisplay(
+      makeData({
+        insurer: 'BRADESCO',
+        segment: '1776 - SEGURO AUTO LAR',
+        vehicleUsage: 'Particular',
+        bonusClass: '02',
+        coverage: {
+          vehicle: { fipePercentage: 100, deductible: 5787.38, deductibleType: 'Obrigatória' },
+          rcf: { propertyDamage: 70000, bodilyInjury: 70000, moralDamages: 10000 },
+          app: { death: 5000, disability: 5000, medical: 5000, passengerCount: 5 },
+          assistance: { towing: true, glassProtection: true, replacementVehicle: true, replacementDays: 7 },
+        },
+        coverageDetails: {
+          assistance: { planName: '(113) Assist Auto Dia/Noite - Passeio 400 KM', towingKmTotal: 400 },
+          glass: { tier: 'Vidro Protegido Plus' },
+          replacementVehicle: { category: 'Auto Reserva 07 Dias (060)' },
+          services: { martelinho: true, repareFacil: true, logoMarcaVidros: false },
+        },
+      }),
+    );
+  });
+
+  it('towing.kmTotal = 400', () => expect(display.towing.kmTotal).toBe(400));
+  it('towing.tooltip vem do catálogo Bradesco (código 113)', () => {
+    expect(display.towing.tooltip).toContain('400');
+  });
+  it('replacementVehicle.days = 7', () => expect(display.replacementVehicle.days).toBe(7));
+  it('replacementVehicle.category = Auto Reserva 07 Dias (060)', () => {
+    expect(display.replacementVehicle.category).toBe('Auto Reserva 07 Dias (060)');
+  });
+  it('martelinho = contracted', () => expect(display.martelinho.status).toBe('contracted'));
+  it('repareFacil = contracted', () => expect(display.repareFacil.status).toBe('contracted'));
+  it('trocaParaChoque = not_found (ausente neste PDF)', () => {
+    expect(display.trocaParaChoque.status).toBe('not_found');
+  });
+});
+
+// ── Bradesco Tradicional completo: logomarca, troca para-choque, rodas ────────
+describe('buildCoverageDisplay — Bradesco Tradicional (logomarca, troca para-choque, rodas)', () => {
+  let display: ReturnType<typeof buildCoverageDisplay>;
+
+  beforeAll(() => {
+    display = buildCoverageDisplay(
+      makeData({
+        insurer: 'BRADESCO',
+        segment: 'Tradicional',
+        vehicleUsage: 'Particular',
+        bonusClass: '02',
+        coverage: {
+          vehicle: { fipePercentage: 100, deductible: 3500, deductibleType: 'Normal' },
+          rcf: { propertyDamage: 100000, bodilyInjury: 100000, moralDamages: 10000 },
+          app: { death: 20000, disability: 20000, passengerCount: 5 },
+          assistance: { towing: true, glassProtection: true, replacementVehicle: true, replacementDays: 7 },
+        },
+        coverageDetails: {
+          assistance: { planName: '(043) Assist Dia/Noite 200Km', towingKmTotal: 200 },
+          glass: { tier: 'Vidro Protegido Plus Logomarca' },
+          replacementVehicle: { category: 'Auto Reserva Plus 07 Dias (030)' },
+          services: {
+            martelinho: true,
+            repareFacil: true,
+            trocaParaChoque: true,
+            rodaPneuSuspensao: true,
+            logoMarcaVidros: true,
+          },
+        },
+      }),
+    );
+  });
+
+  it('towing.kmTotal = 200', () => expect(display.towing.kmTotal).toBe(200));
+  it('glass.tier = Vidro Protegido Plus Logomarca', () => {
+    expect(display.glass.tier).toBe('Vidro Protegido Plus Logomarca');
+  });
+  it('glass.tooltip Plus Logomarca explica cobertura Plus e logomarca', () => {
+    expect(display.glass.tooltip).toContain('faróis');
+    expect(display.glass.tooltip).toContain('lanternas');
+    expect(display.glass.tooltip).toContain('teto solar');
+    expect(display.glass.tooltip).toContain('logomarca');
+  });
+  it('replacementVehicle.days = 7', () => expect(display.replacementVehicle.days).toBe(7));
+  it('replacementVehicle.category = Auto Reserva Plus 07 Dias (030)', () => {
+    expect(display.replacementVehicle.category).toBe('Auto Reserva Plus 07 Dias (030)');
+  });
+  it('martelinho = contracted', () => expect(display.martelinho.status).toBe('contracted'));
+  it('repareFacil = contracted', () => expect(display.repareFacil.status).toBe('contracted'));
+  it('trocaParaChoque = contracted', () => expect(display.trocaParaChoque.status).toBe('contracted'));
+  it('rodaPneuSuspensao = contracted', () => expect(display.rodaPneuSuspensao.status).toBe('contracted'));
+  it('logoMarcaVidros = contracted', () => expect(display.logoMarcaVidros.status).toBe('contracted'));
+});
+
+// ── Bradesco: catálogo desconhecido não polui tooltip/footnote ────────────────
+describe('buildCoverageDisplay — Bradesco catálogo', () => {
+  it('towing.tooltip = undefined quando código não está no catálogo Bradesco', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: '(999) Assist Desconhecida', towingKmTotal: 500 } },
+    });
+    expect(buildCoverageDisplay(d).towing.tooltip).toBeUndefined();
+  });
+
+  it('towing.kmTotal é populado mesmo sem entrada no catálogo', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverage: { assistance: { towing: true } },
+      coverageDetails: { assistance: { planName: '(999) Assist Desconhecida', towingKmTotal: 500 } },
+    });
+    expect(buildCoverageDisplay(d).towing.kmTotal).toBe(500);
+  });
+
+  it('glass.tooltip = undefined quando tier não está no catálogo Bradesco', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverage: { assistance: { glassProtection: true } },
+      coverageDetails: { glass: { tier: 'Vidro Desconhecido' } },
+    });
+    expect(buildCoverageDisplay(d).glass.tooltip).toBeUndefined();
+  });
+
+  it('repareFacil undefined → not_found', () => {
+    const d = makeData({ insurer: 'BRADESCO' });
+    expect(buildCoverageDisplay(d).repareFacil.status).toBe('not_found');
+  });
+
+  it('trocaParaChoque false → not_contracted', () => {
+    const d = makeData({
+      insurer: 'BRADESCO',
+      coverageDetails: { services: { trocaParaChoque: false } },
+    });
+    expect(buildCoverageDisplay(d).trocaParaChoque.status).toBe('not_contracted');
+  });
+});
+
 // ── triState: campo ausente vs false ─────────────────────────────────────────
 describe('buildCoverageDisplay — triState semântica (serviços opcionais)', () => {
   it('martelinho undefined → not_found', () => {

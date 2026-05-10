@@ -27,8 +27,41 @@ const TOKIO_GLASS_TOOLTIP: Record<string, string> = {
   'Completo': 'Garantias do plano Básico + faróis, lanternas, retrovisores, máquina dos vidros, teto solar e panorâmico.',
 };
 
+// ── Bradesco static catalog ────────────────────────────────────────────────────
+// Keyed by clause code (digits inside parens in the PDF, e.g. "043").
+// Update this record when Bradesco adds or changes assistance options.
+// The km value here is a fallback for display; prefer towingKmTotal extracted from the PDF.
+const BRADESCO_ASSISTANCE_CATALOG: Record<string, { tooltip: string }> = {
+  '043': { tooltip: 'Assist Dia/Noite 200 km — guincho, pane seca, chaveiro, troca de pneu.' },
+  '063': { tooltip: 'Assist Dia/Noite 100 km — guincho, pane seca, chaveiro, troca de pneu.' },
+  '108': { tooltip: 'Assist Dia/Noite ilimitado — guincho, pane seca, chaveiro, troca de pneu.' },
+  '113': { tooltip: 'Assist Auto Dia/Noite Passeio 400 km — guincho, pane seca, chaveiro, troca de pneu.' },
+};
+
+// Keyed by tier label as extracted from the PDF (e.g. "Vidro Protegido Plus Logomarca").
+// Add entries as new tier variants are confirmed from real PDFs.
+const BRADESCO_GLASS_CATALOG: Record<string, string> = {
+  'Reparo de Para-Brisa': 'Reparo do para-brisa quando possível.',
+  'Vidro Protegido': 'Para-brisa e vidros laterais.',
+  'Vidro Protegido Plus': 'Todos os vidros (para-brisa, laterais, traseiro) + faróis, lanternas e teto solar.',
+  'Vidro Protegido Plus Logomarca': 'Todos os vidros (para-brisa, laterais, traseiro) + faróis, lanternas e teto solar, com aplicação de logomarca nos vidros.',
+  'Vidro Protegido Premium': 'Proteção premium de vidros.',
+  'Vidro Protegido Premium Logomarca': 'Proteção premium de vidros com aplicação de logomarca.',
+};
+
+// Extracts the numeric clause code from a planName string, e.g. "(043) Assist..." → "043".
+function extractBradescoClauseCode(planName: string | undefined): string | undefined {
+  if (!planName) return undefined;
+  const match = planName.match(/\((\d+)\)/);
+  return match ? match[1] : undefined;
+}
+
 function towingTooltip(insurer: string, planName: string | undefined): string | undefined {
   if (insurer === 'TOKIO_MARINE' && planName) return TOKIO_ASSISTANCE_TOOLTIP[planName];
+  if (insurer === 'BRADESCO') {
+    const code = extractBradescoClauseCode(planName);
+    return code ? BRADESCO_ASSISTANCE_CATALOG[code]?.tooltip : undefined;
+  }
   return undefined;
 }
 
@@ -54,6 +87,7 @@ function buildTowingFootnote(
 
 function glassTooltip(insurer: string, tier: string | undefined): string | undefined {
   if (insurer === 'TOKIO_MARINE' && tier) return TOKIO_GLASS_TOOLTIP[tier];
+  if (insurer === 'BRADESCO' && tier) return BRADESCO_GLASS_CATALOG[tier];
   return undefined;
 }
 
@@ -141,6 +175,8 @@ export function buildCoverageDisplay(data: AutoQuoteData): RichCoverage {
     },
     martelinho: { status: triState(cdServices.martelinho) },
     latariaEPintura: { status: triState(cdServices.latariaEPintura) },
+    repareFacil: { status: triState(cdServices.repareFacil) },
+    trocaParaChoque: { status: triState(cdServices.trocaParaChoque) },
     rodaPneuSuspensao: { status: triState(cdServices.rodaPneuSuspensao) },
     logoMarcaVidros: { status: triState(cdServices.logoMarcaVidros) },
     repairShopType: cdRepair.shopType,

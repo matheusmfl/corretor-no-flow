@@ -252,7 +252,7 @@
     <header>
       <div>
         <h1>Kanban<br />Pré-Venda V1</h1>
-        <p class="subtitle">44 tasks lidas de <code>.ai/tasks</code>. Gerado em 06/05/2026, 22:23:00.</p>
+        <p class="subtitle">48 tasks lidas de <code>.ai/tasks</code>. Gerado em 08/05/2026, 23:15:59.</p>
       </div>
       <div class="toolbar" aria-label="Filtros">
         <input id="search" type="search" placeholder="Buscar task..." />
@@ -448,7 +448,7 @@
         <span class="pill pill--life-open">open</span>
       </div>
       <h3>Mapear renovacao bonus e uso do veiculo no PDF Bradesco</h3>
-      <p>Use the PDF extraction lab to identify whether Bradesco PDFs expose renewal insurer, bonus class, and vehicle usage type, and document where/how these fields appear.</p>
+      <p>Use the PDF extraction lab to identify whether Bradesco PDFs expose renewal insurer, bonus class, vehicle usage type, and richer service/coverage details. Document where/how these fields appear and recommend follow-up implementation scope.</p>
       <div class="task-meta">
         <span>product</span>
         <span>discovery</span>
@@ -713,29 +713,29 @@
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0044-enrich-tokio-coverage-display-details.md"
+      data-file="TASK-0045-discover-moto-insurance-main-differences.md"
       data-status="todo"
-      data-title="task-0044 enriquecer detalhes de coberturas tokio marine no review pdf e link"
-      data-area="api"
+      data-title="task-0045 discovery de seguro moto por seguradora e principais diferencas"
+      data-area="product"
       data-risk="medium"
       data-complexity="medium"
-      data-kind="implementation"
+      data-kind="discovery"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
-        <span class="task-id">TASK-0044</span>
+        <span class="task-id">TASK-0045</span>
         <span class="pill pill--medium">medium</span>
         <span class="pill pill--life-open">open</span>
       </div>
-      <h3>Enriquecer detalhes de coberturas Tokio Marine no review PDF e link</h3>
-      <p>Melhorar a exibicao das principais coberturas Tokio Marine no review, PDF e link publico, sem inventar dados ausentes.</p>
+      <h3>Discovery de seguro Moto por seguradora e principais diferencas</h3>
+      <p>Mapear as principais diferencas de cotacoes Moto em relacao a AUTO e documentar uma estrategia segura de suporte futuro por seguradora.</p>
       <div class="task-meta">
-        <span>api</span>
-        <span>implementation</span>
+        <span>product</span>
+        <span>discovery</span>
         <span>medium</span>
-        <span>TDD</span>
+        
       </div>
-      <a href="/tasks/todo/TASK-0044-enrich-tokio-coverage-display-details.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+      <a href="/tasks/todo/TASK-0045-discover-moto-insurance-main-differences.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
@@ -756,36 +756,66 @@
         <section class="column" data-column="review">
           <div class="column__header">
             <h2>Review</h2>
-            <span class="count" data-count="review">1</span>
+            <span class="count" data-count="review">2</span>
           </div>
           <div class="column__body">
             
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0041-sync-process-status-after-async-pdf-extraction.md"
+      data-file="TASK-0046-implement-bradesco-auto-coverage-details.md"
       data-status="review"
-      data-title="task-0041 sincronizar status do processo apos extracao assíncrona de pdfs"
+      data-title="task-0046 implementar enriquecimento bradesco auto com catalogo versionavel"
       data-area="api"
       data-risk="medium"
       data-complexity="medium"
       data-kind="implementation"
-      data-lifecycle="closed"
+      data-lifecycle="open"
     >
       <div class="task-card__topline">
-        <span class="task-id">TASK-0041</span>
+        <span class="task-id">TASK-0046</span>
         <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-closed">closed</span>
+        <span class="pill pill--life-open">open</span>
       </div>
-      <h3>Sincronizar status do processo apos extracao assíncrona de PDFs</h3>
-      <p>Garantir que o status agregado do processo reflita o estado real das cotacoes apos processamento assíncrono, especialmente quando jobs pendentes rodam depois que o servidor reinicia.</p>
+      <h3>Implementar enriquecimento Bradesco Auto com catalogo versionavel</h3>
+      <p>Finali</p>
       <div class="task-meta">
         <span>api</span>
         <span>implementation</span>
         <span>medium</span>
         <span>TDD</span>
       </div>
-      <a href="/tasks/review/TASK-0041-sync-process-status-after-async-pdf-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+      <a href="/tasks/review/TASK-0046-implement-bradesco-auto-coverage-details.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0048-fix-bradesco-public-card-product-title-and-glass-labels.md"
+      data-status="review"
+      data-title="task-0048 corrigir titulo do card bradesco e labels de vidros"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="low"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0048</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Corrigir titulo do card Bradesco e labels de vidros</h3>
+      <p>Make Bradesco public/review/PDF presentation distinguish product, franchise, and glass coverage clearly:
+title/product: `Bradesco Tradicional`, `Bradesco Auto Classic`, `Bradesco Auto Lar`;
+franchise/deductible type: separate chip/label when relevant (`Franquia Obrigatoria`, `Franquia Redu</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>low</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/review/TASK-0048-fix-bradesco-public-card-product-title-and-glass-labels.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
@@ -795,10 +825,38 @@
         <section class="column" data-column="qa">
           <div class="column__header">
             <h2>QA</h2>
-            <span class="count" data-count="qa">0</span>
+            <span class="count" data-count="qa">1</span>
           </div>
           <div class="column__body">
             
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0047-qa-bradesco-auto-coverage-details.md"
+      data-status="qa"
+      data-title="task-0047 qa bradesco auto coverage details"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="low"
+      data-kind="qa"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0047</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>QA Bradesco Auto coverage details</h3>
+      <p>Confirm that Bradesco Auto coverage details appear correctly and do not confuse Auto Lar residential coverages with Auto coverages.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>qa</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/qa/TASK-0047-qa-bradesco-auto-coverage-details.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
           </div>
         </section>
@@ -806,7 +864,7 @@
         <section class="column" data-column="done">
           <div class="column__header">
             <h2>Done</h2>
-            <span class="count" data-count="done">27</span>
+            <span class="count" data-count="done">29</span>
           </div>
           <div class="column__body">
             
@@ -1574,6 +1632,62 @@ o backend responde `401`.</p>
         <span>TDD</span>
       </div>
       <a href="/tasks/done/TASK-0040-implement-tokio-marine-auto-processing.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0041-sync-process-status-after-async-pdf-extraction.md"
+      data-status="done"
+      data-title="task-0041 sincronizar status do processo apos extracao assíncrona de pdfs"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0041</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Sincronizar status do processo apos extracao assíncrona de PDFs</h3>
+      <p>Garantir que o status agregado do processo reflita o estado real das cotacoes apos processamento assíncrono, especialmente quando jobs pendentes rodam depois que o servidor reinicia.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0041-sync-process-status-after-async-pdf-extraction.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0044-enrich-tokio-coverage-display-details.md"
+      data-status="done"
+      data-title="task-0044 enriquecer detalhes de coberturas tokio marine no review pdf e link"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="closed"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0044</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-closed">closed</span>
+      </div>
+      <h3>Enriquecer detalhes de coberturas Tokio Marine no review PDF e link</h3>
+      <p>Melhorar a exibicao das principais coberturas Tokio Marine no review, PDF e link publico, sem inventar dados ausentes, e criar um padrao de detalhes/tooltip de cobertura que possa ser reaproveitado por outras seguradoras.</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0044-enrich-tokio-coverage-display-details.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>

@@ -11,6 +11,7 @@ import { parsePortoPaymentTable } from '../application/services/porto-payment-pa
 import { parseTokioPaymentTable } from '../application/services/tokio-payment-parser';
 import {
   UNRELIABLE_DEDUCTIBLE_TYPES,
+  getBradescoProductLabel,
   getAzulProductLabel,
   getItauProductLabel,
   getTokioProductLabel,
@@ -43,6 +44,21 @@ function buildQuoteLabel(insurer: string, data: import('@corretor/types').AutoQu
   const premiumStr = premiumTotal != null
     ? premiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     : null;
+
+  if (insurer === 'BRADESCO') {
+    const productLabel = getBradescoProductLabel(data);
+    // When no product label (old quote without segment), fall back to deductibleType
+    if (productLabel) {
+      const name = `${base} ${productLabel}`;
+      return premiumStr ? `${name} — (${premiumStr})` : name;
+    }
+    const rawType = data.coverage?.vehicle?.deductibleType;
+    const type = rawType && !UNRELIABLE_DEDUCTIBLE_TYPES.has(rawType) ? rawType : undefined;
+    const parts = [base];
+    if (type) parts.push(type);
+    if (premiumStr) parts.push(`(${premiumStr})`);
+    return parts.join(' — ');
+  }
 
   if (insurer === 'AZUL') {
     const productLabel = getAzulProductLabel(data);

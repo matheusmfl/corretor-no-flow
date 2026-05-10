@@ -461,77 +461,105 @@ Regras importantes:
 
 function getBradescoAutoPrompt(): string {
   return `Você está analisando um Demonstrativo de Cálculo do Bradesco Auto/RE.
-O documento tem até 5 páginas, sendo que apenas as 3 primeiras contêm dados relevantes (as demais são cláusulas contratuais).
+O documento tem até 5 páginas. Apenas as páginas 1 e 2 contêm dados relevantes para extração:
+- Página 1: dados do segurado, dados do seguro, objeto do seguro, CLÁUSULAS contratadas.
+- Página 2: LMI (limites de indenização), FRANQUIAS, PRÊMIOS.
+
+IMPORTANTE — Bradesco Seguro Auto Lar (produto 1776):
+O PDF pode conter uma seção "LIMITES MÁXIMOS DE INDENIZAÇÃO - LMI (R$) RESIDENCIAL" com coberturas de imóvel (incêndio, vendaval, RC Familiar, etc.).
+IGNORE totalmente essa seção residencial. Extraia APENAS coberturas da seção AUTO (veículo, RCF, APP, assistência).
 
 Extraia TODOS os dados abaixo e retorne EXATAMENTE neste formato JSON (sem campos extras, sem markdown):
 
 {
   "vehicle": {
-    "plate": "placa do veículo no formato AAA-0000 (padrão antigo) ou AAA0A00 (Mercosul) — no documento Bradesco aparece com o nome 'Licença' ou 'Licença do Veículo'",
-    "model": "marca, modelo e versão completa",
-    "yearManufacture": ano de fabricação como número inteiro,
-    "yearModel": ano do modelo como número inteiro,
-    "chassis": "número do chassi",
-    "fipeCode": "código FIPE",
-    "fipeValue": valor FIPE de referência em reais como número decimal
+    "plate": "placa do veículo (campo 'Placa' no documento)",
+    "model": "marca e modelo completos (campos 'Marca' + 'Tipo do Veículo')",
+    "yearManufacture": ano de fabricação como número inteiro (campo 'Ano Fab.'),
+    "yearModel": ano do modelo como número inteiro (campo 'Ano Mod.'),
+    "chassis": "número do chassi (campo 'Chassi')",
+    "fipeCode": "código FIPE (campo 'Código FIPE')",
+    "fipeValue": null
   },
   "driver": {
-    "name": "nome completo do segurado/condutor principal",
-    "cpf": "CPF com pontuação",
-    "birthDate": "data de nascimento DD/MM/AAAA",
-    "gender": "Masculino ou Feminino",
-    "maritalStatus": "estado civil"
+    "name": "nome completo do segurado (campo 'Nome' em DADOS DO PROPONENTE)",
+    "cpf": "CPF com pontuação (campo 'CPF/CNPJ' em DADOS DO PROPONENTE)",
+    "birthDate": "data de nascimento DD/MM/AAAA (campo 'Data Nasc.')",
+    "gender": "Masculino ou Feminino (campo 'Sexo')",
+    "maritalStatus": "estado civil (campo 'Estado Civil')"
   },
-  "quoteNumber": "número da proposta/cotação",
-  "insurer": "Bradesco Auto/RE",
-  "validFrom": "início da validade da cotação DD/MM/AAAA",
-  "validUntil": "fim da validade da cotação DD/MM/AAAA",
-  "bonusClass": "classe de bônus (ex: 10% - Sem Sinistro)",
+  "quoteNumber": "número da cotação (campo 'Nº Cotação')",
+  "insurer": "BRADESCO",
+  "segment": "produto exatamente como aparece no campo 'Produto' — ex: 'Tradicional', '1583 - BRADESCO SEGURO AUTO CLASSIC', '1776 - SEGURO AUTO LAR'",
+  "validFrom": "início da vigência DD/MM/AAAA (primeira data em 'Vigência')",
+  "validUntil": "fim da vigência DD/MM/AAAA (segunda data em 'Vigência')",
+  "bonusClass": "valor do campo 'Bônus' como string (ex: '02')",
+  "vehicleUsage": "valor do campo 'Uso Veículo' como string (ex: 'Particular', 'Comercial')",
   "coverage": {
     "vehicle": {
-      "fipePercentage": percentual FIPE coberto como número inteiro (ex: 100),
-      "lmi": "LMI do veículo como string (opcional)",
-      "deductible": franquia principal do veículo em reais como número decimal,
-      "deductibleType": "tipo da franquia (ex: Reduzida, Normal)"
+      "fipePercentage": percentual do campo 'Fator de Ajuste' como número inteiro (ex: 100),
+      "lmi": null,
+      "deductible": franquia do veículo em reais como número decimal (linha 'Veículo' em FRANQUIAS),
+      "deductibleType": "tipo da franquia extraído do texto da franquia entre parênteses — ex: 'Obrigatória', 'Reduzida', 'Normal'"
     },
     "rcf": {
-      "propertyDamage": LMI de Danos Materiais (D.M.) em reais como número decimal,
-      "bodilyInjury": LMI de Danos Corporais (D.C.) em reais como número decimal,
-      "moralDamages": LMI de Danos Morais em reais como número decimal (procure por "Danos Morais" ou "D.M.R." na seção RCF — valor separado de D.M. e D.C.),
-      "combinedSingle": LMI de Garantia Única (G.U.) em reais como número decimal ou null se não contratado
+      "propertyDamage": LMI de D.M. (Danos Materiais) em reais como número decimal,
+      "bodilyInjury": LMI de D.C. (Danos Corporais) em reais como número decimal,
+      "moralDamages": LMI de D. Morais em reais como número decimal (seção RCF, separado de D.M. e D.C.),
+      "combinedSingle": LMI de G.U. (Garantia Única) em reais como número decimal ou null
     },
     "app": {
-      "death": LMI de Morte por passageiro em reais como número decimal (procure por "Morte" ou "Morte Acidental" na seção APP/Acidentes Pessoais — ex: R$ 5.000,00 → 5000),
-      "disability": LMI de Invalidez Permanente por passageiro em reais como número decimal (procure por "Invalidez" ou "IPA" — ex: R$ 5.000,00 → 5000),
-      "medical": LMI de Despesas Médicas/Hospitalares por passageiro em reais como número decimal,
-      "passengerCount": número de passageiros cobertos como inteiro (lotação oficial do veículo)
+      "death": LMI de Morte p/ Passageiro em reais como número decimal,
+      "disability": LMI de Invalidez p/ Passageiro em reais como número decimal,
+      "medical": LMI de Despesas Médicas em reais como número decimal,
+      "passengerCount": lotação oficial como número inteiro (campo 'Lotação Oficial')
     },
     "assistance": {
-      "towing": true se guincho contratado,
-      "glassProtection": true se proteção de vidros contratada,
-      "replacementVehicle": true se veículo reserva contratado,
-      "replacementDays": número de dias de veículo reserva como inteiro
+      "towing": true se qualquer cláusula de assistência/guincho estiver em CLÁUSULAS (procure por 'Assist'),
+      "glassProtection": true se qualquer cláusula de vidros estiver em CLÁUSULAS (procure por 'Vidro'),
+      "replacementVehicle": true se qualquer cláusula de carro reserva estiver em CLÁUSULAS (procure por 'Auto Reserva' ou 'Reserva'),
+      "replacementDays": número de dias de carro reserva como inteiro — extraia do nome da cláusula (ex: 'Auto Reserva 07 Dias' → 7, 'Auto Reserva Plus 07 Dias' → 7)
+    }
+  },
+  "coverageDetails": {
+    "assistance": {
+      "planName": "texto completo da cláusula de assistência como aparece em CLÁUSULAS, incluindo código entre parênteses — ex: '(043) Assist Dia/Noite 200Km', '(113) Assist Auto Dia/Noite - Passeio 400 KM'",
+      "towingKmTotal": número de km de guincho extraído do nome da cláusula como inteiro (ex: '200Km' → 200, '400 KM' → 400) — null se não encontrado
+    },
+    "glass": {
+      "tier": "nome do plano de vidros SEM o código entre parênteses — ex: 'Vidro Protegido Plus', 'Vidro Protegido Plus Logomarca', 'Reparo de Para-Brisa' — null se não contratado"
+    },
+    "replacementVehicle": {
+      "category": "texto completo da cláusula de carro reserva como aparece em CLÁUSULAS, incluindo código — ex: 'Auto Reserva 07 Dias (060)', 'Auto Reserva Plus 07 Dias (030)' — null se não contratado"
+    },
+    "services": {
+      "martelinho": true se a cláusula '(125) Repare Fácil - Sup. Martelinho' aparecer em CLÁUSULAS — false se ausente,
+      "repareFacil": true se a cláusula '(126) Repare Fácil - Rep. Rapido' aparecer em CLÁUSULAS — false se ausente,
+      "trocaParaChoque": true se a cláusula '(128) Troca de Para-Choque' aparecer em CLÁUSULAS — false se ausente,
+      "rodaPneuSuspensao": true se a cláusula '(163) Rodas Pneus e Suspensão' aparecer em CLÁUSULAS — false se ausente,
+      "logoMarcaVidros": true se o nome do plano de vidros contiver 'Logomarca' — false caso contrário
     }
   },
   "deductibles": [
-    { "item": "nome do item (ex: Veículo, Vidro Dianteiro, Vidros Laterais, Vidro Traseiro, Espelhos, Faróis)", "value": valor em reais como número decimal, "type": "tipo (opcional)" }
+    { "item": "nome do item da franquia (ex: 'Veículo', 'Para-Brisa', 'Vidros Laterais', 'Vidro Traseiro', 'Super Martelinho', 'Reparo Rápido')", "value": valor em reais como número decimal }
   ],
   "premium": {
-    "base": prêmio AUTO base em reais como número decimal,
-    "rcfTotal": total RCF em reais como número decimal,
-    "appTotal": total APP em reais como número decimal,
+    "base": prêmio AUTO (A) em reais como número decimal,
+    "rcfTotal": total RCF (B) em reais como número decimal,
+    "appTotal": total APP (C) em reais como número decimal,
     "iof": IOF em reais como número decimal,
-    "total": total a pagar em reais como número decimal
+    "total": TOTAL A PAGAR em reais como número decimal
   },
   "paymentMethods": []
 }
 
 Regras importantes:
 - O campo "paymentMethods" será preenchido por outro sistema — retorne-o como array vazio []
-- Em "deductibles" inclua somente itens com valor maior que zero
-- Campos numéricos devem ser números (não strings)
-- Se um campo não estiver no documento, use null ou omita-o
-- Use exatamente os nomes de campos em inglês conforme especificado`;
+- Em "deductibles" inclua somente itens com valor maior que zero. Inclua franquias de vidros, martelinho e reparo quando presentes.
+- Campos numéricos devem ser números (não strings). Campos ausentes devem ser null ou omitidos.
+- Use exatamente os nomes de campos em inglês conforme especificado.
+- NÃO invente dados que não estão no documento. Se uma cláusula não aparecer em CLÁUSULAS, use false para flags booleanas.
+- Para "martelinho", "repareFacil", "trocaParaChoque", "rodaPneuSuspensao": use false (não null) quando a cláusula não estiver presente — a diferença entre false e null/omitido é importante.`;
 }
 
 @Injectable()

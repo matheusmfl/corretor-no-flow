@@ -1,4 +1,4 @@
-import { buildQuotePdfFilename } from './quote-filename';
+import { buildQuotePdfFilename, getBradescoProductLabel } from './quote-filename';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -20,12 +20,55 @@ const portoCompreensiva = {
   premium:  { total: 4226.40 },
 };
 
+// ── getBradescoProductLabel ───────────────────────────────────────────────────
+
+describe('getBradescoProductLabel', () => {
+  it('Tradicional → Tradicional', () => {
+    expect(getBradescoProductLabel({ segment: 'Tradicional' } as any)).toBe('Tradicional');
+  });
+
+  it('1583 - BRADESCO SEGURO AUTO CLASSIC → Auto Classic', () => {
+    expect(getBradescoProductLabel({ segment: '1583 - BRADESCO SEGURO AUTO CLASSIC' } as any)).toBe('Auto Classic');
+  });
+
+  it('1776 - SEGURO AUTO LAR → Auto Lar', () => {
+    expect(getBradescoProductLabel({ segment: '1776 - SEGURO AUTO LAR' } as any)).toBe('Auto Lar');
+  });
+
+  it('segment undefined → undefined', () => {
+    expect(getBradescoProductLabel({} as any)).toBeUndefined();
+  });
+
+  it('segment vazio → undefined', () => {
+    expect(getBradescoProductLabel({ segment: '' } as any)).toBeUndefined();
+  });
+});
+
 // ── Formato geral ─────────────────────────────────────────────────────────────
 
 describe('buildQuotePdfFilename', () => {
-  it('Bradesco Reduzida: usa veiculo, seguradora, tipo de franquia e premio total', () => {
+  it('Bradesco sem segment: usa veiculo, seguradora, tipo de franquia e premio total (retrocompat)', () => {
     expect(buildQuotePdfFilename('BRADESCO', bradescoReduzida as any))
       .toBe('JEEP_COMPASS_Bradesco_Reduzida(4200).pdf');
+  });
+
+  it('Bradesco Tradicional: usa produto no nome em vez de franquia', () => {
+    const data = { ...bradescoReduzida, segment: 'Tradicional' };
+    const result = buildQuotePdfFilename('BRADESCO', data as any);
+    expect(result).toContain('Tradicional');
+    expect(result).not.toContain('Reduzida');
+  });
+
+  it('Bradesco Auto Classic: usa produto no nome', () => {
+    const data = { ...bradescoReduzida, segment: '1583 - BRADESCO SEGURO AUTO CLASSIC' };
+    const result = buildQuotePdfFilename('BRADESCO', data as any);
+    expect(result).toContain('Classic');
+  });
+
+  it('Bradesco Auto Lar: usa produto no nome', () => {
+    const data = { ...bradescoReduzida, segment: '1776 - SEGURO AUTO LAR' };
+    const result = buildQuotePdfFilename('BRADESCO', data as any);
+    expect(result).toContain('Lar');
   });
 
   it('modelo com duas palavras curtas (sem marca explícita)', () => {

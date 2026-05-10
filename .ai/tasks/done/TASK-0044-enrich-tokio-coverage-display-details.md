@@ -1,9 +1,9 @@
 ---
 id: TASK-0044
 title: Enriquecer detalhes de coberturas Tokio Marine no review PDF e link
-status: review
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: closed
 area: api
 owner: claude
 reviewer: codex
@@ -11,6 +11,7 @@ complexity: medium
 risk: medium
 tdd_required: true
 created_at: 2026-05-07
+closed_at: 2026-05-07
 blocked_by: TASK-0022
 ---
 
@@ -550,3 +551,38 @@ Observacao Bradesco:
 - Esta task continua restrita a Tokio.
 - Ha discovery/contrato geral relacionado a Bradesco (`BRADESCO-AUTO-EXTRA-FIELDS`, `TASK-0022`, `TASK-0011`), mas nao foi identificada uma task de implementacao especifica para enriquecer coberturas Bradesco com o mesmo padrao de `coverageDetails`, tooltips, servicos e PDF/link.
 - Criar task propria para Bradesco antes de implementar esse escopo nele.
+
+## Human QA Passed - 2026-05-07
+
+QA visual aprovado pelo humano orquestrador apos a Fix Attempt 4.
+
+Evidencia:
+
+- Print do link publico com card Tokio Marine Protecao Mensal mostrando:
+  - cabecalho em verde institucional Tokio (`#005C35`);
+  - chip `Assistencia 24h Completa 200 km` com indicador `i` para tooltip;
+  - chips positivos `90% FIPE`, `RCF R$ 25.000,00`, `Rede Referenciada`,
+    `Novas Compativeis`;
+  - chips riscados `Vidros nao contratado`, `Sem veiculo reserva`, `Martelinho`,
+    `Lataria e pintura`, `Roda/pneu`, `Logomarca`;
+  - valor de 200 km na Protecao Mensal esta correto: nao soma adicional porque
+    `Km adicional de reboque Nao contratada` neste produto.
+
+Itens validados:
+
+- Cor da Tokio em verde, conforme decisao de UX.
+- Tooltip por icone, sem texto inline poluindo o card.
+- Estados `not_contracted` riscados e claros.
+- Tipo de oficina e tipo de peca como chips informativos.
+- Diferencas entre Auto e Protecao Mensal aparecem corretamente.
+
+Item levantado durante o QA, fora do escopo desta task:
+
+- Em produtos enxutos como Protecao Mensal o card pode ficar visualmente dominado
+  por chips riscados de "nao contratado". Isso virou pergunta de produto e foi
+  documentada em `.ai/brainstorm/2026-05-07-mostrar-nao-contratado-link-publico.md`
+  para discovery posterior. Nao bloqueia esta task porque a apresentacao atual
+  esta tecnicamente correta e fiel ao PDF; a duvida e se faz sentido mostrar
+  "nao contratado" sempre ou apenas quando ha diferencial entre cotacoes.
+
+Decisao: task aprovada e movida para `.ai/tasks/done`.

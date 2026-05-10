@@ -108,14 +108,46 @@ const TOKIO_GLASS_TOOLTIP: Record<string, string> = {
   Completo: 'Garantias do plano Básico + faróis, lanternas, retrovisores, máquina dos vidros, teto solar e panorâmico.',
 }
 
+const BRADESCO_GLASS_TOOLTIP: Record<string, string> = {
+  'Reparo de Para-Brisa': 'Reparo do para-brisa quando possível.',
+  'Vidro Protegido': 'Para-brisa e vidros laterais.',
+  'Vidro Protegido Plus': 'Todos os vidros (para-brisa, laterais, traseiro) + faróis, lanternas e teto solar.',
+  'Vidro Protegido Plus Logomarca': 'Todos os vidros (para-brisa, laterais, traseiro) + faróis, lanternas e teto solar, com aplicação de logomarca nos vidros.',
+  'Vidro Protegido Premium': 'Proteção premium de vidros.',
+  'Vidro Protegido Premium Logomarca': 'Proteção premium de vidros com aplicação de logomarca.',
+}
+
+const BRADESCO_ASSIST_TOOLTIP: Record<string, string> = {
+  '043': 'Assist Dia/Noite 200 km — guincho, pane seca, chaveiro, troca de pneu.',
+  '063': 'Assist Dia/Noite 100 km — guincho, pane seca, chaveiro, troca de pneu.',
+  '108': 'Assist Dia/Noite ilimitado — guincho, pane seca, chaveiro, troca de pneu.',
+  '113': 'Assist Auto Dia/Noite Passeio 400 km — guincho, pane seca, chaveiro, troca de pneu.',
+}
+
+function extractBradescoClauseCode(planName: string | undefined): string | undefined {
+  if (!planName) return undefined
+  const match = planName.match(/\((\d+)\)/)
+  return match ? match[1] : undefined
+}
+
 function assistTooltip(insurer: string, planName: string | undefined): string | undefined {
   if (insurer === 'TOKIO_MARINE' && planName) return TOKIO_ASSIST_TOOLTIP[planName]
+  if (insurer === 'BRADESCO') {
+    const code = extractBradescoClauseCode(planName)
+    return code ? BRADESCO_ASSIST_TOOLTIP[code] : undefined
+  }
   return undefined
 }
 
 function glassTooltip(insurer: string, tier: string | undefined): string | undefined {
   if (insurer === 'TOKIO_MARINE' && tier) return TOKIO_GLASS_TOOLTIP[tier]
+  if (insurer === 'BRADESCO' && tier) return BRADESCO_GLASS_TOOLTIP[tier]
   return undefined
+}
+
+// Strips leading "Vidro " from Bradesco tier labels to avoid "Vidros Vidro Protegido Plus" repetition.
+function formatGlassTierLabel(tier: string): string {
+  return tier.startsWith('Vidro ') ? tier.slice(6) : tier
 }
 
 // Complement text (non-km services) for Tokio plans — used to build rich titles with km breakdown.
@@ -219,6 +251,11 @@ function QuoteCard({
                 {d.coverage.vehicle.fipePercentage}% FIPE
               </span>
             )}
+            {quote.insurer === 'BRADESCO' && d.coverage?.vehicle?.deductibleType && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
+                Franquia {d.coverage.vehicle.deductibleType}
+              </span>
+            )}
             {d.coverage?.rcf?.propertyDamage != null && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">
                 RCF {fmt(d.coverage.rcf.propertyDamage)}
@@ -245,12 +282,13 @@ function QuoteCard({
             {d.coverage?.assistance?.glassProtection === true && d.coverageDetails?.glass?.tier && (() => {
               const tier = d.coverageDetails!.glass!.tier!
               const glassTitle = glassTooltip(quote.insurer, tier)
+              const glassLabel = formatGlassTierLabel(tier)
               return (
                 <span
                   className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]"
                   title={glassTitle ?? undefined}
                 >
-                  Vidros {tier}{glassTitle ? ' ⓘ' : ''}
+                  Vidros: {glassLabel}{glassTitle ? ' ⓘ' : ''}
                 </span>
               )
             })()}
@@ -272,6 +310,16 @@ function QuoteCard({
             {d.coverageDetails?.services?.martelinho != null && (
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.martelinho ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
                 Martelinho
+              </span>
+            )}
+            {d.coverageDetails?.services?.repareFacil != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.repareFacil ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Reparo rápido
+              </span>
+            )}
+            {d.coverageDetails?.services?.trocaParaChoque != null && (
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] ${d.coverageDetails.services.trocaParaChoque ? 'text-[#5a5750]' : 'text-[#9a9590] line-through'}`}>
+                Troca de para-choque
               </span>
             )}
             {d.coverageDetails?.services?.latariaEPintura != null && (

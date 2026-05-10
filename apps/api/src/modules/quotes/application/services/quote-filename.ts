@@ -30,6 +30,16 @@ const ITAU_SEGMENT_LABEL_MAP: Record<string, string> = {
   'ITAÚ ASSISTÊNCIA 24H':           'Assistência 24h',
 };
 
+export function getBradescoProductLabel(data: Partial<AutoQuoteData>): string | undefined {
+  const raw = data.segment?.trim() ?? '';
+  if (!raw) return undefined;
+  const upper = raw.toUpperCase();
+  if (/\bTRADICIONAL\b/.test(upper)) return 'Tradicional';
+  if (/CLASSIC/.test(upper) || /\b1583\b/.test(upper)) return 'Auto Classic';
+  if (/\bLAR\b/.test(upper) || /\b1776\b/.test(upper)) return 'Auto Lar';
+  return undefined;
+}
+
 export function getItauProductLabel(data: Partial<AutoQuoteData>): string | undefined {
   const raw = data.segment?.toUpperCase().trim() ?? '';
   if (!raw) return undefined;
@@ -113,13 +123,15 @@ export function buildQuotePdfFilename(
 
   const insurerName = INSURER_SHORT[insurer] ?? insurer;
 
-  const deductibleType = insurer === 'AZUL'
-    ? getAzulProductLabel(d)
-    : insurer === 'ITAU'
-      ? getItauProductLabel(d)
-      : insurer === 'TOKIO_MARINE'
-        ? getTokioProductLabel(d)
-        : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
+  const deductibleType = insurer === 'BRADESCO'
+    ? (getBradescoProductLabel(d) ?? (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })())
+    : insurer === 'AZUL'
+      ? getAzulProductLabel(d)
+      : insurer === 'ITAU'
+        ? getItauProductLabel(d)
+        : insurer === 'TOKIO_MARINE'
+          ? getTokioProductLabel(d)
+          : (() => { const r = d.coverage?.vehicle?.deductibleType; return r && !UNRELIABLE_DEDUCTIBLE_TYPES.has(r) ? r : undefined; })();
 
   // Fallback: quando extractedData não tem dados suficientes para identificar o produto,
   // usa quoteName (já confirmado pelo corretor) para montar um filename significativo.

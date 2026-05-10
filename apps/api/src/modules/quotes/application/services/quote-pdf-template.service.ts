@@ -216,6 +216,8 @@ function richAssistGroup(rich: RichCoverage): AssistGroupResult {
 function richServicesGroup(rich: RichCoverage): string {
   const items: { label: string; status: CoverageStatus }[] = [
     { label: 'Martelinho e para-choque', status: rich.martelinho.status },
+    { label: 'Reparo rápido',            status: rich.repareFacil.status },
+    { label: 'Troca de para-choque',     status: rich.trocaParaChoque.status },
     { label: 'Lataria e pintura',        status: rich.latariaEPintura.status },
     { label: 'Roda, pneu e suspensão',   status: rich.rodaPneuSuspensao.status },
     { label: 'Logomarca (vidros)',        status: rich.logoMarcaVidros.status },

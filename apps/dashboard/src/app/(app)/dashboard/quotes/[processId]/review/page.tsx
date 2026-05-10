@@ -230,6 +230,18 @@ function QuoteConfirmCard({ quote, processId }: { quote: Quote; processId: strin
                   value={d.coverageDetails.services.martelinho ? 'Possui' : 'Não possui'}
                 />
               )}
+              {d.coverageDetails?.services?.repareFacil != null && (
+                <DataRow
+                  label="Reparo rápido"
+                  value={d.coverageDetails.services.repareFacil ? 'Possui' : 'Não possui'}
+                />
+              )}
+              {d.coverageDetails?.services?.trocaParaChoque != null && (
+                <DataRow
+                  label="Troca de para-choque"
+                  value={d.coverageDetails.services.trocaParaChoque ? 'Possui' : 'Não possui'}
+                />
+              )}
               {d.coverageDetails?.services?.latariaEPintura != null && (
                 <DataRow
                   label="Lataria e pintura"

@@ -49,3 +49,6 @@ apps/api/generated/
 .ai/pdf-lab/output/*
 !.ai/pdf-lab/input/.gitkeep
 !.ai/pdf-lab/output/.gitkeep
+
+# Claude local session permissions/settings
+.claude/settings.local.json

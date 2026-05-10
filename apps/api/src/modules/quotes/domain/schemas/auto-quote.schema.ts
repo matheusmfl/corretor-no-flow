@@ -64,6 +64,8 @@ const CoverageDetailsSchema = z.object({
   services: z.object({
     martelinho: z.boolean().optional(),
     latariaEPintura: z.boolean().optional(),
+    repareFacil: z.boolean().optional(),
+    trocaParaChoque: z.boolean().optional(),
     rodaPneuSuspensao: z.boolean().optional(),
     logoMarcaVidros: z.boolean().optional(),
   }).optional(),
@@ -111,6 +113,7 @@ const AutoQuoteDataSchema = z.object({
   validFrom: z.string().optional(),
   validUntil: z.string().optional(),
   bonusClass: z.string().optional(),
+  vehicleUsage: z.string().optional(),
   coverage: z.object({
     vehicle: VehicleCoverageSchema.optional(),
     rcf: RcfCoverageSchema.optional(),

@@ -63,6 +63,7 @@ export interface AutoQuoteData {
   validFrom?: string
   validUntil?: string
   bonusClass?: string
+  vehicleUsage?: string
   coverage: {
     vehicle?: {
       fipePercentage?: number
@@ -117,6 +118,8 @@ export interface AutoQuoteData {
     services?: {
       martelinho?: boolean
       latariaEPintura?: boolean
+      repareFacil?: boolean
+      trocaParaChoque?: boolean
       rodaPneuSuspensao?: boolean
       logoMarcaVidros?: boolean
     }
@@ -218,6 +221,10 @@ export interface RichCoverage {
   martelinho: CoverageItem
   /** Bodywork and painting service / lataria e pintura. */
   latariaEPintura: CoverageItem
+  /** Repare Fácil — Reparo Rápido (Bradesco code 126). */
+  repareFacil: CoverageItem
+  /** Troca de Para-Choque (Bradesco code 128). */
+  trocaParaChoque: CoverageItem
   /** Wheel, tyre and suspension / roda, pneu e suspensão. */
   rodaPneuSuspensao: CoverageItem
   /** Brand logo on glass / logomarca (vidros). */
