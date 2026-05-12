@@ -70,6 +70,28 @@ const benefits = [
   },
 ];
 
+const weeklyQuoteVolumeOptions: { value: string; label: string; disabled?: boolean }[] = [
+  { value: "", label: "Selecione uma faixa", disabled: true },
+  { value: "none", label: "Nenhuma / nao aplicavel" },
+  { value: "1-5", label: "1 a 5" },
+  { value: "6-15", label: "6 a 15" },
+  { value: "16-30", label: "16 a 30" },
+  { value: "30+", label: "Mais de 30" },
+];
+
+const mainInsurers = [
+  { id: "bradesco", label: "Bradesco" },
+  { id: "porto", label: "Porto Seguro" },
+  { id: "tokio", label: "Tokio Marine" },
+  { id: "azul", label: "Azul Seguros" },
+  { id: "allianz", label: "Allianz" },
+  { id: "sulamerica", label: "SulAmerica" },
+  { id: "hdi", label: "HDI" },
+  { id: "mapfre", label: "Mapfre" },
+  { id: "liberty", label: "Liberty" },
+  { id: "outras", label: "Outras" },
+];
+
 function Container({
   children,
   className = "",
@@ -281,7 +303,7 @@ export default function HomePage() {
                 className="object-cover opacity-42"
                 sizes="(min-width: 1024px) 56vw, 100vw"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(130deg,rgba(8,22,46,0.92),rgba(8,22,46,0.38)_48%,rgba(15,124,99,0.72))]" />
+              <div className="absolute inset-0 bg-[linear-gradient(130deg,rgba(43,10,10,0.92),rgba(43,10,10,0.38)_48%,rgba(192,80,32,0.72))]" />
               <MiniDashboard />
               <div className="absolute left-5 right-5 bottom-5 rounded-3xl bg-white/94 p-5 shadow-2xl shadow-ink/25 backdrop-blur-md ring-1 ring-white/70 sm:left-7 sm:right-7 sm:bottom-7">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-action">
@@ -377,8 +399,8 @@ export default function HomePage() {
 
       <section id="rastreamento" className="py-18 sm:py-24">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[1fr_0.95fr] lg:items-center">
-            <div className="tracking-panel">
+          <div className="grid min-w-0 gap-10 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+            <div className="tracking-panel min-w-0">
               <div className="tracking-panel-top">
                 <span>Intencao do cliente</span>
                 <strong>Lead quente</strong>
@@ -398,7 +420,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <p className="section-kicker">Diferencial</p>
               <h2 className="section-title">Sua venda comeca quando o cliente abre a proposta.</h2>
               <p className="mt-5 text-lg leading-8 text-ink-muted">
@@ -452,43 +474,80 @@ export default function HomePage() {
 
       <section id="captura" className="py-18 sm:py-24">
         <Container>
-          <div className="grid gap-8 rounded-[34px] bg-white p-5 ring-1 ring-ink/10 sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
+          <div className="capture-section-shell grid min-w-0 gap-8 bg-white ring-1 ring-ink/10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+            <div className="min-w-0">
               <p className="section-kicker">Acesso antecipado</p>
-              <h2 className="mt-4 font-display text-[clamp(2.2rem,5vw,4.4rem)] font-extrabold leading-[0.96] tracking-tight">
+              <h2 className="mt-4 font-display text-[clamp(1.85rem,6.5vw,4.4rem)] font-extrabold leading-[0.98] tracking-tight">
                 Entre na lista de corretores que querem vender com mais timing.
               </h2>
-              <p className="mt-5 text-lg leading-8 text-ink-muted">
+              <p className="mt-5 text-base leading-7 text-ink-muted sm:text-lg sm:leading-8">
                 A primeira versao sera ajustada com corretores reais. A ideia e validar
                 proposta, rastreamento e follow-up antes de escalar.
               </p>
             </div>
 
-            <form className="capture-form">
-              <label>
+            <form className="capture-form min-w-0" action="#" method="post">
+              <label htmlFor="early-name">
                 Nome
-                <input type="text" name="name" placeholder="Seu nome" />
+                <input id="early-name" type="text" name="name" autoComplete="name" placeholder="Seu nome" />
               </label>
-              <label>
+              <label htmlFor="early-email">
+                E-mail
+                <input
+                  id="early-email"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="voce@corretora.com.br"
+                />
+              </label>
+              <label htmlFor="early-whatsapp">
                 WhatsApp
-                <input type="tel" name="whatsapp" placeholder="(00) 00000-0000" />
+                <input
+                  id="early-whatsapp"
+                  type="tel"
+                  name="whatsapp"
+                  autoComplete="tel"
+                  placeholder="(00) 00000-0000"
+                />
               </label>
-              <label>
-                Quantas cotacoes voce envia por semana?
-                <select name="volume" defaultValue="">
-                  <option value="" disabled>
-                    Selecione uma faixa
-                  </option>
-                  <option>1 a 5</option>
-                  <option>6 a 15</option>
-                  <option>16 a 30</option>
-                  <option>Mais de 30</option>
-                </select>
-              </label>
-              <label>
-                Maior dificuldade hoje
-                <textarea name="pain" placeholder="Ex: cliente nao entende, demora para responder..." />
-              </label>
+
+              <div className="capture-form-split">
+                <label htmlFor="early-volume-auto">
+                  Cotacoes de <strong className="text-white">Auto</strong> por semana
+                  <select id="early-volume-auto" name="volume_auto" defaultValue="">
+                    {weeklyQuoteVolumeOptions.map((opt) => (
+                      <option key={`auto-${opt.value || "placeholder"}`} value={opt.value} disabled={opt.disabled}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label htmlFor="early-volume-saude">
+                  Cotacoes de <strong className="text-white">Saude</strong> por semana
+                  <select id="early-volume-saude" name="volume_saude" defaultValue="">
+                    {weeklyQuoteVolumeOptions.map((opt) => (
+                      <option key={`saude-${opt.value || "placeholder"}`} value={opt.value} disabled={opt.disabled}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <fieldset className="capture-form-fieldset">
+                <legend>Principais seguradoras com que voce trabalha</legend>
+                <div className="capture-form-check-grid">
+                  {mainInsurers.map((ins) => (
+                    <label key={ins.id} className="capture-form-check">
+                      <input type="checkbox" name="insurers" value={ins.id} />
+                      <span>{ins.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
               <button type="button">Entrar na lista antecipada</button>
               <p>Sem promessa magica: queremos construir com quem vive o fluxo de cotacao todos os dias.</p>
             </form>
