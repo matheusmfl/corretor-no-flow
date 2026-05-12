@@ -15,9 +15,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Corretor no Flow - Propostas que viram conversa",
+  title: "Corretor No Flow - Cotacoes que viram vendas mais rapidas",
   description:
-    "SaaS para corretores de seguros transformarem PDFs tecnicos em propostas interativas, rastreaveis e prontas para converter.",
+    "Sistema de conversao comercial para corretores transformarem PDFs tecnicos em propostas claras, comparaveis e rastreaveis.",
 };
 
 export default function RootLayout({
