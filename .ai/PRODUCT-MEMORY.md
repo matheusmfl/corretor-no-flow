@@ -29,6 +29,8 @@ Corretor no Flow helps insurance brokers turn technical insurer quote PDFs into 
 - Tracking should evolve into simple commercial insight: cold, warm, hot.
 - Renewal starts as an internal agenda for brokers, not automatic customer messaging.
 - Post-sale and prospecting are future discovery tracks, not V1 implementation scope.
+- Health now has an urgent prototype track: start with a reviewed quote draft that turns PDFs/tables into the broker's spreadsheet workflow, then reuse the reviewed data for PDF and public link outputs.
+- Health extraction may be generalist at first, but every field must carry source, confidence, evidence, and review status so AI inference does not become silent product truth.
 
 ## Pre-Sale V1 Roadmap
 
@@ -37,6 +39,7 @@ Corretor no Flow helps insurance brokers turn technical insurer quote PDFs into 
 - Expand tracking events and compute a rule-based commercial score.
 - Add manual sales outcome status and internal renewal/opportunity agenda.
 - Map Health as a human discovery document before implementation.
+- For the urgent Health prototype, prioritize XLSX export from reviewed lives/options before polishing Health PDF/link UX.
 - Keep product line/ramo selection before upload, but remove mandatory insurer selection from the AUTO upload flow once PDF insurer detection is implemented.
 - Insurer detection must be conservative and explainable, especially for insurer groups such as Porto/Itau and Allianz/Aliro.
 

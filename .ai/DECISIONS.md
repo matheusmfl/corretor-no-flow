@@ -97,3 +97,17 @@ Some insurer groups share templates or brand mentions. Itau PDFs may mention Por
 
 Review when:
 The backend detector and frontend upload review flow are implemented and tested with real PDFs from supported insurers and known group/template edge cases.
+
+## 2026-05-13 - Health Urgent Prototype Uses Reviewed Drafts
+
+Decision:
+The urgent Health prototype should start as a reviewed quote-draft workflow, not as a final insurer-specific Health engine. It may use generalist AI extraction and inference, but every field must preserve source, confidence, evidence, and whether broker review is required. The first valuable output is the broker-style spreadsheet; PDF and navigable link should be generated later from the same reviewed draft.
+
+Reason:
+A health broker reported an immediate operational pain: manually assembling spreadsheets with lives, ages, per-life prices, plan options, and totals. A generalist draft layer lets us deliver value quickly while avoiding the risk of treating inferred fields such as accommodation, coparticipation, reimbursement, network, or waiting periods as unquestioned facts.
+
+Risk:
+If implementation skips provenance/review and saves AI output as final data, Health can become misleading and hard to refactor. If the spreadsheet format is overfit to one broker, the MVP may need adjustment for other broker workflows.
+
+Review when:
+At least one broker validates an exported Health spreadsheet generated from PDFs plus manual/table options, and before the same data is used in a client-facing PDF or public link.

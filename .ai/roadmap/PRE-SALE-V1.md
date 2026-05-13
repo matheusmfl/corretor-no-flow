@@ -51,6 +51,9 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 - Health should start with human mapping, not code.
 - Map fields, comparison rules, PDF examples, and client-facing language first.
 - Implementation starts only after the mapping document is complete enough to produce tasks.
+- Urgent Health prototype path: prioritize a reviewed quote-draft workflow that can generate the broker's current spreadsheet format from PDFs/tables.
+- PDF and public link for Health should come after the reviewed draft and spreadsheet export, using the same confirmed data rather than re-extracting independently.
+- Health OCR/vision support is a future technical slice for PDFs/tables that arrive as images or scans.
 
 ### Group F - Future Discovery
 
@@ -78,3 +81,12 @@ V1 focuses on pre-sale conversion for insurance brokers. The product should not 
 16. `TASK-0011` - Design AutoQuoteData insurer extras contract.
 17. `TASK-0012` - Map Porto extras backlog.
 18. `TASK-0030` - Collect and extract future insurer PDF samples.
+19. `TASK-0052` - Discover Health varied PDFs and broker spreadsheet workflow.
+20. `TASK-0053` - Create validated Health quote draft contract.
+21. `TASK-0054` - Create Health textual extractor v0 to draft.
+22. `TASK-0055` - Create Health manual age-band table pricing engine.
+23. `TASK-0056` - Build Health spreadsheet matrix and XLSX export.
+24. `TASK-0057` - Create Health review workspace UX.
+25. `TASK-0058` - Wire Health draft to spreadsheet generation flow.
+26. `TASK-0059` - Create Health proposal PDF from reviewed draft.
+27. `TASK-0060` - Create Health public link from reviewed draft.

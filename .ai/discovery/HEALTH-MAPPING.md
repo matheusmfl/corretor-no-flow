@@ -8,6 +8,7 @@ Define what a broker and insured client need to understand from a Health quote b
 
 ## Insurer Discoveries
 
+- Health assisted quote MVP: `.ai/discovery/HEALTH-QUOTE-ASSISTED-MVP.md`
 - Bradesco Saude: `.ai/discovery/BRADESCO-HEALTH.md`
 - Bradesco Saude sales materials: `.ai/discovery/BRADESCO-HEALTH-SALES-MATERIALS.md`
 - Bradesco Saude Pernambuco network: `.ai/discovery/BRADESCO-HEALTH-PE-NETWORK.md`
@@ -21,6 +22,29 @@ Define what a broker and insured client need to understand from a Health quote b
 - Number of lives:
 - PDF source:
 - Notes about layout:
+
+## Current Urgent Samples
+
+Folder:
+
+- `.ai/pdf-lab/input/pdfs-saude-variados`
+
+PDF extraction output:
+
+- `.ai/pdf-lab/output/health_varied_quotes_2026_05_13.md`
+- `.ai/pdf-lab/output/health_varied_quotes_2026_05_13.json`
+
+Current broker spreadsheet examples:
+
+- `UNIMED - OTORRINOS.xlsx`
+- arquivo `.xlsx` iniciado por `cotac...` e contendo `CTO ATUALIZADO`
+
+Urgent product direction:
+
+- prioritize a reviewed quote draft that can generate the broker's current spreadsheet format;
+- keep PDF and navigable public link as later outputs from the same reviewed draft;
+- preserve field source, confidence, evidence and review status for every extracted/inferred field;
+- add future OCR/vision support for PDFs whose tables are images or scans.
 
 ## Fields To Map
 
