@@ -16,6 +16,8 @@ import { DetectInsurerUseCase } from './application/use-cases/detect-insurer.use
 import { UploadAutoQuoteUseCase } from './application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from './application/use-cases/reset-quote-batch.use-case';
 import { RemoveQuoteFromProcessUseCase } from './application/use-cases/remove-quote-from-process.use-case';
+import { HealthQuoteDraftExtractorService } from './application/services/health-quote-draft-extractor.service';
+import { HealthManualTablePricingService } from './application/services/health-manual-table-pricing.service';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -40,6 +42,8 @@ import { AiModule } from '../ai/ai.module';
     UploadAutoQuoteUseCase,
     ResetQuoteBatchUseCase,
     RemoveQuoteFromProcessUseCase,
+    HealthQuoteDraftExtractorService,
+    HealthManualTablePricingService,
     ExtractPdfProcessor,
   ],
 })

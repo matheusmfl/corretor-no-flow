@@ -32,6 +32,71 @@ const SYSTEM_PROMPT = `Você é um especialista em extração de dados de cotaç
 Dado o texto bruto de uma cotação, extraia todas as informações relevantes e retorne APENAS um objeto JSON válido.
 Não inclua explicações, markdown, ou qualquer texto fora do JSON.`;
 
+const HEALTH_SYSTEM_PROMPT = `Você é um especialista em extração de dados de cotações de planos de saúde brasileiros.
+Retorne APENAS um objeto JSON válido conforme o formato solicitado.
+Não inclua explicações, markdown, ou qualquer texto fora do JSON.
+Regra crítica: nunca invente rede credenciada, coparticipação, carência ou reembolso sem evidência textual clara.`;
+
+function getHealthQuoteDraftPrompt(): string {
+  return `Você está analisando o texto bruto de uma cotação de plano de saúde (e possivelmente odonto).
+
+Retorne EXATAMENTE o seguinte formato JSON:
+
+{
+  "clientName": "razão social ou nome do cliente, ou null se ausente",
+  "companyDocument": "CNPJ ou CPF, ou null se ausente",
+  "state": "UF de 2 letras, ou null",
+  "city": "cidade, ou null",
+  "sourceFiles": [],
+  "ageBandCounts": [
+    { "bandLabel": "rótulo da faixa exatamente como aparece (ex: até 18, 34-38)", "minAge": número, "maxAge": número, "count": número de vidas nessa faixa }
+  ],
+  "lives": [],
+  "quoteOptions": [
+    {
+      "sourceType": "portal_pdf",
+      "carrierOrOperator": "operadora ou seguradora exatamente como aparece",
+      "administratorOrChannel": "administradora ou canal se diferente da operadora, ou null",
+      "planName": "nome do plano exatamente como aparece",
+      "productCode": "código do produto se disponível, ou null",
+      "accommodation": { "value": "Enfermaria|Apartamento|null", "source": "extracted|inferred|not_found", "confidence": 0.0-1.0, "evidence": "trecho do texto", "needsReview": true|false },
+      "coparticipation": { "value": "descrição ou null", "source": "...", "confidence": 0.0-1.0, "evidence": "...", "needsReview": true|false },
+      "reimbursementMode": { "value": "descrição ou null", "source": "...", "confidence": 0.0-1.0, "evidence": "...", "needsReview": true|false },
+      "validUntil": { "value": "data ou null", "source": "...", "confidence": 0.0-1.0, "evidence": "...", "needsReview": true|false },
+      "dental": { "value": "descrição ou null se não há odonto nesta opção", "source": "...", "confidence": 0.0-1.0, "evidence": "...", "needsReview": true|false },
+      "ageBandPrices": [
+        { "bandLabel": "rótulo da faixa", "minAge": número, "maxAge": número, "pricePerLife": valor em reais }
+      ],
+      "monthlyTotal": total mensal em reais como número,
+      "warnings": ["avisos de validade, recálculo, etc."]
+    }
+  ],
+  "warnings": [],
+  "reviewStatus": "pending"
+}
+
+Regras obrigatórias:
+
+1. ageBandCounts: quando o PDF traz contagem de vidas por faixa etária (ex: "até 18: 1, 34-38: 1, 39-43: 1"), use "ageBandCounts" com count por faixa. Não crie vidas individuais nesses casos — o sistema faz isso automaticamente.
+
+2. lives: use apenas quando o PDF ou planilha traz nomes ou idades individuais explícitas. Nesse caso cada vida deve ter: {"age": número, "name": "nome ou null", "source": "extracted", "needsReview": false}.
+
+3. Se o PDF contém Saúde E Odonto no mesmo arquivo, crie entradas SEPARADAS em quoteOptions — uma para o plano médico, outra para o odonto.
+
+4. Para cada DraftField (accommodation, coparticipation, reimbursementMode, validUntil, dental):
+   - source "extracted": campo aparece claramente no texto
+   - source "inferred": IA inferiu a partir de evidência indireta — needsReview DEVE ser true
+   - source "not_found": campo ausente no texto — value DEVE ser null e needsReview DEVE ser true
+   - confidence entre 0.0 e 1.0
+
+5. Campos sensíveis com source "inferred" EXIGEM needsReview: true: accommodation, coparticipation, reimbursementMode, validUntil, dental.
+
+6. NÃO invente rede credenciada, carência, reembolso ou coparticipação sem evidência textual explícita.
+
+7. Campos opcionais ausentes devem ser null (não omitidos).`;
+}
+
+
 function getPortoSeguroAutoPrompt(): string {
   return `Você está analisando uma Cotação de Seguro Auto da Porto Seguro.
 O documento pode ter até 5 páginas. Cotações "resumidas" têm apenas 2 páginas mas contêm todos os dados essenciais.
@@ -590,6 +655,19 @@ export class AiService {
       ],
       'extraction',
       context ? { ...context, insurer, product } : undefined,
+    );
+  }
+
+  async extractHealthQuoteDraft(
+    rawText: string,
+  ): Promise<Record<string, unknown>> {
+    const prompt = getHealthQuoteDraftPrompt();
+    return this.completeJsonFromMessages(
+      [
+        { role: 'system', content: HEALTH_SYSTEM_PROMPT },
+        { role: 'user', content: `${prompt}\n\nTexto da cotação:\n${rawText}` },
+      ],
+      'extraction',
     );
   }
 

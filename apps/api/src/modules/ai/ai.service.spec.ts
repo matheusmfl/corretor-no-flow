@@ -224,4 +224,47 @@ describe('AiService', () => {
       expect(mockGeminiGenerateContent).toHaveBeenCalled();
     });
   });
+
+  describe('extractHealthQuoteDraft', () => {
+    const VALID_HEALTH_RESPONSE = {
+      clientName: 'Empresa Exemplo',
+      ageBandCounts: [{ bandLabel: 'até 18', minAge: 0, maxAge: 18, count: 1 }],
+      lives: [],
+      quoteOptions: [],
+      reviewStatus: 'pending',
+    };
+
+    it('retorna JSON parseado quando Groq responde com JSON válido', async () => {
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(JSON.stringify(VALID_HEALTH_RESPONSE)));
+      const svc = buildAiService(mockCreate, null);
+
+      const result = await svc.extractHealthQuoteDraft('texto saúde');
+
+      expect(result).toEqual(VALID_HEALTH_RESPONSE);
+    });
+
+    it('remove markdown code fences antes de parsear o JSON', async () => {
+      const withFences = `\`\`\`json\n${JSON.stringify(VALID_HEALTH_RESPONSE)}\n\`\`\``;
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(withFences));
+      const svc = buildAiService(mockCreate, null);
+
+      const result = await svc.extractHealthQuoteDraft('texto saúde');
+
+      expect(result).toEqual(VALID_HEALTH_RESPONSE);
+    });
+
+    it('não passa por SUPPORTED_PRODUCTS (não lança BadRequestException)', async () => {
+      const mockCreate = jest.fn().mockResolvedValue(makeResponse(JSON.stringify(VALID_HEALTH_RESPONSE)));
+      const svc = buildAiService(mockCreate, null);
+
+      await expect(svc.extractHealthQuoteDraft('texto saúde')).resolves.not.toThrow();
+    });
+
+    it('lança InternalServerErrorException quando Groq retorna resposta vazia', async () => {
+      const mockCreate = jest.fn().mockResolvedValue({ choices: [{ message: { content: '' } }] });
+      const svc = buildAiService(mockCreate, null);
+
+      await expect(svc.extractHealthQuoteDraft('texto')).rejects.toThrow();
+    });
+  });
 });
