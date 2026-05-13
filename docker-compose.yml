@@ -82,3 +82,11 @@ services:
     command: tunnel --url http://host.docker.internal:3002
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  tunnel-api:
+    image: cloudflare/cloudflared:latest
+    container_name: corretor_tunnel_api
+    restart: unless-stopped
+    command: tunnel --url http://host.docker.internal:3001
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
