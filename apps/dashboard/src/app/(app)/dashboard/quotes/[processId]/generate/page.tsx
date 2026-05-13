@@ -1,10 +1,11 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuoteProcess } from '@/hooks/quotes/use-quote-process'
 import { useGeneratePdf } from '@/hooks/quotes/use-generate-pdf'
 import { usePublishProcess } from '@/hooks/quotes/use-publish-process'
+import { getPublicLinkBaseUrlFromEnv } from '@/lib/api/base-url'
 import { quoteProcessApi } from '@/lib/api/quote-process.api'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -229,11 +230,19 @@ export default function GeneratePage({ params }: { params: Promise<{ processId: 
 
   const publishResult = publishProcess.data
   const isPublished = !!publishResult || process?.status === 'PUBLISHED'
-  const publicUrl = publishResult?.publicUrl ?? (
-    process?.publicToken
-      ? `${window.location.origin}/c/${process.publicToken}`
-      : null
-  )
+
+  const envPublicBase = getPublicLinkBaseUrlFromEnv()
+  const [browserOriginFallback, setBrowserOriginFallback] = useState('')
+  useEffect(() => {
+    if (!envPublicBase) {
+      setBrowserOriginFallback(window.location.origin)
+    }
+  }, [envPublicBase])
+
+  const publicLinkBase = envPublicBase || browserOriginFallback
+  const publicUrl =
+    publishResult?.publicUrl ??
+    (process?.publicToken && publicLinkBase ? `${publicLinkBase}/c/${process.publicToken}` : null)
   const expiresAt = publishResult?.expiresAt
     ? new Date(publishResult.expiresAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null

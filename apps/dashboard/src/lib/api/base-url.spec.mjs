@@ -10,6 +10,7 @@ function setEnv(values) {
   const previous = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     API_INTERNAL_URL: process.env.API_INTERNAL_URL,
+    NEXT_PUBLIC_DASHBOARD_ENVIRONMENT: process.env.NEXT_PUBLIC_DASHBOARD_ENVIRONMENT,
   }
 
   for (const [key, value] of Object.entries(values)) {
@@ -63,6 +64,36 @@ await test('server prefers internal URL and strips trailing slashes', async () =
   try {
     const { getServerApiBaseUrl } = await loadFresh()
     assert.equal(getServerApiBaseUrl(), 'http://127.0.0.1:3001')
+  } finally {
+    restore()
+  }
+})
+
+await test('dashboard environment header is empty when env unset', async () => {
+  const restore = setEnv({
+    NEXT_PUBLIC_API_URL: '',
+    API_INTERNAL_URL: null,
+    NEXT_PUBLIC_DASHBOARD_ENVIRONMENT: '',
+  })
+  try {
+    const { getDashboardEnvironmentHeaders } = await loadFresh()
+    assert.deepEqual(getDashboardEnvironmentHeaders(), {})
+  } finally {
+    restore()
+  }
+})
+
+await test('dashboard environment header maps NEXT_PUBLIC_DASHBOARD_ENVIRONMENT', async () => {
+  const restore = setEnv({
+    NEXT_PUBLIC_API_URL: '',
+    API_INTERNAL_URL: null,
+    NEXT_PUBLIC_DASHBOARD_ENVIRONMENT: ' production ',
+  })
+  try {
+    const { getDashboardEnvironmentHeaders, DASHBOARD_ENVIRONMENT_HEADER } = await loadFresh()
+    assert.deepEqual(getDashboardEnvironmentHeaders(), {
+      [DASHBOARD_ENVIRONMENT_HEADER]: 'production',
+    })
   } finally {
     restore()
   }

@@ -1,6 +1,6 @@
 import type { QuoteEventType, QuoteProcessMetrics } from '@corretor/types'
 import { apiClient } from './client'
-import { getBrowserApiBaseUrl } from './base-url'
+import { getBrowserApiBaseUrl, getDashboardEnvironmentHeaders } from './base-url'
 
 const API_URL = getBrowserApiBaseUrl()
 
@@ -8,7 +8,7 @@ async function post(path: string, body?: unknown): Promise<void> {
   await fetch(`${API_URL}/api/tracking${path}`, {
     method:      'POST',
     credentials: 'include',
-    headers:     { 'Content-Type': 'application/json' },
+    headers:     { ...getDashboardEnvironmentHeaders(), 'Content-Type': 'application/json' },
     body:        body ? JSON.stringify(body) : undefined,
     keepalive:   true,
   }).catch(() => undefined) // tracking is fire-and-forget

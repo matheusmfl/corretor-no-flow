@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { PrismaClient, QuoteStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -15,13 +16,23 @@ const makeProcess = (overrides = {}) => ({
   ...overrides,
 });
 
+function makeConfig(overrides?: Record<string, string | undefined>) {
+  const map: Record<string, string | undefined> = {
+    APP_URL: 'https://dashboard.example.com',
+    ...(overrides ?? {}),
+  };
+  return {
+    get: (key: string) => map[key],
+  } as ConfigService;
+}
+
 describe('GenerateLinkUseCase', () => {
   let useCase: GenerateLinkUseCase;
   let prisma: DeepMockProxy<PrismaClient>;
 
   beforeEach(() => {
     prisma = mockDeep<PrismaClient>();
-    useCase = new GenerateLinkUseCase(prisma as unknown as PrismaService);
+    useCase = new GenerateLinkUseCase(prisma as unknown as PrismaService, makeConfig());
   });
 
   it('gera publicToken, define expiresAt e muda status para PUBLISHED', async () => {
@@ -42,7 +53,25 @@ describe('GenerateLinkUseCase', () => {
     );
     expect(result.publicToken).toBeTruthy();
     expect(result.publicUrl).toContain(result.publicToken);
+    expect(result.publicUrl).toMatch(/^https:\/\/dashboard\.example\.com\/c\//);
     expect(result.expiresAt).toBeInstanceOf(Date);
+  });
+
+  it('usa PUBLIC_LINK_BASE_URL quando definido (sobrescreve APP_URL)', async () => {
+    prisma.quoteProcess.findUnique.mockResolvedValue(makeProcess() as any);
+    prisma.quoteProcess.update.mockResolvedValue({} as any);
+
+    const useCaseWithPublic = new GenerateLinkUseCase(
+      prisma as unknown as PrismaService,
+      makeConfig({
+        PUBLIC_LINK_BASE_URL: 'https://app.corretor.com.br/',
+        APP_URL: 'https://ignored.example.com',
+      }),
+    );
+
+    const result = await useCaseWithPublic.execute('comp-1', 'proc-1');
+
+    expect(result.publicUrl).toBe(`https://app.corretor.com.br/c/${result.publicToken}`);
   });
 
   it('expiresAt é aproximadamente 30 dias a partir de agora', async () => {

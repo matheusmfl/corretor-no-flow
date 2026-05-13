@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { PublicProcessResponse, AutoQuoteData } from '@corretor/types'
-import { getServerApiBaseUrl } from '@/lib/api/base-url'
+import { getDashboardEnvironmentHeaders, getServerApiBaseUrl } from '@/lib/api/base-url'
 import { QuoteTracker } from './quote-tracker'
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
@@ -15,6 +15,7 @@ async function fetchProcess(token: string): Promise<FetchResult> {
   try {
     const res = await fetch(`${API_URL}/api/public/c/${token}`, {
       cache: 'no-store',
+      headers: { ...getDashboardEnvironmentHeaders() },
     })
     if (res.status === 404) return { ok: false, status: 404 }
     if (res.status === 410) return { ok: false, status: 410 }

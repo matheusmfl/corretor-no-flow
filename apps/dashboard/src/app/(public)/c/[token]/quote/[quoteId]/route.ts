@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerApiBaseUrl } from '@/lib/api/base-url'
+import { getDashboardEnvironmentHeaders, getServerApiBaseUrl } from '@/lib/api/base-url'
 
 const API_URL = getServerApiBaseUrl()
 
@@ -11,6 +11,7 @@ export async function GET(
 
   const res = await fetch(`${API_URL}/api/public/c/${token}/quote/${quoteId}/html`, {
     cache: 'no-store',
+    headers: { ...getDashboardEnvironmentHeaders() },
   })
 
   if (res.status === 410) {

@@ -1,14 +1,23 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { QuoteStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 const EXPIRES_IN_DAYS = 30;
-const BASE_URL = process.env.APP_URL ?? 'http://localhost:3000';
+
+function normalizePublicLinkBase(raw: string | undefined): string {
+  const s = (raw ?? '').trim();
+  if (!s) return '';
+  return s.replace(/\/+$/, '');
+}
 
 @Injectable()
 export class GenerateLinkUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
   async execute(
     companyId: string,
@@ -46,9 +55,14 @@ export class GenerateLinkUseCase {
       data: { publicToken, expiresAt, status: 'PUBLISHED', publicQuoteIds: selectedIds },
     });
 
+    const base =
+      normalizePublicLinkBase(this.config.get<string>('PUBLIC_LINK_BASE_URL')) ||
+      normalizePublicLinkBase(this.config.get<string>('APP_URL')) ||
+      'http://localhost:3002';
+
     return {
       publicToken,
-      publicUrl: `${BASE_URL}/c/${publicToken}`,
+      publicUrl: `${base}/c/${publicToken}`,
       expiresAt,
     };
   }

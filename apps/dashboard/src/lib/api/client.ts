@@ -1,4 +1,4 @@
-import { getBrowserApiBaseUrl } from './base-url'
+import { getBrowserApiBaseUrl, getDashboardEnvironmentHeaders } from './base-url'
 
 const BASE_URL = getBrowserApiBaseUrl()
 
@@ -27,6 +27,7 @@ async function tryRefresh(): Promise<boolean> {
     const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      headers: { ...getDashboardEnvironmentHeaders() },
     })
     return res.ok
   } catch {
@@ -51,6 +52,7 @@ async function request<T>(
       ...options,
       credentials: 'include',
       headers: {
+        ...getDashboardEnvironmentHeaders(),
         ...(!isFormData && { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
