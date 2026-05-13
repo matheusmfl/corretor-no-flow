@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const FLOW_DURATION_MS = 24000;
@@ -7,6 +8,53 @@ const PUBLIC_STAGE_MS = 10800;
 const HAND_STAGE_MS = 12500;
 const AUTO_SCROLL_MS = 15600;
 const RESET_SCROLL_MS = 23200;
+
+const INSURER_LOGO_SRC = {
+  porto: "/logos/porto-seguro.svg",
+  tokio: "/logos/tokio-marine.svg",
+  azul: "/logos/azul-seguros.svg",
+  bradesco: "/logos/bradesco-seguros.svg",
+} as const;
+
+type InsurerSlug = keyof typeof INSURER_LOGO_SRC;
+
+const INSURER_LOGO_LABEL: Record<InsurerSlug, string> = {
+  porto: "Porto Seguro",
+  tokio: "Tokio Marine",
+  azul: "Azul Seguros",
+  bradesco: "Bradesco Seguros",
+};
+
+function FlowInsurerLogo({
+  slug,
+  width,
+  height,
+  className = "",
+  variant = "light",
+}: {
+  slug: InsurerSlug;
+  width: number;
+  height: number;
+  className?: string;
+  variant?: "light" | "onBrand";
+}) {
+  return (
+    <span
+      className={`flow-insurer-logo flow-insurer-logo--${variant} ${className}`.trim()}
+      role="img"
+      aria-label={INSURER_LOGO_LABEL[slug]}
+    >
+      <Image
+        src={INSURER_LOGO_SRC[slug]}
+        alt=""
+        width={width}
+        height={height}
+        className="flow-insurer-logo-img"
+        unoptimized
+      />
+    </span>
+  );
+}
 
 export function FlowDemo() {
   const [cycleKey, setCycleKey] = useState(0);
@@ -81,7 +129,10 @@ export function FlowDemo() {
           <span>Preparamos 2 cotacoes de automovel para voce comparar com clareza.</span>
           <div className="flow-link-quote">
             <div className="flow-link-quote-head">
-              <strong>Porto Seguro</strong>
+              <div className="flow-quote-head-main">
+                <FlowInsurerLogo slug="porto" width={72} height={22} />
+                <strong>Porto Seguro</strong>
+              </div>
               <span>COMPASS SPORT 1.3</span>
             </div>
             <small>Compreensiva</small>
@@ -89,6 +140,10 @@ export function FlowDemo() {
             <div className="flow-link-tags">
               <span>100% FIPE</span>
               <span>Guincho</span>
+            </div>
+            <div className="flow-link-quote-teaser">
+              <FlowInsurerLogo slug="tokio" width={56} height={18} />
+              <span>Tokio Marine · comparar no link completo</span>
             </div>
             <button type="button">Ver cotacao completa -&gt;</button>
           </div>
@@ -99,8 +154,8 @@ export function FlowDemo() {
 
       <div className="flow-full-quote-card">
         <div className="flow-full-topbar">
-          <span className="flow-brand-logo flow-azul-logo">azul</span>
-          <strong>Sua seguradora</strong>
+          <FlowInsurerLogo slug="porto" width={72} height={22} variant="onBrand" />
+          <strong>Corretor No Flow</strong>
           <small>Valido ate 12/05</small>
         </div>
 
@@ -119,7 +174,10 @@ export function FlowDemo() {
 
             <div className="flow-public-card flow-porto-detail-card">
               <div className="flow-public-card-head">
-                <strong>Porto Seguro</strong>
+                <div className="flow-public-card-head-main">
+                  <FlowInsurerLogo slug="porto" width={72} height={22} variant="onBrand" />
+                  <strong>Porto Seguro</strong>
+                </div>
                 <span>COMPASS SPORT 1.3</span>
               </div>
 
@@ -191,8 +249,8 @@ export function FlowDemo() {
             </div>
 
             <div className="flow-public-footer">
-              <span className="flow-brand-logo flow-azul-logo">azul</span>
-              <p>Fale com sua seguradora no WhatsApp para tirar duvidas.</p>
+              <FlowInsurerLogo slug="porto" width={56} height={18} />
+              <p>Fale com sua corretora no WhatsApp para tirar duvidas.</p>
             </div>
           </div>
 
