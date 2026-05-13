@@ -1,4 +1,5 @@
 export * from './auth.types'
+export * from './health-quote-draft.types'
 export * from './user.types'
 export * from './company.types'
 export * from './quote.types'
