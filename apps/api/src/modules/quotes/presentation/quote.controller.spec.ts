@@ -14,6 +14,7 @@ import { DetectInsurerUseCase } from '../application/use-cases/detect-insurer.us
 import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
 import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
+import { GenerateHealthXlsxUseCase } from '../application/use-cases/generate-health-xlsx.use-case';
 
 function makeUseCaseMock() {
   return { execute: jest.fn() };
@@ -42,6 +43,7 @@ describe('QuoteController — downloadPdf', () => {
         { provide: UploadAutoQuoteUseCase,          useValue: makeUseCaseMock() },
         { provide: ResetQuoteBatchUseCase,          useValue: makeUseCaseMock() },
         { provide: RemoveQuoteFromProcessUseCase,   useValue: makeUseCaseMock() },
+        { provide: GenerateHealthXlsxUseCase,       useValue: makeUseCaseMock() },
       ],
     }).compile();
 

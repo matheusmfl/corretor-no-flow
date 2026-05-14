@@ -1,12 +1,10 @@
 import { UnprocessableEntityException } from '@nestjs/common';
 import { z } from 'zod';
 import type {
-  DraftField,
   HealthAgeBandPrice,
   HealthManualTableSource,
   HealthMemberLife,
   HealthQuoteDraft,
-  HealthQuoteOption,
 } from '@corretor/types';
 
 // ─── DraftField ───────────────────────────────────────────────────────────────
@@ -21,6 +19,14 @@ const DraftFieldSourceSchema = z.enum([
   'not_found',
 ]);
 
+/** Zod 4 refine callbacks infer a mapped type that omits `value`; keep runtime checks typed explicitly. */
+type DraftFieldRefineRow = {
+  value: unknown;
+  source: string;
+  confidence: number;
+  needsReview: boolean;
+};
+
 function draftFieldSchema<T extends z.ZodTypeAny>(valueSchema: T) {
   return z
     .object({
@@ -31,15 +37,16 @@ function draftFieldSchema<T extends z.ZodTypeAny>(valueSchema: T) {
       needsReview: z.boolean(),
     })
     .superRefine((data, ctx) => {
-      if (data.source === 'not_found') {
-        if (data.value !== null) {
+      const row = data as DraftFieldRefineRow;
+      if (row.source === 'not_found') {
+        if (row.value !== null) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'not_found requer value: null',
             path: ['value'],
           });
         }
-        if (!data.needsReview) {
+        if (!row.needsReview) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'not_found requer needsReview: true',
@@ -90,7 +97,7 @@ function isSensitiveSource(source: string): source is SensitiveSource {
   return (SENSITIVE_SOURCES as readonly string[]).includes(source);
 }
 
-const StringDraftFieldSchema = draftFieldSchema(z.string()) satisfies z.ZodType<DraftField<string>>;
+const StringDraftFieldSchema = draftFieldSchema(z.string());
 
 const HealthQuoteOptionSchema = z
   .object({
@@ -133,7 +140,7 @@ const HealthQuoteOptionSchema = z
         });
       }
     }
-  }) satisfies z.ZodType<HealthQuoteOption>;
+  });
 
 // ─── HealthManualTableSource ──────────────────────────────────────────────────
 
@@ -163,7 +170,7 @@ const HealthQuoteDraftSchema = z.object({
   tables: z.array(HealthManualTableSourceSchema).optional(),
   warnings: z.array(z.string()).optional(),
   reviewStatus: z.enum(['pending', 'in_review', 'confirmed']),
-}) satisfies z.ZodType<HealthQuoteDraft>;
+});
 
 // ─── Null normalisation ───────────────────────────────────────────────────────
 
@@ -216,5 +223,6 @@ export function parseHealthQuoteDraft(raw: unknown): HealthQuoteDraft {
         .join('; ')}`,
     );
   }
-  return result.data;
+  // Zod 4 output types mark DraftField.value optional vs @corretor/types; runtime shape matches HealthQuoteDraft.
+  return result.data as HealthQuoteDraft;
 }

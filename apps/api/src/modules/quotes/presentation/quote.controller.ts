@@ -49,6 +49,9 @@ import { DetectInsurerUseCase } from '../application/use-cases/detect-insurer.us
 import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quote.use-case';
 import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
 import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
+import { GenerateHealthXlsxUseCase } from '../application/use-cases/generate-health-xlsx.use-case';
+import { GenerateHealthXlsxDto } from '../application/dtos/generate-health-xlsx.dto';
+import { parseHealthQuoteDraft } from '../domain/schemas/health-quote-draft.schema';
 
 const pdfStorage = diskStorage({
   destination: './uploads',
@@ -76,6 +79,7 @@ export class QuoteController {
     private readonly uploadAutoQuote: UploadAutoQuoteUseCase,
     private readonly resetQuoteBatch: ResetQuoteBatchUseCase,
     private readonly removeQuoteFromProcess: RemoveQuoteFromProcessUseCase,
+    private readonly generateHealthXlsxUseCase: GenerateHealthXlsxUseCase,
   ) {}
 
   @Post()
@@ -175,6 +179,30 @@ export class QuoteController {
     @Body() body: SelectQuotesDto,
   ) {
     return this.generateLink.execute(user.companyId, id, body?.quoteIds);
+  }
+
+  @Post('health/generate-xlsx')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Gera e baixa planilha XLSX para um rascunho de cotação Saúde' })
+  async downloadHealthXlsx(
+    @CurrentUser() _user: { companyId: string },
+    @Body() body: GenerateHealthXlsxDto,
+    @Res() res: Response,
+  ) {
+    if (!body.draft) throw new BadRequestException('Campo "draft" é obrigatório');
+    const draft = parseHealthQuoteDraft(body.draft);
+    const buffer = await this.generateHealthXlsxUseCase.execute(draft, body.forceGenerate ?? false);
+    const clientSlug = (draft.clientName ?? 'rascunho')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 40);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="cotacao-saude-${clientSlug}.xlsx"`);
+    res.end(buffer);
   }
 
   @Post('detect-insurer')

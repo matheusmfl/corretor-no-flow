@@ -18,6 +18,9 @@ import { ResetQuoteBatchUseCase } from './application/use-cases/reset-quote-batc
 import { RemoveQuoteFromProcessUseCase } from './application/use-cases/remove-quote-from-process.use-case';
 import { HealthQuoteDraftExtractorService } from './application/services/health-quote-draft-extractor.service';
 import { HealthManualTablePricingService } from './application/services/health-manual-table-pricing.service';
+import { HealthSpreadsheetMatrixService } from './application/services/health-spreadsheet-matrix.service';
+import { HealthXlsxExportService } from './application/services/health-xlsx-export.service';
+import { GenerateHealthXlsxUseCase } from './application/use-cases/generate-health-xlsx.use-case';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -44,6 +47,9 @@ import { AiModule } from '../ai/ai.module';
     RemoveQuoteFromProcessUseCase,
     HealthQuoteDraftExtractorService,
     HealthManualTablePricingService,
+    HealthSpreadsheetMatrixService,
+    HealthXlsxExportService,
+    GenerateHealthXlsxUseCase,
     ExtractPdfProcessor,
   ],
 })

@@ -33,6 +33,7 @@
     "class-transformer": "^0.5",
     "class-validator": "^0.14",
     "cookie-parser": "^1.4",
+    "exceljs": "^4.4.0",
     "groq-sdk": "^1.1.2",
     "passport": "^0.7",
     "passport-jwt": "^4",
