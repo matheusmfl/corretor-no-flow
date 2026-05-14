@@ -1,9 +1,9 @@
 ---
 id: TASK-0057
 title: Criar workspace de revisao Saude no dashboard
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: done
 area: dashboard
 owner: claude
 reviewer: codex
@@ -119,3 +119,16 @@ The corretora sees a technical extraction screen instead of a fast approval work
 - [ ] Open the workspace on desktop and mobile.
 - [ ] Confirm the flow reads as "aprovar montagem pronta".
 - [ ] Confirm warnings are visible but not scary.
+
+## Codex review (pendente fechamento)
+
+Findings originais:
+
+- [P1] `AlertsPanel` recebia só `draft` — após "Confirmar base de vidas", o aviso de vida por faixa continuava. **Corrigido:** `livesConfirmed` + filtro `isLifeBaseCompositionWarning` em `draft.warnings` (mantém avisos de plano/IOF/validade/reembolso/odonto em `quoteOptions` e campos `needsReview`).
+- [P2] `ComparisonMatrix` pintava por `life.needsReview` sem saber se a base foi confirmada. **Corrigido:** `livesConfirmed`; highlight âmbar só quando `needsReview && !livesConfirmed`; após confirmação, check verde discreto nas vidas que ainda eram inferidas na matriz.
+
+## Implementation notes
+
+- Rota: `apps/dashboard/src/app/(app)/dashboard/quotes/health/review/page.tsx` (fixture local `FIXTURE`).
+- Heurística de aviso de base de vidas: `isLifeBaseCompositionWarning` (PT-BR: faixa/contagem/PDF/beneficiário + criada a partir). Ajustar lista se novos textos de backend entrarem.
+- Edição local de vida (`LifeEditForm`) já existia; confirmação em lote desliga highlight na matriz e remove avisos de composição no painel.

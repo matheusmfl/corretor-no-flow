@@ -1,6 +1,7 @@
 import type {
   CreateQuoteProcessDto,
   DetectInsurerResponse,
+  HealthQuoteDraft,
   Insurer,
   ListProcessesQuery,
   QuoteProcess,
@@ -73,6 +74,28 @@ export const quoteProcessApi = {
 
   removeQuote(processId: string, quoteId: string): Promise<{ deleted: true }> {
     return apiClient.delete(`/api/quotes/${processId}/quotes/${quoteId}`)
+  },
+
+  async generateHealthXlsx(draft: HealthQuoteDraft, forceGenerate = false): Promise<Blob> {
+    const base = getBrowserApiBaseUrl()
+    const res = await fetch(`${base}/api/quotes/health/generate-xlsx`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft, forceGenerate }),
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      let message = `HTTP ${res.status}`
+      try {
+        const json = JSON.parse(text)
+        message = json.message ?? message
+      } catch {
+        // text não é JSON
+      }
+      throw new Error(message)
+    }
+    return res.blob()
   },
 
   pdfDownloadUrl(processId: string, quoteId: string): string {

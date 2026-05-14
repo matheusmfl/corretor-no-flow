@@ -1,9 +1,9 @@
 ---
 id: TASK-0056
 title: Criar matriz e exportacao XLSX da cotacao Saude
-status: todo
+status: done
 kind: implementation
-lifecycle: open
+lifecycle: done
 area: api
 owner: claude
 reviewer: codex
@@ -107,4 +107,3 @@ The exported file looks like a spreadsheet but drops validity/source warnings, c
 
 - [ ] Human opens generated XLSX and confirms it resembles the current broker workflow enough for a prototype.
 - [ ] Codex reviews totals and warning placement.
-
