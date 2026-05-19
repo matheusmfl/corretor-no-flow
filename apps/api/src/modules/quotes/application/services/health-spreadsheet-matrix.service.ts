@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { HealthQuoteDraft, HealthQuoteOption } from '@corretor/types';
+import { isDentalOnlyOption } from './health-dental-classifier';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,7 +33,8 @@ export interface SpreadsheetMatrix {
 // ─── Pure builder ────────────────────────────────────────────────────────────
 
 export function buildHealthSpreadsheetMatrix(draft: HealthQuoteDraft): SpreadsheetMatrix {
-  const options = draft.quoteOptions;
+  const dentalOnlyOptions = draft.quoteOptions.filter(isDentalOnlyOption);
+  const options = draft.quoteOptions.filter((o) => !isDentalOnlyOption(o));
 
   const planColumns: SpreadsheetPlanColumn[] = options.map((o) => ({
     planName: o.planName,
@@ -130,6 +132,27 @@ export function buildHealthSpreadsheetMatrix(draft: HealthQuoteDraft): Spreadshe
       notes.push({ key: 'Aviso geral', value: w, needsReview: true }),
     );
   }
+
+  dentalOnlyOptions.forEach((opt) => {
+    const total = opt.monthlyTotal != null ? ` — R$ ${opt.monthlyTotal.toFixed(2)}/mês` : '';
+    notes.push({
+      key: `Adicional Odonto — ${opt.planName}`,
+      value: `${opt.carrierOrOperator} / ${opt.planName}${total}`,
+      needsReview: false,
+    });
+    if (opt.validUntil.value) {
+      notes.push({
+        key: `Validade Odonto — ${opt.planName}`,
+        value: opt.validUntil.value,
+        needsReview: opt.validUntil.needsReview,
+      });
+    }
+    if (opt.warnings?.length) {
+      opt.warnings.forEach((w) =>
+        notes.push({ key: `Aviso Odonto — ${opt.planName}`, value: w, needsReview: true }),
+      );
+    }
+  });
 
   return { headers, planColumns, rows, notes };
 }

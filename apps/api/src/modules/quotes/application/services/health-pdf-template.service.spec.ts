@@ -148,4 +148,59 @@ describe('HealthPdfTemplateService', () => {
     // (cada um é uma classe separada; este teste só verifica que a importação não quebra)
     expect(service).toBeInstanceOf(HealthPdfTemplateService);
   });
+
+  describe('filtragem dental-only', () => {
+    function dentalOnlyOption() {
+      return {
+        sourceType: 'portal_pdf' as const,
+        carrierOrOperator: 'Amil',
+        planName: 'DENTAL BRONZE PJ PROMO',
+        accommodation: { value: null, source: 'not_found' as const, confidence: 0, needsReview: true },
+        coparticipation: { value: null, source: 'not_found' as const, confidence: 0, needsReview: true },
+        reimbursementMode: { value: null, source: 'not_found' as const, confidence: 0, needsReview: true },
+        validUntil: { value: '2026-06-30', source: 'extracted' as const, confidence: 0.95, needsReview: false },
+        dental: { value: 'Incluso', source: 'extracted' as const, confidence: 0.95, needsReview: false },
+        monthlyTotal: 89.90,
+      };
+    }
+
+    it('opção dental-only não aparece como card de plano médico principal', () => {
+      const draft: HealthQuoteDraft = {
+        ...BASE_DRAFT,
+        quoteOptions: [BASE_DRAFT.quoteOptions[0], dentalOnlyOption()],
+      };
+      const html = service.render(draft);
+      // dental-only não deve aparecer na seção de opções de plano como concorrente
+      // Verificamos que não há card para DENTAL BRONZE no bloco de opções principais
+      // (o título da seção deve falar de "opções de plano" ou "adicionais", não misturar)
+      expect(html).not.toMatch(/<div class="option-card">[^]*?DENTAL BRONZE PJ PROMO[^]*?class="option-fields"[^]*?Acomodação/);
+    });
+
+    it('adicional dental aparece em seção separada no PDF', () => {
+      const draft: HealthQuoteDraft = {
+        ...BASE_DRAFT,
+        quoteOptions: [BASE_DRAFT.quoteOptions[0], dentalOnlyOption()],
+      };
+      const html = service.render(draft);
+      expect(html).toMatch(/[Aa]dicionai?s?\s*[Oo]donto|[Aa]dicional\s*[Oo]donto/);
+    });
+
+    it('aviso de opção dental aparece no PDF mesmo quando dental é classificado como observação', () => {
+      const dentalWithWarning = {
+        ...dentalOnlyOption(),
+        warnings: ['nesse valor não está calculado o reajuste atuarial'],
+      };
+      const draft: HealthQuoteDraft = {
+        ...BASE_DRAFT,
+        quoteOptions: [BASE_DRAFT.quoteOptions[0], dentalWithWarning],
+      };
+      const html = service.render(draft);
+      expect(html).toContain('reajuste atuarial');
+    });
+
+    it('draft com apenas opções médicas não exibe seção adicional odonto', () => {
+      const html = service.render(BASE_DRAFT);
+      expect(html).not.toMatch(/[Aa]dicionai?s?\s*[Oo]donto/);
+    });
+  });
 });

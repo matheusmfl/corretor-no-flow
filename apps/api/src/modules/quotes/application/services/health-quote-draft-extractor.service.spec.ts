@@ -346,6 +346,121 @@ describe('HealthQuoteDraftExtractorService', () => {
     });
   });
 
+  describe('derivação de perLifePrices a partir de ageBandPrices', () => {
+    it('deriva perLifePrices quando opção tem ageBandPrices mas não tem perLifePrices', async () => {
+      const response = {
+        ...AMIL_AI_RESPONSE,
+        quoteOptions: [
+          {
+            ...AMIL_AI_RESPONSE.quoteOptions[0],
+            perLifePrices: undefined,
+            ageBandPrices: [
+              { bandLabel: 'até 18', minAge: 0, maxAge: 18, pricePerLife: 532.33 },
+              { bandLabel: '34-38', minAge: 34, maxAge: 38, pricePerLife: 957.40 },
+              { bandLabel: '39-43', minAge: 39, maxAge: 43, pricePerLife: 1053.14 },
+            ],
+          },
+        ],
+        ageBandCounts: [
+          { bandLabel: 'até 18', minAge: 0, maxAge: 18, count: 1 },
+          { bandLabel: '34-38', minAge: 34, maxAge: 38, count: 1 },
+          { bandLabel: '39-43', minAge: 39, maxAge: 43, count: 1 },
+        ],
+        lives: [],
+      };
+      const { service } = makeService(response);
+      const draft = await service.extract('texto amil');
+
+      const opt = draft.quoteOptions[0];
+      expect(opt.perLifePrices).toBeDefined();
+      expect(opt.perLifePrices!.length).toBeGreaterThan(0);
+      const prices = opt.perLifePrices!.map((p) => p.price);
+      expect(prices).toContain(532.33);
+      expect(prices).toContain(957.40);
+      expect(prices).toContain(1053.14);
+    });
+
+    it('não sobrescreve perLifePrices quando a IA já forneceu', async () => {
+      const { service } = makeService(AMIL_AI_RESPONSE);
+      const draft = await service.extract('texto amil');
+
+      // AMIL_AI_RESPONSE já tem perLifePrices definidos — deve preservar
+      const opt = draft.quoteOptions[0];
+      expect(opt.perLifePrices).toBeDefined();
+      expect(opt.perLifePrices!.map((p) => p.price)).toEqual([532.33, 957.40, 1053.14]);
+    });
+
+    it('derivação parcial (nem todas as vidas têm faixa) adiciona aviso ao draft', async () => {
+      const response = {
+        ...AMIL_AI_RESPONSE,
+        quoteOptions: [
+          {
+            ...AMIL_AI_RESPONSE.quoteOptions[0],
+            perLifePrices: undefined,
+            ageBandPrices: [
+              // Cobre apenas 2 das 3 faixas (falta 39-43)
+              { bandLabel: 'até 18', minAge: 0, maxAge: 18, pricePerLife: 532.33 },
+              { bandLabel: '34-38', minAge: 34, maxAge: 38, pricePerLife: 957.40 },
+            ],
+          },
+        ],
+        ageBandCounts: [
+          { bandLabel: 'até 18', minAge: 0, maxAge: 18, count: 1 },
+          { bandLabel: '34-38', minAge: 34, maxAge: 38, count: 1 },
+          { bandLabel: '39-43', minAge: 39, maxAge: 43, count: 1 }, // sem faixa de preço correspondente
+        ],
+        lives: [],
+      };
+      const { service } = makeService(response);
+      const draft = await service.extract('texto derivação parcial');
+
+      const hasPartialWarning = (draft.quoteOptions[0].warnings ?? []).some((w) =>
+        /parcial|beneficiário|faixa/i.test(w),
+      );
+      expect(hasPartialWarning).toBe(true);
+    });
+
+    it('opção sem ageBandPrices não ganha perLifePrices derivados', async () => {
+      const response = {
+        ...AMIL_AI_RESPONSE,
+        quoteOptions: [
+          {
+            ...AMIL_AI_RESPONSE.quoteOptions[0],
+            perLifePrices: undefined,
+            ageBandPrices: undefined,
+          },
+        ],
+        ageBandCounts: [{ bandLabel: '34-38', minAge: 34, maxAge: 38, count: 1 }],
+        lives: [],
+      };
+      const { service } = makeService(response);
+      const draft = await service.extract('texto sem bandas');
+
+      expect(draft.quoteOptions[0].perLifePrices).toBeUndefined();
+    });
+  });
+
+  describe('aviso de operadora desconhecida', () => {
+    it('gera um único aviso mesmo quando múltiplas opções têm operadora desconhecida', async () => {
+      const response = {
+        ...AMIL_AI_RESPONSE,
+        ageBandCounts: [],
+        lives: [{ age: 34, source: 'extracted', needsReview: false }],
+        quoteOptions: [
+          { ...AMIL_AI_RESPONSE.quoteOptions[0], carrierOrOperator: null },
+          { ...AMIL_AI_RESPONSE.quoteOptions[0], planName: 'Outro Plano', carrierOrOperator: null },
+        ],
+      };
+      const { service } = makeService(response);
+      const draft = await service.extract('texto multi-opcao');
+
+      const unknownWarnings = (draft.warnings ?? []).filter((w) =>
+        w.toLowerCase().includes('operadora') && w.toLowerCase().includes('identificada'),
+      );
+      expect(unknownWarnings).toHaveLength(1);
+    });
+  });
+
   // P3 — sourceMeta param
   describe('sourceMeta', () => {
     it('injeta sourceFiles do sourceMeta no draft final', async () => {

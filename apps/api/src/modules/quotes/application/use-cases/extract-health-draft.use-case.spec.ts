@@ -41,7 +41,7 @@ describe('ExtractHealthDraftUseCase', () => {
     await useCase.execute('/tmp/test.pdf', 'cotacao.pdf');
     expect(healthExtractor.extract).toHaveBeenCalledWith(
       'texto extraído do pdf',
-      { sourceFiles: ['cotacao.pdf'] },
+      { sourceFiles: ['cotacao.pdf'], traceId: expect.any(String) },
     );
   });
 

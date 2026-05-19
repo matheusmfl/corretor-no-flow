@@ -223,10 +223,103 @@ describe('buildHealthSpreadsheetMatrix', () => {
     });
   });
 
-  describe('todos as quoteOptions entram', () => {
-    it('todas as opções do draft aparecem nas colunas', () => {
+  describe('todos as quoteOptions médicas entram', () => {
+    it('todas as opções médicas do draft aparecem nas colunas', () => {
       const matrix = buildHealthSpreadsheetMatrix(DRAFT_3_LIVES_2_OPTIONS);
       expect(matrix.planColumns.map((c) => c.planName)).toEqual(['Plano ENF', 'Plano APT']);
+    });
+  });
+
+  describe('filtragem dental-only', () => {
+    function dentalOnlyOption(planName: string): HealthQuoteOption {
+      return {
+        sourceType: 'portal_pdf',
+        carrierOrOperator: 'Amil',
+        planName,
+        accommodation: notFound(),
+        coparticipation: notFound(),
+        reimbursementMode: notFound(),
+        validUntil: found('2026-06-30'),
+        dental: { value: 'Incluso', source: 'extracted' as const, confidence: 0.95, needsReview: false },
+        perLifePrices: [],
+        monthlyTotal: 89.9,
+      };
+    }
+
+    it('opção dental-only não aparece como coluna da matriz', () => {
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0],
+          dentalOnlyOption('DENTAL BRONZE PJ PROMO'),
+        ],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      expect(matrix.planColumns.map((c) => c.planName)).not.toContain('DENTAL BRONZE PJ PROMO');
+    });
+
+    it('opção dental-only com nome contendo "Odonto" não aparece como coluna', () => {
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0],
+          dentalOnlyOption('Odonto Premium'),
+        ],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      expect(matrix.planColumns.map((c) => c.planName)).toEqual(['Plano ENF']);
+    });
+
+    it('opção médica normal continua aparecendo como coluna quando há dental-only junto', () => {
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0],
+          dentalOnlyOption('DENTAL BRONZE PJ PROMO'),
+        ],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      expect(matrix.planColumns.map((c) => c.planName)).toContain('Plano ENF');
+    });
+
+    it('opção dental-only aparece nas notas como adicional odonto', () => {
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0],
+          dentalOnlyOption('DENTAL BRONZE PJ PROMO'),
+        ],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      const dentalNote = matrix.notes.find((n) => /dental|odonto/i.test(n.key));
+      expect(dentalNote).toBeDefined();
+    });
+
+    it('warnings de opção dental-only aparecem nas notas do XLSX', () => {
+      const dentalWithWarning = {
+        ...dentalOnlyOption('DENTAL BRONZE PJ PROMO'),
+        warnings: ['nesse valor não está calculado o reajuste atuarial'],
+      };
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0], dentalWithWarning],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      const warningNote = matrix.notes.find((n) => /reajuste atuarial/i.test(n.value));
+      expect(warningNote).toBeDefined();
+    });
+
+    it('número de colunas de preço corresponde apenas às opções médicas', () => {
+      const draft: HealthQuoteDraft = {
+        ...DRAFT_3_LIVES_2_OPTIONS,
+        quoteOptions: [
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[0],
+          DRAFT_3_LIVES_2_OPTIONS.quoteOptions[1],
+          dentalOnlyOption('DENTAL BRONZE PJ PROMO'),
+        ],
+      };
+      const matrix = buildHealthSpreadsheetMatrix(draft);
+      expect(matrix.planColumns).toHaveLength(2);
     });
   });
 });

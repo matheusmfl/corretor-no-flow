@@ -37,6 +37,31 @@ Retorne APENAS um objeto JSON válido conforme o formato solicitado.
 Não inclua explicações, markdown, ou qualquer texto fora do JSON.
 Regra crítica: nunca invente rede credenciada, coparticipação, carência ou reembolso sem evidência textual clara.`;
 
+type AiLogContext = {
+  quoteId?: string;
+  insurer?: Insurer;
+  product?: InsuranceProduct;
+  traceId?: string;
+  sourceFiles?: string[];
+};
+
+function aiContextForLog(ctx?: AiLogContext): string {
+  if (!ctx) return '';
+  const parts = [
+    ctx.traceId ? `traceId=${ctx.traceId}` : '',
+    ctx.quoteId ? `quoteId=${ctx.quoteId}` : '',
+    ctx.insurer ? `insurer=${ctx.insurer}` : '',
+    ctx.product ? `product=${ctx.product}` : '',
+    ctx.sourceFiles?.length ? `sourceFiles=${ctx.sourceFiles.length}` : '',
+  ].filter(Boolean);
+  return parts.length > 0 ? ` ${parts.join(' ')}` : '';
+}
+
+function errorForAiLog(error: unknown): string {
+  if (error instanceof Error) return `${error.name}: ${error.message}`;
+  return String(error);
+}
+
 function getHealthQuoteDraftPrompt(): string {
   return `Você está analisando o texto bruto de uma cotação de plano de saúde (e possivelmente odonto).
 
@@ -660,14 +685,19 @@ export class AiService {
 
   async extractHealthQuoteDraft(
     rawText: string,
+    context?: { traceId?: string; sourceFiles?: string[] },
   ): Promise<Record<string, unknown>> {
     const prompt = getHealthQuoteDraftPrompt();
+    this.logger.log(
+      `[AI][health-extraction] request rawTextChars=${rawText.length} promptChars=${prompt.length}${aiContextForLog(context)}`,
+    );
     return this.completeJsonFromMessages(
       [
         { role: 'system', content: HEALTH_SYSTEM_PROMPT },
         { role: 'user', content: `${prompt}\n\nTexto da cotação:\n${rawText}` },
       ],
       'extraction',
+      context,
     );
   }
 
@@ -717,9 +747,9 @@ export class AiService {
   private async completeJsonFromMessages(
     messages: { role: 'system' | 'user'; content: string }[],
     label: 'extraction' | 'correction',
-    ctx?: { quoteId: string; insurer: Insurer; product: InsuranceProduct },
+    ctx?: AiLogContext,
   ): Promise<Record<string, unknown>> {
-    const ctxStr = ctx ? ` quoteId=${ctx.quoteId} insurer=${ctx.insurer} product=${ctx.product}` : '';
+    const ctxStr = aiContextForLog(ctx);
 
     try {
       const out = await this.invokeGroq(messages);
@@ -728,7 +758,10 @@ export class AiService {
       );
       return parseJsonFromLlmText(out.body);
     } catch (err) {
-      if (!isGroqRateLimitExceeded(err)) throw err;
+      if (!isGroqRateLimitExceeded(err)) {
+        this.logger.error(`[AI][${label}] failed${ctxStr} error="${errorForAiLog(err)}"`);
+        throw err;
+      }
 
       if (!this.gemini) {
         this.logger.warn(`[AI][${label}] provider=groq rate_limited=true fallback_unavailable=true${ctxStr}`);

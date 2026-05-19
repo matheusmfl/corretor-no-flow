@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { DraftField, HealthMemberLife, HealthQuoteDraft, HealthQuoteOption } from '@corretor/types';
+import { isDentalOnlyOption } from './health-dental-classifier';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,9 @@ function lifeLabel(life: HealthMemberLife, index: number): string {
 @Injectable()
 export class HealthPdfTemplateService {
   render(draft: HealthQuoteDraft): string {
-    const { clientName, lives, quoteOptions, warnings = [] } = draft;
+    const { clientName, lives, warnings = [] } = draft;
+    const medicalOptions = draft.quoteOptions.filter((o) => !isDentalOnlyOption(o));
+    const dentalAddons = draft.quoteOptions.filter(isDentalOnlyOption);
 
     // ── Seção: cabeçalho ──────────────────────────────────────────────────────
     const headerTitle = clientName
@@ -57,8 +60,8 @@ export class HealthPdfTemplateService {
         <td>${esc(life.relationship ?? '—')}</td>
       </tr>`).join('');
 
-    // ── Seção: opções de plano ────────────────────────────────────────────────
-    const optionCards = quoteOptions.map((opt) => {
+    // ── Helper: card de opção ─────────────────────────────────────────────────
+    const buildOptionCard = (opt: HealthQuoteOption) => {
       const perLifeRows = (opt.perLifePrices ?? []).map((p) => {
         const life = lives[p.lifeIndex];
         const label = life ? lifeLabel(life, p.lifeIndex) : `Vida ${p.lifeIndex + 1}`;
@@ -113,7 +116,41 @@ export class HealthPdfTemplateService {
 
         ${optionWarnings ? `<div class="option-alerts">${optionWarnings}</div>` : ''}
       </div>`;
-    }).join('');
+    };
+
+    // ── Seção: opções médicas ─────────────────────────────────────────────────
+    const optionCards = medicalOptions.map(buildOptionCard).join('');
+
+    // ── Seção: adicionais odonto ──────────────────────────────────────────────
+    const dentalAddonCards = dentalAddons.length > 0
+      ? `<div class="section">
+          <div class="section-title">Adicionais Odonto</div>
+          ${dentalAddons.map((opt) => {
+            const totalHtml = opt.monthlyTotal != null && opt.monthlyTotal > 0
+              ? `<span class="option-total">${fmtBrl(opt.monthlyTotal)}<span class="option-total-per">/mês</span></span>`
+              : '';
+            const validHtml = opt.validUntil.value
+              ? `<div class="field-row"><span class="field-label">Validade</span><span class="field-value">${esc(opt.validUntil.value)}</span></div>`
+              : '';
+            const coverageHtml = opt.dental.value
+              ? `<div class="field-row"><span class="field-label">Cobertura</span><span class="field-value">${esc(opt.dental.value)}</span></div>`
+              : '';
+            const warningsHtml = (opt.warnings ?? []).map((w) => `<div class="alert-row">⚠ ${esc(w)}</div>`).join('');
+            return `
+            <div class="option-card">
+              <div class="option-header">
+                <div>
+                  <span class="option-carrier">${esc(opt.carrierOrOperator)}</span>
+                  <span class="option-plan">${esc(opt.planName)}</span>
+                </div>
+                <div class="option-right">${totalHtml}</div>
+              </div>
+              <div class="option-fields">${coverageHtml}${validHtml}</div>
+              ${warningsHtml ? `<div class="option-alerts">${warningsHtml}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>`
+      : '';
 
     // ── Seção: avisos draft-level ─────────────────────────────────────────────
     const draftWarningsHtml = warnings.length > 0
@@ -124,7 +161,7 @@ export class HealthPdfTemplateService {
       : '';
 
     // ── Seção: comparativo de totais ──────────────────────────────────────────
-    const totalsWithValue = quoteOptions.filter((o) => o.monthlyTotal != null);
+    const totalsWithValue = medicalOptions.filter((o) => o.monthlyTotal != null);
     const totaisRows = totalsWithValue.map((opt) => `
       <tr>
         <td>${esc(opt.carrierOrOperator)} — ${esc(opt.planName)}</td>
@@ -308,9 +345,11 @@ body {
 
   <!-- Opções de plano -->
   <div class="section">
-    <div class="section-title">${quoteOptions.length} opções de plano</div>
+    <div class="section-title">${medicalOptions.length} opç${medicalOptions.length !== 1 ? 'ões' : 'ão'} de plano</div>
     ${optionCards}
   </div>
+
+  ${dentalAddonCards}
 
   <!-- Comparativo de totais -->
   ${totalsWithValue.length > 1 ? `
