@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import type { PublicProcessResponse, AutoQuoteData } from '@corretor/types'
+import type { PublicProcessResponse, AutoQuoteData, HealthQuoteDraft, HealthQuoteOption } from '@corretor/types'
 import { getDashboardEnvironmentHeaders, getServerApiBaseUrl } from '@/lib/api/base-url'
 import { QuoteTracker } from './quote-tracker'
 
@@ -64,6 +64,16 @@ const INSURER_LABELS: Record<string, string> = {
   ALIRO:        'Aliro',
   ALLIANZ:      'Allianz',
   YELLOW:       'Yellow Seguros',
+}
+
+function isHealthQuoteDraftLike(value: unknown): value is HealthQuoteDraft {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const draft = value as Partial<HealthQuoteDraft>
+  return Array.isArray(draft.lives)
+    && Array.isArray(draft.quoteOptions)
+    && (draft.reviewStatus === 'pending'
+      || draft.reviewStatus === 'in_review'
+      || draft.reviewStatus === 'confirmed')
 }
 
 function fmt(v: number) {
@@ -380,6 +390,80 @@ export default async function PublicPage(
   const whatsappUrl = `https://wa.me/55${company.whatsapp.replace(/\D/g, '')}` +
     `?text=${encodeURIComponent(`Olá! Estou analisando a cotação de ${PRODUCT_LABELS[process.product] ?? process.product} que você enviou.`)}`
 
+  if (process.product === 'HEALTH') {
+    const draft = quotes[0]?.extractedData
+    if (!isHealthQuoteDraftLike(draft)) return <ErrorPage status={500} />
+    return (
+      <div className="min-h-screen bg-[#f4f2ee]">
+        <QuoteTracker processId={process.id} />
+        <header className="px-5 py-4" style={{ background: brand }}>
+          <div className="max-w-lg mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {company.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={company.logoUrl} alt={company.displayName} className="h-8 max-w-[80px] object-contain shrink-0" />
+              ) : (
+                <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-xs font-extrabold text-white" style={{ background: 'rgba(255,255,255,0.18)' }}>
+                  {company.displayName.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+                </div>
+              )}
+              <span className="text-sm font-semibold text-white truncate">{company.displayName}</span>
+            </div>
+            <span className="text-xs shrink-0" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              Válido até {fmtDate(process.expiresAt)}
+            </span>
+          </div>
+        </header>
+        <HealthPublicView draft={draft} process={process} company={company} brand={brand} whatsappUrl={whatsappUrl} />
+        <footer className="mt-4" style={{ background: brand }}>
+          <div className="max-w-lg mx-auto px-5 py-6 space-y-5">
+            <div className="flex items-center gap-3">
+              {company.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={company.logoUrl} alt={company.displayName} className="h-10 max-w-[90px] object-contain shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-sm font-extrabold" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+                  {company.displayName.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+                </div>
+              )}
+              <div>
+                <p className="font-bold text-white text-sm leading-tight">{company.displayName}</p>
+                {company.bio && <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{company.bio}</p>}
+              </div>
+            </div>
+            {(company.contactEmail || company.instagram || company.website) && (
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {company.contactEmail && (
+                  <a href={`mailto:${company.contactEmail}`} className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    <IconEmail />{company.contactEmail}
+                  </a>
+                )}
+                {company.instagram && (
+                  <a href={`https://instagram.com/${company.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    <IconInstagram />{company.instagram}
+                  </a>
+                )}
+                {company.website && (
+                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    <IconGlobe />{company.website.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
+              </div>
+            )}
+            {(company.street || company.city) && (
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                {[company.street, company.neighborhood, company.city && company.state ? `${company.city} — ${company.state}` : company.city || company.state, company.zipCode].filter(Boolean).join(' · ')}
+              </p>
+            )}
+            <p className="text-center text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Cotação gerada via <strong style={{ color: 'rgba(255,255,255,0.45)' }}>Corretor no Flow</strong>
+            </p>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
       <QuoteTracker processId={process.id} />
@@ -552,6 +636,197 @@ export default async function PublicPage(
       </footer>
 
     </div>
+  )
+}
+
+// ─── HealthPublicView ─────────────────────────────────────────────────────────
+
+function healthSourceLabel(type: HealthQuoteOption['sourceType']): string {
+  if (type === 'portal_pdf')  return 'PDF'
+  if (type === 'manual_table') return 'Tabela manual'
+  return 'Planilha'
+}
+
+function HealthOptionCard({ opt, brand }: { opt: HealthQuoteOption; brand: string }) {
+  const tags: string[] = []
+  const publicFields = [
+    { label: 'acomodação', field: opt.accommodation },
+    { label: 'coparticipação', field: opt.coparticipation },
+    { label: 'reembolso', field: opt.reimbursementMode },
+    { label: 'odonto', field: opt.dental },
+    { label: 'validade', field: opt.validUntil },
+  ] as const
+
+  if (opt.accommodation.value && !opt.accommodation.needsReview) {
+    tags.push(opt.accommodation.value)
+  }
+  if (opt.coparticipation.value && !opt.coparticipation.needsReview) {
+    tags.push(opt.coparticipation.value)
+  }
+  if (opt.validUntil.value && !opt.validUntil.needsReview) {
+    tags.push(`válido até ${opt.validUntil.value}`)
+  }
+
+  const unconfirmedFields = publicFields
+    .filter(({ field }) => field.needsReview)
+    .map(({ label, field }) => field.value ? `${label} (${field.value})` : label)
+
+  return (
+    <div className="bg-white rounded-xl border border-[#e2dfd8] overflow-hidden shadow-sm">
+      <div className="px-4 py-3 flex items-center justify-between" style={{ background: brand }}>
+        <div>
+          <p className="text-sm font-bold text-white leading-tight">{opt.carrierOrOperator}</p>
+          <p className="text-xs text-white/70 mt-0.5">{opt.planName}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] text-white/50 mb-0.5">{healthSourceLabel(opt.sourceType)}</p>
+          {opt.monthlyTotal != null && (
+            <p className="text-lg font-extrabold text-white">{fmt(opt.monthlyTotal)}<span className="text-xs font-normal opacity-60">/mês</span></p>
+          )}
+        </div>
+      </div>
+
+      {tags.length > 0 && (
+        <div className="px-4 py-2.5 flex flex-wrap gap-1.5 border-b border-[#e2dfd8]">
+          {tags.map((t) => (
+            <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#f4f2ee] text-[#5a5750]">{t}</span>
+          ))}
+        </div>
+      )}
+
+      {(opt.warnings?.length ?? 0) > 0 && (
+        <div className="px-4 py-2 bg-amber-50 border-b border-amber-100">
+          {opt.warnings!.map((w, i) => (
+            <p key={i} className="text-[10px] text-amber-700">⚠ {w}</p>
+          ))}
+        </div>
+      )}
+
+      {unconfirmedFields.length > 0 && (
+        <div className="px-4 py-2 bg-[#f9f8f6]">
+          <p className="text-[10px] text-[#9a9590]">
+            {unconfirmedFields.join(', ')} {unconfirmedFields.length > 1 ? 'não confirmados' : 'não confirmado'} — consulte o corretor
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function HealthPublicView({
+  draft,
+  process,
+  company,
+  brand,
+  whatsappUrl,
+}: {
+  draft: HealthQuoteDraft
+  process: PublicProcessResponse['process']
+  company: PublicProcessResponse['company']
+  brand: string
+  whatsappUrl: string
+}) {
+  const { lives, quoteOptions, warnings = [] } = draft
+  const withTotals = quoteOptions.filter((o) => o.monthlyTotal != null)
+
+  return (
+    <>
+      {/* Saudação */}
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-2">
+        <h1 className="text-xl font-bold text-[#1a1814]">
+          {process.clientName
+            ? <>Olá, <span style={{ color: brand }}>{process.clientName.split(' ')[0]}</span>!</>
+            : 'Sua cotação de saúde está pronta!'}
+        </h1>
+        <p className="text-sm text-[#5a5750] mt-1">
+          Preparamos {quoteOptions.length} opç{quoteOptions.length !== 1 ? 'ões' : 'ão'} de plano
+          {lives.length > 0 && <> para <strong>{lives.length} beneficiário{lives.length !== 1 ? 's' : ''}</strong></>}.
+          Compare e fale com {company.displayName.split(' ')[0]} para contratar.
+        </p>
+      </div>
+
+      {/* Resumo de vidas */}
+      {lives.length > 0 && (
+        <div className="max-w-lg mx-auto px-5 py-3">
+          <div className="bg-white rounded-xl border border-[#e2dfd8] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[#e2dfd8] bg-[#f9f8f6]">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9a9590]">
+                Beneficiários — {lives.length} pessoa{lives.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="divide-y divide-[#f4f2ee]">
+              {lives.map((life, i) => {
+                const label = life.name ?? life.label ?? life.relationship ?? `Beneficiário ${i + 1}`
+                return (
+                  <div key={i} className="flex items-center justify-between px-4 py-2.5">
+                    <span className="text-sm text-[#1a1814]">{label}</span>
+                    <span className="text-xs text-[#9a9590]">{life.age} anos{life.relationship ? ` · ${life.relationship}` : ''}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Opções de plano */}
+      <div className="max-w-lg mx-auto px-5 py-3 space-y-3">
+        {quoteOptions.map((opt, i) => (
+          <HealthOptionCard key={`${opt.carrierOrOperator}-${opt.planName}-${i}`} opt={opt} brand={brand} />
+        ))}
+      </div>
+
+      {/* Comparativo de totais */}
+      {withTotals.length > 1 && (
+        <div className="max-w-lg mx-auto px-5 py-3">
+          <div className="bg-white rounded-xl border border-[#e2dfd8] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[#e2dfd8] bg-[#f9f8f6]">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9a9590]">Comparativo — total mensal</p>
+            </div>
+            <div className="divide-y divide-[#f4f2ee]">
+              {withTotals.map((opt, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-sm text-[#5a5750]">{opt.carrierOrOperator} — {opt.planName}</span>
+                  <span className="text-sm font-bold tabular-nums" style={{ color: brand }}>{fmt(opt.monthlyTotal!)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Avisos draft-level */}
+      {warnings.length > 0 && (
+        <div className="max-w-lg mx-auto px-5 pb-2">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-1">
+            {warnings.map((w, i) => (
+              <p key={i} className="text-xs text-amber-700">⚠ {w}</p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Aviso legal */}
+      <div className="max-w-lg mx-auto px-5 pb-4">
+        <p className="text-[10px] text-[#9a9590] leading-relaxed text-center">
+          Valores baseados na cotação revisada pelo corretor. Rede credenciada, carências e condições de reembolso devem ser confirmadas com a operadora antes da contratação.
+        </p>
+      </div>
+
+      {/* WhatsApp CTA + footer */}
+      <div className="max-w-lg mx-auto px-5 pb-6">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2.5 w-full rounded-xl py-3.5 text-sm font-bold transition-colors"
+          style={{ background: '#25D366', color: '#fff' }}
+        >
+          <IconWhatsApp />
+          Falar com {company.displayName.split(' ')[0]} pelo WhatsApp
+        </a>
+      </div>
+    </>
   )
 }
 
