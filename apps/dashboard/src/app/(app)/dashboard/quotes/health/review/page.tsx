@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import type { HealthQuoteDraft, HealthMemberLife, HealthQuoteOption, DraftField } from '@corretor/types'
+import { useEffect, useState } from 'react'
+import type { HealthAgeBandPrice, HealthManualTableSource, HealthQuoteDraft, HealthMemberLife, HealthQuoteOption, DraftField } from '@corretor/types'
 import { useGenerateHealthXlsx } from '@/hooks/quotes/use-generate-health-xlsx'
+import { useGenerateHealthPdf } from '@/hooks/quotes/use-generate-health-pdf'
+import { usePublishHealthDraft } from '@/hooks/quotes/use-publish-health-draft'
+import { quoteProcessApi } from '@/lib/api/quote-process.api'
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────
 
@@ -539,15 +542,9 @@ const SENSITIVE_OPTION_FIELDS = [
   'dental',
 ] as const
 
-// Fontes sensíveis que exigem needsReview:true pelo schema Zod do backend.
-// Ao confirmar a base, o corretor aceita essas vidas — fonte vira 'manual'.
-const SENSITIVE_LIFE_SOURCES = new Set(['inferred', 'ocr', 'vision_inferred'])
-
 /**
  * Quando livesConfirmed=true, o corretor aceitou a composição de vidas:
- * - Vidas com source inferred/ocr/vision_inferred têm source promovido para
- *   'manual' (corretor revisou e aceitou) e needsReview:false, satisfazendo
- *   o invariante do schema Zod do backend.
+ * - A origem técnica das vidas é preservada para auditoria.
  * - Warnings de composição de base são removidos do draft exportado.
  * - Pendências de campos de plano (reimbursementMode etc.) permanecem intactas.
  */
@@ -555,13 +552,6 @@ function buildDraftForExport(draft: HealthQuoteDraft, livesConfirmed: boolean): 
   if (!livesConfirmed) return draft
   return {
     ...draft,
-    lives: draft.lives.map((l) => ({
-      ...l,
-      source: SENSITIVE_LIFE_SOURCES.has(l.source)
-        ? ('manual' as typeof l.source)
-        : l.source,
-      needsReview: false,
-    })),
     warnings: (draft.warnings ?? []).filter((w) => !isLifeBaseCompositionWarning(w)),
   }
 }
@@ -578,9 +568,14 @@ function countPendingItems(draft: HealthQuoteDraft, livesConfirmed: boolean): nu
 
 function ActionBar({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesConfirmed: boolean }) {
   const { status, generate, reset } = useGenerateHealthXlsx()
+  const { status: pdfStatus, generate: generatePdf, reset: resetPdf } = useGenerateHealthPdf()
+  const { status: linkStatus, publish: publishLink, reset: resetLink } = usePublishHealthDraft()
   const [confirmingXlsx, setConfirmingXlsx] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const totalPending = countPendingItems(draft, livesConfirmed)
   const isLoading = status.kind === 'loading'
+  const isPdfLoading = pdfStatus.kind === 'loading'
+  const isLinkLoading = linkStatus.kind === 'loading'
 
   function handleXlsxClick() {
     if (status.kind === 'error') {
@@ -593,7 +588,8 @@ function ActionBar({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesCo
     }
     setConfirmingXlsx(false)
     const draftForExport = buildDraftForExport(draft, livesConfirmed)
-    generate(draftForExport, totalPending > 0)
+    const hasAcceptedPendingLives = livesConfirmed && draft.lives.some((l) => l.needsReview)
+    generate(draftForExport, totalPending > 0 || hasAcceptedPendingLives)
   }
 
   function handleCancelConfirm() {
@@ -606,7 +602,11 @@ function ActionBar({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesCo
         <div>
           <p className="text-sm font-semibold text-ink">Gerar saída</p>
           <p className="text-xs text-ink-faint mt-0.5">
-            {status.kind === 'success'
+            {linkStatus.kind === 'success'
+              ? 'Link público gerado — envie ao cliente pelo WhatsApp ou e-mail'
+              : linkStatus.kind === 'error'
+              ? linkStatus.message
+              : status.kind === 'success'
               ? 'Planilha gerada com sucesso — verifique seus downloads'
               : status.kind === 'error'
               ? status.message
@@ -633,23 +633,79 @@ function ActionBar({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesCo
             {isLoading ? 'Gerando…' : status.kind === 'success' ? 'Gerada' : 'Gerar planilha'}
           </button>
           <button
-            disabled
-            title="Disponível em breve"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-surface-strong bg-surface/60 px-4 py-2 text-sm font-medium text-ink-faint cursor-not-allowed"
+            onClick={() => {
+              if (pdfStatus.kind === 'error') { resetPdf(); return }
+              const draftForExport = buildDraftForExport(draft, livesConfirmed)
+              generatePdf(draftForExport)
+            }}
+            disabled={isPdfLoading}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+              pdfStatus.kind === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                : pdfStatus.kind === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                : isPdfLoading
+                ? 'border-surface-strong bg-surface/60 text-ink-faint cursor-not-allowed'
+                : 'border-surface-strong bg-surface/60 text-ink-muted hover:border-mahogany/30 hover:text-mahogany hover:bg-mahogany/5'
+            }`}
           >
-            <IconPdf />
-            Gerar PDF
+            {isPdfLoading ? <IconSpinner /> : pdfStatus.kind === 'success' ? <IconCheck size={14} /> : <IconPdf />}
+            {isPdfLoading ? 'Gerando…' : pdfStatus.kind === 'success' ? 'PDF gerado' : 'Gerar PDF'}
           </button>
           <button
-            disabled
-            title="Disponível em breve"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-surface-strong bg-surface/60 px-4 py-2 text-sm font-medium text-ink-faint cursor-not-allowed"
+            type="button"
+            onClick={() => {
+              if (linkStatus.kind === 'error') {
+                resetLink()
+                return
+              }
+              setLinkCopied(false)
+              void publishLink(buildDraftForExport(draft, livesConfirmed))
+            }}
+            disabled={isLinkLoading}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+              linkStatus.kind === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                : linkStatus.kind === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                : isLinkLoading
+                ? 'border-surface-strong bg-surface/60 text-ink-faint cursor-not-allowed'
+                : 'border-surface-strong bg-surface/60 text-ink-muted hover:border-mahogany/30 hover:text-mahogany hover:bg-mahogany/5'
+            }`}
           >
-            <IconLink />
-            Gerar link
+            {isLinkLoading ? <IconSpinner /> : linkStatus.kind === 'success' ? <IconCheck size={14} /> : <IconLink />}
+            {isLinkLoading ? 'Gerando…' : linkStatus.kind === 'success' ? 'Link pronto' : 'Gerar link'}
           </button>
         </div>
       </div>
+
+      {linkStatus.kind === 'success' && (
+        <div className="border-t border-surface-strong bg-surface/30 px-5 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <span className="flex-1 truncate text-xs font-mono text-ink">{linkStatus.publicUrl}</span>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard.writeText(linkStatus.publicUrl).then(() => {
+                  setLinkCopied(true)
+                  setTimeout(() => setLinkCopied(false), 2000)
+                })
+              }}
+              className="rounded-lg border border-surface-strong px-3 py-1.5 text-xs font-medium text-ink-muted hover:border-mahogany/40 hover:text-ink transition-colors"
+            >
+              {linkCopied ? '✓ Copiado' : 'Copiar'}
+            </button>
+            <a
+              href={linkStatus.publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-mahogany px-3 py-1.5 text-xs font-semibold text-gold hover:bg-mahogany-light transition-colors"
+            >
+              Abrir
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Painel de confirmação para pendências */}
       {confirmingXlsx && (
@@ -671,6 +727,211 @@ function ActionBar({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesCo
             >
               Gerar mesmo assim
             </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── AddByTablePanel ──────────────────────────────────────────────────────────
+
+type BandRow = { bandLabel: string; minAge: string; maxAge: string; pricePerLife: string }
+type TableFormPhase = 'idle' | 'loading' | 'error'
+
+const EMPTY_BAND: BandRow = { bandLabel: '', minAge: '', maxAge: '', pricePerLife: '' }
+
+function AddByTablePanel({
+  lives,
+  onAdd,
+}: {
+  lives: HealthMemberLife[]
+  onAdd: (option: HealthQuoteOption) => void
+}) {
+  const [open, setOpen]           = useState(false)
+  const [phase, setPhase]         = useState<TableFormPhase>('idle')
+  const [errorMsg, setErrorMsg]   = useState<string | null>(null)
+  const [sourceName, setSourceName] = useState('')
+  const [planName, setPlanName]   = useState('')
+  const [accommodation, setAccommodation] = useState('')
+  const [coparticipation, setCoparticipation] = useState('')
+  const [validUntil, setValidUntil] = useState('')
+  const [bands, setBands]         = useState<BandRow[]>([{ ...EMPTY_BAND }])
+
+  function addBand() { setBands((b) => [...b, { ...EMPTY_BAND }]) }
+  function removeBand(i: number) { setBands((b) => b.filter((_, idx) => idx !== i)) }
+  function updateBand(i: number, field: keyof BandRow, value: string) {
+    setBands((b) => b.map((row, idx) => idx === i ? { ...row, [field]: value } : row))
+  }
+
+  function reset() {
+    setSourceName(''); setPlanName(''); setAccommodation(''); setCoparticipation('')
+    setValidUntil(''); setBands([{ ...EMPTY_BAND }]); setPhase('idle'); setErrorMsg(null)
+  }
+
+  const inputClass = 'w-full rounded-lg border border-surface-strong bg-white px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:border-mahogany/50 focus:outline-none focus:ring-1 focus:ring-mahogany/20'
+
+  const parsedBands: HealthAgeBandPrice[] = bands
+    .filter((b) => b.bandLabel && b.minAge !== '' && b.maxAge !== '' && b.pricePerLife !== '')
+    .map((b) => ({
+      bandLabel:    b.bandLabel,
+      minAge:       parseInt(b.minAge, 10),
+      maxAge:       parseInt(b.maxAge, 10),
+      pricePerLife: parseFloat(b.pricePerLife),
+    }))
+
+  const canApply = sourceName.trim() && planName.trim() && parsedBands.length > 0 && phase !== 'loading'
+
+  async function handleApply() {
+    if (!canApply) return
+    setPhase('loading'); setErrorMsg(null)
+    const table: HealthManualTableSource = {
+      sourceName: sourceName.trim(),
+      planName:   planName.trim(),
+      accommodation:   accommodation.trim() || undefined,
+      coparticipation: coparticipation.trim() || undefined,
+      validUntil:      validUntil.trim() || undefined,
+      ageBandPrices:   parsedBands,
+      reviewedByBroker: true,
+    }
+    try {
+      const option = await quoteProcessApi.applyHealthTable(table, lives)
+      onAdd(option)
+      reset()
+      setOpen(false)
+    } catch (err) {
+      setPhase('error')
+      setErrorMsg(err instanceof Error ? err.message : 'Não foi possível aplicar a tabela')
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-dashed border-surface-strong overflow-hidden">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center justify-center gap-2 px-5 py-3.5 text-sm text-ink-muted hover:text-mahogany hover:bg-mahogany/3 transition-colors"
+        >
+          <IconPlus />
+          Adicionar opção por tabela manual
+        </button>
+      ) : (
+        <div className="bg-white">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-surface-strong">
+            <p className="text-sm font-semibold text-ink">Nova opção — tabela manual</p>
+            <button
+              onClick={() => { setOpen(false); reset() }}
+              className="text-ink-faint hover:text-ink transition-colors"
+              aria-label="Fechar"
+            >
+              <IconX />
+            </button>
+          </div>
+
+          <div className="px-5 py-4 space-y-4">
+            {/* Metadata */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-ink-faint">Operadora / seguradora <span className="text-red-400">*</span></label>
+                <input type="text" value={sourceName} onChange={(e) => setSourceName(e.target.value)}
+                  placeholder="Ex: Unimed PE" className={inputClass} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-ink-faint">Nome do plano <span className="text-red-400">*</span></label>
+                <input type="text" value={planName} onChange={(e) => setPlanName(e.target.value)}
+                  placeholder="Ex: Enfermaria sem copart." className={inputClass} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-ink-faint">Acomodação</label>
+                <input type="text" value={accommodation} onChange={(e) => setAccommodation(e.target.value)}
+                  placeholder="Ex: Enfermaria" className={inputClass} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-ink-faint">Coparticipação</label>
+                <input type="text" value={coparticipation} onChange={(e) => setCoparticipation(e.target.value)}
+                  placeholder="Ex: Sem coparticipação" className={inputClass} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-ink-faint">Vigência até</label>
+                <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)}
+                  className={inputClass} />
+              </div>
+            </div>
+
+            {/* Age band table */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide">Faixas etárias e preços</p>
+              <div className="rounded-lg border border-surface-strong overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-surface/60 text-ink-faint">
+                      <th className="text-left px-3 py-2 font-medium">Rótulo</th>
+                      <th className="text-center px-3 py-2 font-medium">Idade mín.</th>
+                      <th className="text-center px-3 py-2 font-medium">Idade máx.</th>
+                      <th className="text-right px-3 py-2 font-medium">Preço / vida (R$)</th>
+                      <th className="w-8" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-strong">
+                    {bands.map((band, i) => (
+                      <tr key={i}>
+                        <td className="px-2 py-1.5">
+                          <input type="text" value={band.bandLabel} onChange={(e) => updateBand(i, 'bandLabel', e.target.value)}
+                            placeholder="0 a 18" className="w-full rounded border border-surface-strong px-2 py-1 text-xs text-ink bg-white focus:border-mahogany/40 focus:outline-none" />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input type="number" min={0} max={120} value={band.minAge} onChange={(e) => updateBand(i, 'minAge', e.target.value)}
+                            placeholder="0" className="w-20 rounded border border-surface-strong px-2 py-1 text-xs text-ink bg-white text-center focus:border-mahogany/40 focus:outline-none" />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input type="number" min={0} max={999} value={band.maxAge} onChange={(e) => updateBand(i, 'maxAge', e.target.value)}
+                            placeholder="18" className="w-20 rounded border border-surface-strong px-2 py-1 text-xs text-ink bg-white text-center focus:border-mahogany/40 focus:outline-none" />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input type="number" min={0} step={0.01} value={band.pricePerLife} onChange={(e) => updateBand(i, 'pricePerLife', e.target.value)}
+                            placeholder="210.00" className="w-28 rounded border border-surface-strong px-2 py-1 text-xs text-ink bg-white text-right focus:border-mahogany/40 focus:outline-none" />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          {bands.length > 1 && (
+                            <button onClick={() => removeBand(i)}
+                              className="text-ink-faint hover:text-red-500 transition-colors" aria-label="Remover faixa">
+                              <IconX />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="px-3 py-2 border-t border-surface-strong bg-surface/30">
+                  <button onClick={addBand}
+                    className="flex items-center gap-1 text-xs text-ink-muted hover:text-mahogany transition-colors">
+                    <IconPlus size={12} />
+                    Adicionar faixa
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Error */}
+            {phase === 'error' && errorMsg && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {errorMsg}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button onClick={() => { setOpen(false); reset() }}
+                className="rounded-lg border border-surface-strong px-3 py-1.5 text-sm text-ink-muted hover:bg-surface transition-colors">
+                Cancelar
+              </button>
+              <button onClick={handleApply} disabled={!canApply}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-mahogany px-4 py-1.5 text-sm font-semibold text-gold hover:bg-mahogany-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                {phase === 'loading' && <IconSpinner />}
+                {phase === 'loading' ? 'Aplicando…' : 'Aplicar tabela'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -785,17 +1046,65 @@ function IconSpinner() {
   )
 }
 
+function IconPlus({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+}
+
+// ─── Session storage key (shared with upload page) ───────────────────────────
+
+const HEALTH_DRAFT_SESSION_KEY = 'health-draft-pending'
+
+/** Lê o draft sem apagar a chave — evita Strict Mode (inicializador do useState pode rodar 2x) consumir o storage na 1ª passagem e cair na fixture na 2ª. */
+function readDraftFromSessionStorage(): HealthQuoteDraft {
+  if (typeof window === 'undefined') return FIXTURE
+  try {
+    const raw = sessionStorage.getItem(HEALTH_DRAFT_SESSION_KEY)
+    if (!raw) return FIXTURE
+    return JSON.parse(raw) as HealthQuoteDraft
+  } catch {
+    return FIXTURE
+  }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HealthReviewPage() {
-  const [lives, setLives]               = useState<HealthMemberLife[]>(FIXTURE.lives)
+  const [baseDraft]                     = useState<HealthQuoteDraft>(readDraftFromSessionStorage)
+  const [lives, setLives]               = useState<HealthMemberLife[]>(baseDraft.lives)
   const [livesConfirmed, setLivesConfirmed] = useState(false)
+  const [extraOptions, setExtraOptions] = useState<HealthQuoteOption[]>([])
 
-  const draft: HealthQuoteDraft = { ...FIXTURE, lives }
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      if (sessionStorage.getItem(HEALTH_DRAFT_SESSION_KEY)) {
+        sessionStorage.removeItem(HEALTH_DRAFT_SESSION_KEY)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const draft: HealthQuoteDraft = {
+    ...baseDraft,
+    lives,
+    quoteOptions: [...baseDraft.quoteOptions, ...extraOptions],
+  }
   const optionsCount = draft.quoteOptions.length
+  const isFixture = baseDraft === FIXTURE
 
   function handleUpdateLife(index: number, updated: HealthMemberLife) {
     setLives((prev) => prev.map((l, i) => (i === index ? updated : l)))
+  }
+
+  function handleAddOption(option: HealthQuoteOption) {
+    setExtraOptions((prev) => [...prev, option])
   }
 
   return (
@@ -839,9 +1148,10 @@ export default function HealthReviewPage() {
         <p className="text-sm font-semibold text-ink">
           {optionsCount} opções de plano
         </p>
-        {draft.quoteOptions.map((opt) => (
-          <OptionCard key={opt.planName} option={opt} />
+        {draft.quoteOptions.map((opt, i) => (
+          <OptionCard key={`${opt.carrierOrOperator}-${opt.planName}-${i}`} option={opt} />
         ))}
+        <AddByTablePanel lives={lives} onAdd={handleAddOption} />
       </div>
 
       {/* Matriz */}
@@ -851,9 +1161,11 @@ export default function HealthReviewPage() {
       <ActionBar draft={draft} livesConfirmed={livesConfirmed} />
 
       {/* Nota de protótipo */}
-      <p className="text-center text-xs text-ink-faint pb-4">
-        Dados de exemplo — este workspace usa uma fixture local para protótipo
-      </p>
+      {isFixture && (
+        <p className="text-center text-xs text-ink-faint pb-4">
+          Dados de exemplo — este workspace usa uma fixture local para protótipo
+        </p>
+      )}
     </div>
   )
 }

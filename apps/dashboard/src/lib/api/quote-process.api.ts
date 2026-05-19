@@ -1,7 +1,10 @@
 import type {
   CreateQuoteProcessDto,
   DetectInsurerResponse,
+  HealthManualTableSource,
+  HealthMemberLife,
   HealthQuoteDraft,
+  HealthQuoteOption,
   Insurer,
   ListProcessesQuery,
   QuoteProcess,
@@ -76,12 +79,65 @@ export const quoteProcessApi = {
     return apiClient.delete(`/api/quotes/${processId}/quotes/${quoteId}`)
   },
 
+  async extractHealthDraft(file: File): Promise<HealthQuoteDraft> {
+    const base = getBrowserApiBaseUrl()
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${base}/api/quotes/health/extract-draft`, {
+      method: 'POST',
+      body: form,
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      let message = `HTTP ${res.status}`
+      try {
+        const json = JSON.parse(text)
+        message = json.message ?? message
+      } catch {
+        // text não é JSON
+      }
+      throw new Error(message)
+    }
+    return res.json() as Promise<HealthQuoteDraft>
+  },
+
   async generateHealthXlsx(draft: HealthQuoteDraft, forceGenerate = false): Promise<Blob> {
     const base = getBrowserApiBaseUrl()
     const res = await fetch(`${base}/api/quotes/health/generate-xlsx`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ draft, forceGenerate }),
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      let message = `HTTP ${res.status}`
+      try {
+        const json = JSON.parse(text)
+        message = json.message ?? message
+      } catch {
+        // text não é JSON
+      }
+      throw new Error(message)
+    }
+    return res.blob()
+  },
+
+  applyHealthTable(table: HealthManualTableSource, lives: HealthMemberLife[]): Promise<HealthQuoteOption> {
+    return apiClient.post('/api/quotes/health/apply-table', { table, lives })
+  },
+
+  publishHealthDraft(draft: HealthQuoteDraft): Promise<{ publicToken: string; publicUrl: string; expiresAt: string }> {
+    return apiClient.post('/api/quotes/health/publish-draft', { draft })
+  },
+
+  async generateHealthPdf(draft: HealthQuoteDraft): Promise<Blob> {
+    const base = getBrowserApiBaseUrl()
+    const res = await fetch(`${base}/api/quotes/health/generate-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft }),
       credentials: 'include',
     })
     if (!res.ok) {
