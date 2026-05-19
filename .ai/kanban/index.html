@@ -252,13 +252,13 @@
     <header>
       <div>
         <h1>Kanban<br />Pré-Venda V1</h1>
-        <p class="subtitle">60 tasks lidas de <code>.ai/tasks</code>. Gerado em 13/05/2026, 20:06:10.</p>
+        <p class="subtitle">66 tasks lidas de <code>.ai/tasks</code>. Gerado em 19/05/2026, 14:18:39.</p>
       </div>
       <div class="toolbar" aria-label="Filtros">
         <input id="search" type="search" placeholder="Buscar task..." />
         <select id="area">
           <option value="">Todas as areas</option>
-          <option value="api">api</option><option value="backend">backend</option><option value="dashboard">dashboard</option><option value="frontend">frontend</option><option value="product">product</option><option value="types">types</option>
+          <option value="api">api</option><option value="api, dashboard">api, dashboard</option><option value="backend">backend</option><option value="dashboard">dashboard</option><option value="frontend">frontend</option><option value="product">product</option><option value="types">types</option>
         </select>
         <select id="risk">
           <option value="">Todos os riscos</option>
@@ -286,7 +286,7 @@
         <section class="column" data-column="todo">
           <div class="column__header">
             <h2>Todo</h2>
-            <span class="count" data-count="todo">21</span>
+            <span class="count" data-count="todo">20</span>
           </div>
           <div class="column__body">
             
@@ -802,85 +802,57 @@ lacunas para PDF, link navegavel e OCR.</p>
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0058-wire-health-draft-to-xlsx-generation-flow.md"
+      data-file="TASK-0061-health-manual-quote-from-table-flow.md"
       data-status="todo"
-      data-title="task-0058 conectar rascunho saude a geracao de planilha no dashboard"
-      data-area="dashboard"
+      data-title="task-0061 criar fluxo de cotacao manual saude por tabela"
+      data-area="api, dashboard"
       data-risk="medium"
       data-complexity="high"
       data-kind="implementation"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
-        <span class="task-id">TASK-0058</span>
+        <span class="task-id">TASK-0061</span>
         <span class="pill pill--medium">medium</span>
         <span class="pill pill--life-open">open</span>
       </div>
-      <h3>Conectar rascunho Saude a geracao de planilha no dashboard</h3>
-      <p>Criar o caminho minimo para disparar geracao/download de XLSX Saude a partir do workspace de revisao.</p>
+      <h3>Criar fluxo de cotacao manual Saude por tabela</h3>
+      <p>Permitir que o fluxo Saude tenha uma entrada manual inicial: informar/criar vidas, escolher uma tabela manual valida e gerar uma `HealthQuoteOption` calculada pelo motor de tabela.</p>
       <div class="task-meta">
-        <span>dashboard</span>
+        <span>api, dashboard</span>
         <span>implementation</span>
         <span>high</span>
         <span>TDD</span>
       </div>
-      <a href="/tasks/todo/TASK-0058-wire-health-draft-to-xlsx-generation-flow.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+      <a href="/tasks/todo/TASK-0061-health-manual-quote-from-table-flow.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0059-create-health-proposal-pdf-from-reviewed-draft.md"
+      data-file="TASK-0067-health-dental-addons-and-actionable-review-warnings.md"
       data-status="todo"
-      data-title="task-0059 criar pdf comercial saude a partir do draft revisado"
-      data-area="api"
+      data-title="task-0067 agrupar odonto como adicional e reduzir warnings acionaveis no review saude"
+      data-area="api, dashboard"
       data-risk="medium"
       data-complexity="high"
       data-kind="implementation"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
-        <span class="task-id">TASK-0059</span>
+        <span class="task-id">TASK-0067</span>
         <span class="pill pill--medium">medium</span>
         <span class="pill pill--life-open">open</span>
       </div>
-      <h3>Criar PDF comercial Saude a partir do draft revisado</h3>
-      <p>Criar um template/renderi</p>
+      <h3>Agrupar odonto como adicional e reduzir warnings acionaveis no review Saude</h3>
+      <p>Fa</p>
       <div class="task-meta">
-        <span>api</span>
+        <span>api, dashboard</span>
         <span>implementation</span>
         <span>high</span>
         <span>TDD</span>
       </div>
-      <a href="/tasks/todo/TASK-0059-create-health-proposal-pdf-from-reviewed-draft.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
-    </article>
-  
-    <article
-      class="task-card"
-      draggable="true"
-      data-file="TASK-0060-create-health-public-link-from-reviewed-draft.md"
-      data-status="todo"
-      data-title="task-0060 criar link navegavel saude a partir do draft revisado"
-      data-area="dashboard"
-      data-risk="medium"
-      data-complexity="high"
-      data-kind="implementation"
-      data-lifecycle="open"
-    >
-      <div class="task-card__topline">
-        <span class="task-id">TASK-0060</span>
-        <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-open">open</span>
-      </div>
-      <h3>Criar link navegavel Saude a partir do draft revisado</h3>
-      <p>Criar uma primeira pagina publica Saude baseada em `HealthQuoteDraft`, com comparativo simples, detalhes de vidas/opcoes e avisos.</p>
-      <div class="task-meta">
-        <span>dashboard</span>
-        <span>implementation</span>
-        <span>high</span>
-        <span>TDD</span>
-      </div>
-      <a href="/tasks/todo/TASK-0060-create-health-public-link-from-reviewed-draft.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+      <a href="/tasks/todo/TASK-0067-health-dental-addons-and-actionable-review-warnings.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
@@ -940,10 +912,122 @@ lacunas para PDF, link navegavel e OCR.</p>
         <section class="column" data-column="qa">
           <div class="column__header">
             <h2>QA</h2>
-            <span class="count" data-count="qa">0</span>
+            <span class="count" data-count="qa">4</span>
           </div>
           <div class="column__body">
             
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0060-create-health-public-link-from-reviewed-draft.md"
+      data-status="qa"
+      data-title="task-0060 criar link navegavel saude a partir do draft revisado"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="qa"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0060</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-qa">qa</span>
+      </div>
+      <h3>Criar link navegavel Saude a partir do draft revisado</h3>
+      <p>Criar uma primeira pagina publica Saude baseada em `HealthQuoteDraft`, com comparativo simples, detalhes de vidas/opcoes e avisos.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/qa/TASK-0060-create-health-public-link-from-reviewed-draft.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0062-wire-health-draft-to-xlsx-generation-flow.md"
+      data-status="qa"
+      data-title="task-0062 conectar rascunho saude a geracao de planilha no dashboard"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="qa"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0062</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-qa">qa</span>
+      </div>
+      <h3>Conectar rascunho Saude a geracao de planilha no dashboard</h3>
+      <p>Criar o caminho minimo para disparar geracao/download de XLSX Saude a partir do workspace de revisao.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/qa/TASK-0062-wire-health-draft-to-xlsx-generation-flow.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0063-create-health-proposal-pdf-from-reviewed-draft.md"
+      data-status="qa"
+      data-title="task-0063 criar pdf comercial saude a partir do draft revisado"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="qa"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0063</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-qa">qa</span>
+      </div>
+      <h3>Criar PDF comercial Saude a partir do draft revisado</h3>
+      <p>Criar um template/renderi</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/qa/TASK-0063-create-health-proposal-pdf-from-reviewed-draft.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0065-health-mvp-end-to-end-qa.md"
+      data-status="qa"
+      data-title="task-0065 qa end-to-end do mvp saude"
+      data-area="api, dashboard"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="qa"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0065</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>QA end-to-end do MVP Saude</h3>
+      <p>Executar QA funcional do MVP Saude do upload ate as tres saidas: planilha, PDF e link publico.</p>
+      <div class="task-meta">
+        <span>api, dashboard</span>
+        <span>qa</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/qa/TASK-0065-health-mvp-end-to-end-qa.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
           </div>
         </section>
@@ -951,66 +1035,10 @@ lacunas para PDF, link navegavel e OCR.</p>
         <section class="column" data-column="done">
           <div class="column__header">
             <h2>Done</h2>
-            <span class="count" data-count="done">38</span>
+            <span class="count" data-count="done">41</span>
           </div>
           <div class="column__body">
             
-    <article
-      class="task-card"
-      draggable="true"
-      data-file="TASK-0056-build-health-spreadsheet-matrix-and-xlsx-export.md"
-      data-status="done"
-      data-title="task-0056 criar matriz e exportacao xlsx da cotacao saude"
-      data-area="api"
-      data-risk="medium"
-      data-complexity="medium"
-      data-kind="implementation"
-      data-lifecycle="done"
-    >
-      <div class="task-card__topline">
-        <span class="task-id">TASK-0056</span>
-        <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-done">done</span>
-      </div>
-      <h3>Criar matriz e exportacao XLSX da cotacao Saude</h3>
-      <p>Criar um builder de matriz de planilha Saude e uma exportacao XLSX v0, com testes focados em estrutura e totais.</p>
-      <div class="task-meta">
-        <span>api</span>
-        <span>implementation</span>
-        <span>medium</span>
-        <span>TDD</span>
-      </div>
-      <a href="/tasks/done/TASK-0056-build-health-spreadsheet-matrix-and-xlsx-export.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
-    </article>
-
-    <article
-      class="task-card"
-      draggable="true"
-      data-file="TASK-0057-create-health-review-workspace-ux.md"
-      data-status="done"
-      data-title="task-0057 criar workspace de revisao saude no dashboard"
-      data-area="dashboard"
-      data-risk="medium"
-      data-complexity="high"
-      data-kind="implementation"
-      data-lifecycle="done"
-    >
-      <div class="task-card__topline">
-        <span class="task-id">TASK-0057</span>
-        <span class="pill pill--medium">medium</span>
-        <span class="pill pill--life-done">done</span>
-      </div>
-      <h3>Criar workspace de revisao Saude no dashboard</h3>
-      <p>Criar uma tela de revisao Saude v0 no dashboard com: resumo das fontes; revisao de vidas; revisao de opcoes; matriz comparativa; alertas antes de gerar.</p>
-      <div class="task-meta">
-        <span>dashboard</span>
-        <span>implementation</span>
-        <span>high</span>
-        
-      </div>
-      <a href="/tasks/done/TASK-0057-create-health-review-workspace-ux.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
-    </article>
-  
     <article
       class="task-card"
       draggable="true"
@@ -2029,6 +2057,150 @@ franchise/deductible type: separate chip/label when relevant (`Franquia Obrigato
         <span>TDD</span>
       </div>
       <a href="/tasks/done/TASK-0055-create-health-manual-table-pricing-engine.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0056-build-health-spreadsheet-matrix-and-xlsx-export.md"
+      data-status="done"
+      data-title="task-0056 criar matriz e exportacao xlsx da cotacao saude"
+      data-area="api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0056</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Criar matriz e exportacao XLSX da cotacao Saude</h3>
+      <p>Criar um builder de matri</p>
+      <div class="task-meta">
+        <span>api</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0056-build-health-spreadsheet-matrix-and-xlsx-export.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0057-create-health-review-workspace-ux.md"
+      data-status="done"
+      data-title="task-0057 criar workspace de revisao saude no dashboard"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0057</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Criar workspace de revisao Saude no dashboard</h3>
+      <p>Criar uma tela de revisao Saude v0 no dashboard com:
+resumo das fontes;
+revisao de vidas;
+revisao de opcoes;
+matri</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>high</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0057-create-health-review-workspace-ux.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0058-health-assistant-start-page.md"
+      data-status="done"
+      data-title="task-0058-health-assistant-start-page task-0058-health-assistant-start-page"
+      data-area="product"
+      data-risk="low"
+      data-complexity="low"
+      data-kind="task"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0058-health-assistant-start-page</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>TASK-0058-health-assistant-start-page</h3>
+      <p>Criar tela de seleção em `/dashboard/quotes/health/` com 4 cards de entrada para o fluxo de cotação Saúde.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>task</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0058-health-assistant-start-page.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0059-health-pdf-to-review-flow.md"
+      data-status="done"
+      data-title="task-0059-health-pdf-to-review-flow task-0059-health-pdf-to-review-flow"
+      data-area="product"
+      data-risk="low"
+      data-complexity="low"
+      data-kind="task"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0059-health-pdf-to-review-flow</span>
+        <span class="pill pill--low">low</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>TASK-0059-health-pdf-to-review-flow</h3>
+      <p>Conectar o fluxo principal: upload de PDF → extração → workspace de revisão com dados reais.</p>
+      <div class="task-meta">
+        <span>product</span>
+        <span>task</span>
+        <span>low</span>
+        
+      </div>
+      <a href="/tasks/done/TASK-0059-health-pdf-to-review-flow.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0066-health-multi-pdf-upload-processing-ux.md"
+      data-status="done"
+      data-title="task-0066 melhorar upload multipdf saude com etapa de processamento e erros claros"
+      data-area="dashboard"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="done"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0066</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-done">done</span>
+      </div>
+      <h3>Melhorar upload multipdf Saude com etapa de processamento e erros claros</h3>
+      <p>Transformar `/dashboard/quotes/health/upload` em um fluxo de upload múltiplo com etapa de processamento visível, mensagens de erro mais humanas e envio do draft combinado para a review.</p>
+      <div class="task-meta">
+        <span>dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/done/TASK-0066-health-multi-pdf-upload-processing-ux.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>

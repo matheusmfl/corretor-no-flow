@@ -1,9 +1,9 @@
 ---
 id: TASK-0062
 title: Conectar rascunho Saude a geracao de planilha no dashboard
-status: review
+status: qa
 kind: implementation
-lifecycle: open
+lifecycle: qa
 area: dashboard
 owner: claude
 reviewer: codex
@@ -70,7 +70,30 @@ Arquivos criados/modificados:
 - [P2] Controller agora exige `body.draft` explicitamente e lança `BadRequestException` se ausente
 - [P3] `<a>` é appendado ao `document.body` antes do click e removido após; URL revogada com `setTimeout(10_000)` em vez de imediatamente
 
+## Codex final review (2026-05-14)
+
+**Veredito:** mover para `qa`.
+
+**Findings:** nenhum P0/P1/P2 de código ficou aberto. O bug de auditoria foi corrigido: confirmar a base não transforma vidas `inferred|ocr|vision_inferred` em `manual`; o XLSX usa `forceGenerate=true` quando a base foi aceita e ainda há vidas tecnicamente pendentes.
+
+**Motivo para QA:** o aceite inclui download no browser e abertura do XLSX para comparar abas/valores/notas. Os testes cobrem o use case e matriz, mas não substituem a validação do arquivo baixado pelo botão real.
+
+**QA checklist:**
+
+- [ ] Na review, clicar "Confirmar base de vidas" e depois "Gerar planilha".
+- [ ] Confirmar que o download `.xlsx` acontece.
+- [ ] Abrir a planilha e conferir aba "Cotação", aba "Notas", totais e labels das vidas.
+- [ ] Confirmar que warnings de composição de vidas somem quando a base foi confirmada.
+- [ ] Confirmar que warnings de plano/validade/reembolso/odonto permanecem.
+
+**Validação técnica:** `generate-health-xlsx.use-case.spec.ts`, schema de Saúde e controller spec passaram; lint direcionado do dashboard passou.
+
 ## Human QA Checklist
+
+## Codex follow-up (2026-05-14)
+
+- [P1 corrigido] A versão revisada preserva `source` e `needsReview` das vidas confirmadas para auditoria. A confirmação em lote agora só remove warnings de composição da base do payload exportado e envia `forceGenerate=true` ao XLSX quando existem vidas aceitas que continuam tecnicamente marcadas como `needsReview`.
+- Observação: as notas de implementação antigas acima mencionam marcar vidas como `needsReview:false`; considere essa descrição substituída por este follow-up.
 
 - [ ] Generate XLSX from the workspace.
 - [ ] Open the XLSX and compare totals against the on-screen matrix.

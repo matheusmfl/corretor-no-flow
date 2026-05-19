@@ -1,9 +1,9 @@
 ---
-id: TASK-0059
+id: TASK-0063
 title: Criar PDF comercial Saude a partir do draft revisado
-status: todo
+status: qa
 kind: implementation
-lifecycle: open
+lifecycle: qa
 area: api
 owner: claude
 reviewer: codex
@@ -13,7 +13,7 @@ tdd_required: true
 created_at: 2026-05-13
 ---
 
-# TASK-0059 - Criar PDF comercial Saude a partir do draft revisado
+# TASK-0063 - Criar PDF comercial Saude a partir do draft revisado
 
 ## Context
 
@@ -102,3 +102,22 @@ The PDF looks polished but hides that some Saude fields were inferred or not fou
 - [ ] Check readability on one page or multiple pages.
 - [ ] Confirm warning language is clear and commercially acceptable.
 
+## Codex final review (2026-05-14)
+
+**Veredito:** mover para `qa`.
+
+**Findings:** nenhum P0/P1/P2 de código ficou aberto. O template Saúde é separado do AUTO, renderiza vidas, opções, totais, validade e warnings, e campos `needsReview` aparecem com marcação "a confirmar". A geração usa `GenerateHealthPdfUseCase` + `PdfRendererService`, sem reextrair nem recalcular o draft.
+
+**Risco residual:** não alterei o modelo de persistência nem o placeholder de `Insurer.SULAMERICA` usado no publish Saúde, porque isso exigiria decisão de modelo/migração fora do escopo autorizado.
+
+**Motivo para QA:** o aceite inclui gerar um PDF real e avaliar legibilidade/copy comercial. Os testes cobrem HTML/template, mas não substituem abrir o PDF final renderizado.
+
+**QA checklist:**
+
+- [ ] Gerar PDF na tela de review.
+- [ ] Abrir o PDF baixado.
+- [ ] Conferir vidas, opções, totais e validade.
+- [ ] Confirmar que campos "a confirmar" não parecem fatos confirmados.
+- [ ] Confirmar se a linguagem comercial é aceitável para envio ao cliente.
+
+**Validação técnica:** `health-pdf-template.service.spec.ts`, schema de Saúde e controller spec passaram; lint direcionado do dashboard passou.

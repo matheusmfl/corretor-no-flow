@@ -1,9 +1,9 @@
 ---
 id: TASK-0060
 title: Criar link navegavel Saude a partir do draft revisado
-status: todo
+status: qa
 kind: implementation
-lifecycle: open
+lifecycle: qa
 area: dashboard
 owner: claude
 reviewer: codex
@@ -107,3 +107,33 @@ The public link looks helpful but says more than the reviewed draft supports, cr
 - [ ] Compare totals with XLSX/PDF.
 - [ ] Confirm warning/caution copy is present but not overwhelming.
 
+## Implementation notes (2026-05-14)
+
+- **Public page:** ramo `process.product === 'HEALTH'` em `apps/dashboard/src/app/(public)/c/[token]/page.tsx` — `HealthPublicView` com `draft` de `quotes[0]?.extractedData`, header/footer alinhados ao fluxo auto, WhatsApp e validade.
+- **Publicar draft:** backend `publish-health-draft` + `quoteProcessApi.publishHealthDraft` + hook `usePublishHealthDraft` (ja existentes).
+- **Dashboard:** `ActionBar` em `apps/dashboard/src/app/(app)/dashboard/quotes/health/review/page.tsx` — botao **Gerar link** chama `publishLink(buildDraftForExport(draft, livesConfirmed))` (mesmo payload conceitual que XLSX/PDF); estados loading/success/error; apos sucesso mostra URL com **Copiar** e **Abrir**.
+- **Testes:** `npx eslint src/app/(app)/dashboard/quotes/health/review/page.tsx` no pacote `@corretor/dashboard` (exit 0). Criterios de aceitacao e checklist humano permanecem para revisao/QA.
+
+## Codex follow-up (2026-05-14)
+
+- [P1 corrigido] `HealthOptionCard` agora trata os 5 campos sensiveis (`accommodation`, `coparticipation`, `reimbursementMode`, `dental`, `validUntil`) como nao confirmados quando `needsReview=true`.
+- [P1 corrigido] Campos sensiveis pendentes nao entram mais como chips factuais no link publico; aparecem em copy de consulta ao corretor.
+- [P2 corrigido] O ramo publico de Saude agora faz um guard estrutural minimo antes de renderizar `quotes[0].extractedData` como `HealthQuoteDraft`.
+
+## Codex final review (2026-05-14)
+
+**Veredito:** mover para `qa`.
+
+**Findings:** nenhum P0/P1/P2 de código ficou aberto após os fixes acima. O link público renderiza a partir do draft publicado, mostra identidade da corretora, vidas, opções, origem, totais, avisos, validade quando confirmada, CTA de WhatsApp e cautela sobre rede/carência/reembolso.
+
+**Motivo para QA:** os critérios "mobile layout is usable", "totals match reviewed draft" e "CTA/link público abre sem login" precisam de validação em browser com servidor/API local e um token publicado real.
+
+**QA checklist:**
+
+- [ ] Abrir um link Saúde gerado por `publishHealthDraft`.
+- [ ] Validar mobile viewport e desktop estreito.
+- [ ] Conferir que campos `needsReview=true` aparecem como "não confirmados" e não como chips factuais.
+- [ ] Comparar totais do link com a review e com XLSX/PDF.
+- [ ] Confirmar CTA WhatsApp com telefone e texto corretos.
+
+**Validação técnica:** lint direcionado de `apps/dashboard/src/app/(public)/c/[token]/page.tsx` passou; testes API relacionados a publish passaram.

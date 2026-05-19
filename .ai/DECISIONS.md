@@ -111,3 +111,17 @@ If implementation skips provenance/review and saves AI output as final data, Hea
 
 Review when:
 At least one broker validates an exported Health spreadsheet generated from PDFs plus manual/table options, and before the same data is used in a client-facing PDF or public link.
+
+## 2026-05-19 - Health Dental Appears As Add-On
+
+Decision:
+In the Health review flow, dental products extracted beside a medical quote should appear as add-ons or benefits attached to the related medical quote, not as competing medical plan options in the main comparison matrix. A standalone dental quote can be supported later only with an explicit broker action or separate product flow.
+
+Reason:
+Brokers read the current matrix as "number of insurance options". Showing dental-only rows as top-level options makes a two-plan Health quote look like four insurance quotes and inflates review warnings with fields that do not apply to dental.
+
+Risk:
+Some PDFs may contain a genuinely standalone dental offer. Until a dedicated action exists, the system should preserve the dental data and label it clearly instead of silently comparing it as a medical plan.
+
+Review when:
+The Health review, XLSX, PDF, and public link all share the same grouped representation, and at least one real Health+Dental PDF batch has been validated by a broker.
