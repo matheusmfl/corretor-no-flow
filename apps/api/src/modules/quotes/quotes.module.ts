@@ -21,6 +21,11 @@ import { HealthManualTablePricingService } from './application/services/health-m
 import { HealthSpreadsheetMatrixService } from './application/services/health-spreadsheet-matrix.service';
 import { HealthXlsxExportService } from './application/services/health-xlsx-export.service';
 import { GenerateHealthXlsxUseCase } from './application/use-cases/generate-health-xlsx.use-case';
+import { ExtractHealthDraftUseCase } from './application/use-cases/extract-health-draft.use-case';
+import { ApplyHealthTableUseCase } from './application/use-cases/apply-health-table.use-case';
+import { PublishHealthDraftUseCase } from './application/use-cases/publish-health-draft.use-case';
+import { GenerateHealthPdfUseCase } from './application/use-cases/generate-health-pdf.use-case';
+import { HealthPdfTemplateService } from './application/services/health-pdf-template.service';
 import { QuoteController } from './presentation/quote.controller';
 import { QueueModule } from '../queue/queue.module';
 import { AiModule } from '../ai/ai.module';
@@ -50,6 +55,11 @@ import { AiModule } from '../ai/ai.module';
     HealthSpreadsheetMatrixService,
     HealthXlsxExportService,
     GenerateHealthXlsxUseCase,
+    ExtractHealthDraftUseCase,
+    ApplyHealthTableUseCase,
+    PublishHealthDraftUseCase,
+    HealthPdfTemplateService,
+    GenerateHealthPdfUseCase,
     ExtractPdfProcessor,
   ],
 })

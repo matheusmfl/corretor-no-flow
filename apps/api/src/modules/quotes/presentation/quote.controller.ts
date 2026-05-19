@@ -51,7 +51,12 @@ import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-bat
 import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
 import { GenerateHealthXlsxUseCase } from '../application/use-cases/generate-health-xlsx.use-case';
 import { GenerateHealthXlsxDto } from '../application/dtos/generate-health-xlsx.dto';
-import { parseHealthQuoteDraft } from '../domain/schemas/health-quote-draft.schema';
+import { parseHealthQuoteDraft, parseHealthManualTableSource, parseHealthMemberLives } from '../domain/schemas/health-quote-draft.schema';
+import { ExtractHealthDraftUseCase } from '../application/use-cases/extract-health-draft.use-case';
+import { ApplyHealthTableUseCase } from '../application/use-cases/apply-health-table.use-case';
+import { ApplyHealthTableDto } from '../application/dtos/apply-health-table.dto';
+import { GenerateHealthPdfUseCase } from '../application/use-cases/generate-health-pdf.use-case';
+import { PublishHealthDraftUseCase } from '../application/use-cases/publish-health-draft.use-case';
 
 const pdfStorage = diskStorage({
   destination: './uploads',
@@ -80,6 +85,10 @@ export class QuoteController {
     private readonly resetQuoteBatch: ResetQuoteBatchUseCase,
     private readonly removeQuoteFromProcess: RemoveQuoteFromProcessUseCase,
     private readonly generateHealthXlsxUseCase: GenerateHealthXlsxUseCase,
+    private readonly extractHealthDraftUseCase: ExtractHealthDraftUseCase,
+    private readonly applyHealthTableUseCase: ApplyHealthTableUseCase,
+    private readonly generateHealthPdfUseCase: GenerateHealthPdfUseCase,
+    private readonly publishHealthDraftUseCase: PublishHealthDraftUseCase,
   ) {}
 
   @Post()
@@ -181,6 +190,24 @@ export class QuoteController {
     return this.generateLink.execute(user.companyId, id, body?.quoteIds);
   }
 
+  @Post('health/extract-draft')
+  @HttpCode(200)
+  @UseInterceptors(FileInterceptor('file', { storage: pdfStorage }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Extrai HealthQuoteDraft de um PDF de cotação Saúde' })
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
+  async extractHealthDraft(
+    @CurrentUser() _user: { companyId: string },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo PDF é obrigatório');
+    try {
+      return await this.extractHealthDraftUseCase.execute(file.path, file.originalname);
+    } finally {
+      unlink(file.path, () => {});
+    }
+  }
+
   @Post('health/generate-xlsx')
   @HttpCode(200)
   @ApiOperation({ summary: 'Gera e baixa planilha XLSX para um rascunho de cotação Saúde' })
@@ -203,6 +230,53 @@ export class QuoteController {
     );
     res.setHeader('Content-Disposition', `attachment; filename="cotacao-saude-${clientSlug}.xlsx"`);
     res.end(buffer);
+  }
+
+  @Post('health/generate-pdf')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Gera PDF comercial Saúde a partir do HealthQuoteDraft revisado' })
+  async downloadHealthPdf(
+    @CurrentUser() _user: { companyId: string },
+    @Body() body: GenerateHealthXlsxDto,
+    @Res() res: Response,
+  ) {
+    if (!body.draft) throw new BadRequestException('Campo "draft" é obrigatório');
+    const draft = parseHealthQuoteDraft(body.draft);
+    const buffer = await this.generateHealthPdfUseCase.execute(draft);
+    const clientSlug = (draft.clientName ?? 'rascunho')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 40);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="cotacao-saude-${clientSlug}.pdf"`);
+    res.end(buffer);
+  }
+
+  @Post('health/publish-draft')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Publica HealthQuoteDraft e retorna link público de 30 dias' })
+  async publishHealthDraft(
+    @CurrentUser() user: { companyId: string },
+    @Body() body: GenerateHealthXlsxDto,
+  ) {
+    if (!body.draft) throw new BadRequestException('Campo "draft" é obrigatório');
+    const draft = parseHealthQuoteDraft(body.draft);
+    return this.publishHealthDraftUseCase.execute(user.companyId, draft);
+  }
+
+  @Post('health/apply-table')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Aplica tabela manual de preços às vidas e retorna uma HealthQuoteOption' })
+  applyHealthTable(
+    @CurrentUser() _user: { companyId: string },
+    @Body() body: ApplyHealthTableDto,
+  ) {
+    if (!body.table) throw new BadRequestException('Campo "table" é obrigatório');
+    if (!body.lives) throw new BadRequestException('Campo "lives" é obrigatório');
+    const table = parseHealthManualTableSource(body.table);
+    const lives = parseHealthMemberLives(body.lives);
+    return this.applyHealthTableUseCase.execute(table, lives);
   }
 
   @Post('detect-insurer')

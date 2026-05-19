@@ -15,6 +15,10 @@ import { UploadAutoQuoteUseCase } from '../application/use-cases/upload-auto-quo
 import { ResetQuoteBatchUseCase } from '../application/use-cases/reset-quote-batch.use-case';
 import { RemoveQuoteFromProcessUseCase } from '../application/use-cases/remove-quote-from-process.use-case';
 import { GenerateHealthXlsxUseCase } from '../application/use-cases/generate-health-xlsx.use-case';
+import { ExtractHealthDraftUseCase } from '../application/use-cases/extract-health-draft.use-case';
+import { ApplyHealthTableUseCase } from '../application/use-cases/apply-health-table.use-case';
+import { GenerateHealthPdfUseCase } from '../application/use-cases/generate-health-pdf.use-case';
+import { PublishHealthDraftUseCase } from '../application/use-cases/publish-health-draft.use-case';
 
 function makeUseCaseMock() {
   return { execute: jest.fn() };
@@ -44,6 +48,10 @@ describe('QuoteController — downloadPdf', () => {
         { provide: ResetQuoteBatchUseCase,          useValue: makeUseCaseMock() },
         { provide: RemoveQuoteFromProcessUseCase,   useValue: makeUseCaseMock() },
         { provide: GenerateHealthXlsxUseCase,       useValue: makeUseCaseMock() },
+        { provide: ExtractHealthDraftUseCase,       useValue: makeUseCaseMock() },
+        { provide: ApplyHealthTableUseCase,         useValue: makeUseCaseMock() },
+        { provide: GenerateHealthPdfUseCase,        useValue: makeUseCaseMock() },
+        { provide: PublishHealthDraftUseCase,       useValue: makeUseCaseMock() },
       ],
     }).compile();
 

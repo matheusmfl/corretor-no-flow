@@ -249,6 +249,33 @@ describe('HealthQuoteDraftExtractorService', () => {
     });
   });
 
+  describe('normalizacao de respostas reais da IA', () => {
+    it('aceita faixa aberta com maxAge null e operadora ausente sem derrubar o PDF inteiro', async () => {
+      const response = {
+        ...AMIL_AI_RESPONSE,
+        ageBandCounts: [
+          { bandLabel: '59 adiante', minAge: 59, maxAge: null, count: 0 },
+        ],
+        quoteOptions: [
+          {
+            ...AMIL_AI_RESPONSE.quoteOptions[0],
+            carrierOrOperator: null,
+            ageBandPrices: [
+              { bandLabel: '59 adiante', minAge: 59, maxAge: null, pricePerLife: 2986.45 },
+            ],
+          },
+        ],
+      };
+      const { service } = makeService(response);
+
+      const draft = await service.extract('texto real health');
+
+      expect(draft.quoteOptions[0].carrierOrOperator).toBe('Operadora nÃ£o identificada');
+      expect(draft.quoteOptions[0].ageBandPrices?.[0].maxAge).toBe(999);
+      expect(draft.warnings).toContain('Operadora nÃ£o identificada em uma opÃ§Ã£o; confirme antes de enviar ao cliente.');
+    });
+  });
+
   describe('falhas', () => {
     it('lança UnprocessableEntityException quando campo sensível inferido não tem needsReview', async () => {
       const invalidResponse = {

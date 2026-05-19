@@ -214,6 +214,26 @@ function stripNullsExceptDraftFieldValue(value: unknown): unknown {
 
 // ─── Parser ───────────────────────────────────────────────────────────────────
 
+export function parseHealthManualTableSource(raw: unknown): HealthManualTableSource {
+  const result = HealthManualTableSourceSchema.safeParse(raw);
+  if (!result.success) {
+    throw new UnprocessableEntityException(
+      `Tabela inválida: ${result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`,
+    );
+  }
+  return result.data;
+}
+
+export function parseHealthMemberLives(raw: unknown): HealthMemberLife[] {
+  const result = z.array(HealthMemberLifeSchema).safeParse(raw);
+  if (!result.success) {
+    throw new UnprocessableEntityException(
+      `Vidas inválidas: ${result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`,
+    );
+  }
+  return result.data as HealthMemberLife[];
+}
+
 export function parseHealthQuoteDraft(raw: unknown): HealthQuoteDraft {
   const result = HealthQuoteDraftSchema.safeParse(stripNullsExceptDraftFieldValue(raw));
   if (!result.success) {
