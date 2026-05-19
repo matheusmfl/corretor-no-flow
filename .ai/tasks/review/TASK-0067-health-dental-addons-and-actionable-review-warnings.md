@@ -110,6 +110,57 @@ Start with tests around pure helpers/services before touching UI:
 - `ageBandPrices` derive `perLifePrices` for all lives covered by the bands;
 - unknown operator produces one concise review warning, not repeated noisy labels.
 
+## Implementation Notes (2026-05-19)
+
+### Files created
+- `apps/api/src/modules/quotes/application/services/health-dental-classifier.ts` — pure helpers: `isDentalOnlyOption`, `derivePerLifePricesFromAgeBands`, `classifyWarnings`
+- `apps/api/src/modules/quotes/application/services/health-dental-classifier.spec.ts` — 28 unit tests (all passing)
+
+### Files modified
+- `health-spreadsheet-matrix.service.ts` — dental-only options filtered from plan columns; appear in notes section as `Adicional Odonto —`
+- `health-spreadsheet-matrix.service.spec.ts` — 5 new tests for dental filtering (all passing)
+- `health-quote-draft-extractor.service.ts` — derives `perLifePrices` from `ageBandPrices` + lives when AI omits per-life values
+- `health-quote-draft-extractor.service.spec.ts` — 4 new tests (all passing)
+- `apps/dashboard/src/app/(app)/dashboard/quotes/health/review/page.tsx`:
+  - `isDentalOnlyOption` helper inline (same heuristic as backend)
+  - `isObservationWarning` helper (IOF, SUSEP, ANS, reajuste atuarial, sujeito a…)
+  - `AlertsPanel` — skips medical field alerts for dental-only; skips dental-not-found for medical; separates observations into grey "Observações do contrato" section
+  - `ComparisonMatrix` — filters dental-only from columns
+  - `DentalAddonCard` — new card for dental addons with blue badge
+  - `countPendingItems` — excludes irrelevant fields from pending count
+  - Option section — "X opções de plano médico" + "Y adicionais odonto" separate sections
+
+### Test results
+- 199 health-related API tests passing
+- 768 total API tests passing, 0 regressions
+- TypeScript compilation: 0 errors
+
+### Fix attempt — Codex review findings (2026-05-19)
+
+**P1a resolved (round 2)** — `buildDraftForExport` reverted to only removing life-composition warnings; it no longer touches `quoteOptions`. Each output does its own grouping via `isDentalOnlyOption`/`isDentalOnlyHealthOption`:
+- PDF template: `medicalOptions`/`dentalAddons` split at render time
+- Public link page: same split at render time
+- XLSX: split in `buildHealthSpreadsheetMatrix`
+This ensures dental addons are preserved in the payload and rendered in their correct section in every output.
+
+**P1a (previous attempt, superseded)** — `buildDraftForExport` filtered dental-only from `quoteOptions`. This correctly prevented dental from appearing as competing medical columns, but the dental data never reached the PDF/link renderers. Reverted.
+- `health-pdf-template.service.ts`: splits `medicalOptions`/`dentalAddons`, renders dental section separately with all warnings preserved
+- `apps/dashboard/.../c/[token]/page.tsx`: same split, dental shown as compact row cards below medical options
+- `buildDraftForExport` in review/page.tsx: filters dental-only before passing to PDF/link API calls
+
+**P1b resolved** — Option warnings classified as observations no longer disappear:
+- `AlertsPanel`: observation-classified `option.warnings` now collected in `optionObservations` and rendered in the grey "Observações do contrato" section
+- `DentalAddonCard`: renders `option.warnings` inline (all, not filtered — dental addon warnings are always relevant to the broker)
+- `health-spreadsheet-matrix.service.ts`: already added `opt.warnings` to XLSX notes for dental-only options
+
+**P2 (public link dental card) resolved (round 2)** — Dental addon card in public link page now shows cobertura, validade, e warnings inline.
+
+**P2 (partial derivation) resolved** — Partial derivation now adds a warning to the option:
+- `health-quote-draft-extractor.service.ts`: when `derived.length < allLives.length`, pushes "Preço derivado para X de Y beneficiários — Z beneficiário(s) sem faixa etária correspondente; confirme os valores." to `opt.warnings`
+- New test covers this scenario (derives partial, checks warning is present)
+
+**Test delta**: 774 API tests passing (6 new vs. previous run), 0 regressions, TypeScript compilation clean.
+
 ## Acceptance Criteria
 
 - [ ] Uploading the two MARAVILHA/Amil PDFs shows 2 main medical options, with their dental entries nested as addons or clearly labelled optional dental benefits.

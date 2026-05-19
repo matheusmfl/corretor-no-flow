@@ -252,13 +252,13 @@
     <header>
       <div>
         <h1>Kanban<br />Pré-Venda V1</h1>
-        <p class="subtitle">66 tasks lidas de <code>.ai/tasks</code>. Gerado em 19/05/2026, 14:18:39.</p>
+        <p class="subtitle">70 tasks lidas de <code>.ai/tasks</code>. Gerado em 19/05/2026, 16:01:54.</p>
       </div>
       <div class="toolbar" aria-label="Filtros">
         <input id="search" type="search" placeholder="Buscar task..." />
         <select id="area">
           <option value="">Todas as areas</option>
-          <option value="api">api</option><option value="api, dashboard">api, dashboard</option><option value="backend">backend</option><option value="dashboard">dashboard</option><option value="frontend">frontend</option><option value="product">product</option><option value="types">types</option>
+          <option value="api">api</option><option value="api, dashboard">api, dashboard</option><option value="backend">backend</option><option value="dashboard">dashboard</option><option value="dashboard, api">dashboard, api</option><option value="frontend">frontend</option><option value="product">product</option><option value="product, api">product, api</option><option value="types">types</option>
         </select>
         <select id="risk">
           <option value="">Todos os riscos</option>
@@ -286,7 +286,7 @@
         <section class="column" data-column="todo">
           <div class="column__header">
             <h2>Todo</h2>
-            <span class="count" data-count="todo">20</span>
+            <span class="count" data-count="todo">23</span>
           </div>
           <div class="column__body">
             
@@ -830,29 +830,113 @@ lacunas para PDF, link navegavel e OCR.</p>
     <article
       class="task-card"
       draggable="true"
-      data-file="TASK-0067-health-dental-addons-and-actionable-review-warnings.md"
+      data-file="TASK-0068-block-non-health-pdfs-in-health-upload.md"
       data-status="todo"
-      data-title="task-0067 agrupar odonto como adicional e reduzir warnings acionaveis no review saude"
+      data-title="task-0068 bloquear pdfs que nao sao saude no upload saude"
       data-area="api, dashboard"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0068</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Bloquear PDFs que nao sao Saude no upload Saude</h3>
+      <p>Antes de chamar a extracao de Saude, detectar o ramo do PDF e bloquear arquivos com sinais fortes de AUTO ou sem sinais suficientes de Saude, com uma mensagem clara no item do upload.</p>
+      <div class="task-meta">
+        <span>api, dashboard</span>
+        <span>implementation</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0068-block-non-health-pdfs-in-health-upload.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0069-health-review-maturity-informative-user-context.md"
+      data-status="todo"
+      data-title="task-0069 maturar review saude com contexto util e campos ausentes explicaveis"
+      data-area="dashboard, api"
       data-risk="medium"
       data-complexity="high"
       data-kind="implementation"
       data-lifecycle="open"
     >
       <div class="task-card__topline">
-        <span class="task-id">TASK-0067</span>
+        <span class="task-id">TASK-0069</span>
         <span class="pill pill--medium">medium</span>
         <span class="pill pill--life-open">open</span>
       </div>
-      <h3>Agrupar odonto como adicional e reduzir warnings acionaveis no review Saude</h3>
-      <p>Fa</p>
+      <h3>Maturar review Saude com contexto util e campos ausentes explicaveis</h3>
+      <p>Transformar o review Saude de uma tela de campos crus em um workspace de revisao assistida: mostrar ao corretor o que foi extraido com confianca, o que nao veio no PDF, o que e opcional, e quais acoes precisam ser tomadas antes de gerar saidas.</p>
       <div class="task-meta">
-        <span>api, dashboard</span>
+        <span>dashboard, api</span>
         <span>implementation</span>
         <span>high</span>
         <span>TDD</span>
       </div>
-      <a href="/tasks/todo/TASK-0067-health-dental-addons-and-actionable-review-warnings.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+      <a href="/tasks/todo/TASK-0069-health-review-maturity-informative-user-context.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0070-discover-health-operator-and-product-catalog-from-real-pdfs.md"
+      data-status="todo"
+      data-title="task-0070 descobrir catalogo minimo de operadora e produtos saude por pdfs reais"
+      data-area="product, api"
+      data-risk="medium"
+      data-complexity="medium"
+      data-kind="discovery"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0070</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Descobrir catalogo minimo de operadora e produtos Saude por PDFs reais</h3>
+      <p>Mapear um catalogo minimo e auditavel de sinais de operadora/produto para Saude, baseado em PDFs reais do projeto, para redu</p>
+      <div class="task-meta">
+        <span>product, api</span>
+        <span>discovery</span>
+        <span>medium</span>
+        
+      </div>
+      <a href="/tasks/todo/TASK-0070-discover-health-operator-and-product-catalog-from-real-pdfs.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0071-fix-long-amil-health-pdf-extraction-failure.md"
+      data-status="todo"
+      data-title="task-0071 corrigir falha de extracao do pdf saude amil longo"
+      data-area="api, dashboard"
+      data-risk="high"
+      data-complexity="medium"
+      data-kind="bugfix"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0071</span>
+        <span class="pill pill--high">high</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Corrigir falha de extracao do PDF Saude Amil longo</h3>
+      <p>Reprodu</p>
+      <div class="task-meta">
+        <span>api, dashboard</span>
+        <span>bugfix</span>
+        <span>medium</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/todo/TASK-0071-fix-long-amil-health-pdf-extraction-failure.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>
@@ -873,7 +957,7 @@ lacunas para PDF, link navegavel e OCR.</p>
         <section class="column" data-column="review">
           <div class="column__header">
             <h2>Review</h2>
-            <span class="count" data-count="review">1</span>
+            <span class="count" data-count="review">2</span>
           </div>
           <div class="column__body">
             
@@ -903,6 +987,34 @@ lacunas para PDF, link navegavel e OCR.</p>
         
       </div>
       <a href="/tasks/review/TASK-0042-select-quotes-before-pdf-and-public-link-generation.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
+    </article>
+  
+    <article
+      class="task-card"
+      draggable="true"
+      data-file="TASK-0067-health-dental-addons-and-actionable-review-warnings.md"
+      data-status="review"
+      data-title="task-0067 agrupar odonto como adicional e reduzir warnings acionaveis no review saude"
+      data-area="api, dashboard"
+      data-risk="medium"
+      data-complexity="high"
+      data-kind="implementation"
+      data-lifecycle="open"
+    >
+      <div class="task-card__topline">
+        <span class="task-id">TASK-0067</span>
+        <span class="pill pill--medium">medium</span>
+        <span class="pill pill--life-open">open</span>
+      </div>
+      <h3>Agrupar odonto como adicional e reduzir warnings acionaveis no review Saude</h3>
+      <p>Fa</p>
+      <div class="task-meta">
+        <span>api, dashboard</span>
+        <span>implementation</span>
+        <span>high</span>
+        <span>TDD</span>
+      </div>
+      <a href="/tasks/review/TASK-0067-health-dental-addons-and-actionable-review-warnings.md" target="_blank" rel="noopener noreferrer">Abrir Markdown</a>
     </article>
   
             <div class="empty">Nenhuma task visivel com estes filtros.</div>

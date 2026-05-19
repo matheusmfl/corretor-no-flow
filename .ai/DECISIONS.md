@@ -125,3 +125,17 @@ Some PDFs may contain a genuinely standalone dental offer. Until a dedicated act
 
 Review when:
 The Health review, XLSX, PDF, and public link all share the same grouped representation, and at least one real Health+Dental PDF batch has been validated by a broker.
+
+## 2026-05-19 - Health Upload Must Reject Wrong Product Lines
+
+Decision:
+The Health upload flow must reject PDFs that are clearly not Health, especially AUTO quotes with vehicle/FIPE/plate/auto-insurance signals. Wrong-product PDFs should stay as item-level upload failures and must not enter the combined `HealthQuoteDraft`.
+
+Reason:
+A Porto AUTO PDF uploaded into the Health flow was parsed as a fake Health option, creating a bogus medical plan in the review matrix. This undermines trust more than a clear rejection would.
+
+Risk:
+Some broker PDFs may contain cross-sell marketing for other products. The detector should use strong product-line signals and allow partial processing of the valid Health PDFs instead of blocking the whole batch.
+
+Review when:
+The Health upload has product-line gating tests for valid Health, clear AUTO, and mixed batches.
