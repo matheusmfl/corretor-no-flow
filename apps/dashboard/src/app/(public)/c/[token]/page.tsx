@@ -66,6 +66,17 @@ const INSURER_LABELS: Record<string, string> = {
   YELLOW:       'Yellow Seguros',
 }
 
+function isDentalOnlyHealthOption(opt: HealthQuoteOption): boolean {
+  const hasDentalEvidence =
+    (opt.dental.source !== 'not_found' && opt.dental.value !== null) ||
+    /\b(dental|odonto)\b/i.test(opt.planName)
+  const medicalFieldsAbsent =
+    opt.accommodation.source === 'not_found' &&
+    opt.coparticipation.source === 'not_found' &&
+    opt.reimbursementMode.source === 'not_found'
+  return hasDentalEvidence && medicalFieldsAbsent
+}
+
 function isHealthQuoteDraftLike(value: unknown): value is HealthQuoteDraft {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const draft = value as Partial<HealthQuoteDraft>
@@ -726,8 +737,10 @@ function HealthPublicView({
   brand: string
   whatsappUrl: string
 }) {
-  const { lives, quoteOptions, warnings = [] } = draft
-  const withTotals = quoteOptions.filter((o) => o.monthlyTotal != null)
+  const { lives, warnings = [] } = draft
+  const medicalOptions = draft.quoteOptions.filter((o) => !isDentalOnlyHealthOption(o))
+  const dentalAddons = draft.quoteOptions.filter(isDentalOnlyHealthOption)
+  const withTotals = medicalOptions.filter((o) => o.monthlyTotal != null)
 
   return (
     <>
@@ -739,7 +752,8 @@ function HealthPublicView({
             : 'Sua cotação de saúde está pronta!'}
         </h1>
         <p className="text-sm text-[#5a5750] mt-1">
-          Preparamos {quoteOptions.length} opç{quoteOptions.length !== 1 ? 'ões' : 'ão'} de plano
+          Preparamos {medicalOptions.length} opç{medicalOptions.length !== 1 ? 'ões' : 'ão'} de plano
+          {dentalAddons.length > 0 && ` + ${dentalAddons.length} adicional${dentalAddons.length !== 1 ? 'is' : ''} odonto`}
           {lives.length > 0 && <> para <strong>{lives.length} beneficiário{lives.length !== 1 ? 's' : ''}</strong></>}.
           Compare e fale com {company.displayName.split(' ')[0]} para contratar.
         </p>
@@ -769,12 +783,55 @@ function HealthPublicView({
         </div>
       )}
 
-      {/* Opções de plano */}
+      {/* Opções médicas */}
       <div className="max-w-lg mx-auto px-5 py-3 space-y-3">
-        {quoteOptions.map((opt, i) => (
+        {medicalOptions.map((opt, i) => (
           <HealthOptionCard key={`${opt.carrierOrOperator}-${opt.planName}-${i}`} opt={opt} brand={brand} />
         ))}
       </div>
+
+      {/* Adicionais odonto */}
+      {dentalAddons.length > 0 && (
+        <div className="max-w-lg mx-auto px-5 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#9a9590] mb-2">
+            Adicionais Odonto
+          </p>
+          <div className="space-y-2">
+            {dentalAddons.map((opt, i) => (
+              <div key={i} className="bg-white rounded-xl border border-[#e2dfd8] overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1814]">{opt.planName}</p>
+                    <p className="text-xs text-[#9a9590]">{opt.carrierOrOperator}</p>
+                  </div>
+                  {opt.monthlyTotal != null && opt.monthlyTotal > 0 && (
+                    <p className="text-sm font-bold tabular-nums" style={{ color: brand }}>
+                      {fmt(opt.monthlyTotal)}<span className="text-xs font-normal text-[#9a9590]">/mês</span>
+                    </p>
+                  )}
+                </div>
+                {(opt.dental.value || opt.validUntil.value) && (
+                  <div className="px-4 pb-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-[#f4f2ee] pt-2">
+                    {opt.dental.value && (
+                      <span className="text-xs text-[#5a5750]">Cobertura: {opt.dental.value}</span>
+                    )}
+                    {opt.validUntil.value && (
+                      <span className="text-xs text-[#5a5750]">Válido até {fmtDate(opt.validUntil.value)}</span>
+                    )}
+                  </div>
+                )}
+                {(opt.warnings?.length ?? 0) > 0 && (
+                  <div className="px-4 pb-3 space-y-1 border-t border-[#f4f2ee] pt-2">
+                    {opt.warnings!.map((w, wi) => (
+                      <p key={wi} className="text-xs text-[#92400e] leading-relaxed">⚠ {w}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Comparativo de totais */}
       {withTotals.length > 1 && (

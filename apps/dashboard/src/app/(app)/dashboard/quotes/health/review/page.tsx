@@ -87,6 +87,35 @@ function sourceLabel(source: string) {
   }
 }
 
+/** Heurística dental-only: mesmo critério do classificador backend. */
+function isDentalOnlyOption(opt: HealthQuoteOption): boolean {
+  const hasDentalEvidence =
+    (opt.dental.source !== 'not_found' && opt.dental.value !== null) ||
+    /\b(dental|odonto)\b/i.test(opt.planName)
+  const medicalFieldsAbsent =
+    opt.accommodation.source === 'not_found' &&
+    opt.coparticipation.source === 'not_found' &&
+    opt.reimbursementMode.source === 'not_found'
+  return hasDentalEvidence && medicalFieldsAbsent
+}
+
+const OBSERVATION_PATTERNS = [
+  /\biof\b/i,
+  /\bsusep\b/i,
+  /\bans\b/i,
+  /sujeit[ao]\s+a/i,
+  /reajuste\s+atuarial/i,
+  /\batuarial\b/i,
+  /não\s+inclui/i,
+  /não\s+incluído/i,
+  /preços\s+sujeitos/i,
+  /proposta\s+válida/i,
+]
+
+function isObservationWarning(text: string): boolean {
+  return OBSERVATION_PATTERNS.some((p) => p.test(text))
+}
+
 /** Avisos de nível draft sobre composição de vidas (faixa/contagem) — somem após "Confirmar base de vidas". */
 function isLifeBaseCompositionWarning(text: string): boolean {
   const t = text.toLowerCase()
@@ -398,10 +427,56 @@ function OptionCard({ option }: { option: HealthQuoteOption }) {
   )
 }
 
+// ─── DentalAddonCard ─────────────────────────────────────────────────────────
+
+function DentalAddonCard({ option }: { option: HealthQuoteOption }) {
+  return (
+    <div className="rounded-xl border border-surface-strong bg-white overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 bg-blue-50/40 border-b border-surface-strong">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+            Adicional Odonto
+          </span>
+          <div>
+            <p className="font-semibold text-sm text-ink">{option.planName}</p>
+            <p className="text-xs text-ink-faint">{option.carrierOrOperator} · {sourceLabel(option.sourceType)}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          {option.monthlyTotal != null && option.monthlyTotal > 0 && (
+            <p className="text-sm font-semibold text-mahogany">{fmtBrl(option.monthlyTotal)}<span className="text-xs font-normal text-ink-faint">/mês</span></p>
+          )}
+          {option.validUntil.value && (
+            <p className="text-[10px] text-ink-faint">válido até {option.validUntil.value}</p>
+          )}
+        </div>
+      </div>
+      {option.dental.value && (
+        <div className="px-5 py-2.5">
+          <span className="inline-flex items-center gap-1 rounded-full border border-surface-strong bg-surface/60 px-2.5 py-0.5 text-xs text-ink-muted">
+            Cobertura: {option.dental.value}
+          </span>
+        </div>
+      )}
+      {(option.warnings?.length ?? 0) > 0 && (
+        <div className="px-5 pb-3 space-y-1">
+          {option.warnings!.map((w, i) => (
+            <p key={i} className="text-xs text-ink-muted flex items-start gap-1.5">
+              <IconInfo size={12} className="shrink-0 mt-0.5 text-ink-faint" />
+              {w}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── ComparisonMatrix ─────────────────────────────────────────────────────────
 
 function ComparisonMatrix({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesConfirmed: boolean }) {
-  const { lives, quoteOptions } = draft
+  const { lives } = draft
+  const quoteOptions = draft.quoteOptions.filter((o) => !isDentalOnlyOption(o))
 
   return (
     <div className="rounded-xl bg-white border border-surface-strong overflow-hidden">
@@ -473,61 +548,103 @@ function ComparisonMatrix({ draft, livesConfirmed }: { draft: HealthQuoteDraft; 
 
 // ─── AlertsPanel ──────────────────────────────────────────────────────────────
 
+// Campos médicos que não fazem sentido em opções dental-only
+const MEDICAL_ONLY_FIELDS = new Set(['accommodation', 'coparticipation', 'reimbursementMode'])
+
 function AlertsPanel({ draft, livesConfirmed }: { draft: HealthQuoteDraft; livesConfirmed: boolean }) {
-  const draftWarnings = (draft.warnings ?? []).filter(
-    (w) => !livesConfirmed || !isLifeBaseCompositionWarning(w),
+  const draftActionable = (draft.warnings ?? []).filter(
+    (w) => (!livesConfirmed || !isLifeBaseCompositionWarning(w)) && !isObservationWarning(w),
   )
-  const optionWarnings = draft.quoteOptions.flatMap((opt) =>
-    (opt.warnings ?? []).map((w) => ({ prefix: opt.planName, text: w })),
+  const draftObservations = (draft.warnings ?? []).filter(isObservationWarning)
+
+  const optionActionableWarnings = draft.quoteOptions.flatMap((opt) =>
+    (opt.warnings ?? [])
+      .filter((w) => !isObservationWarning(w))
+      .map((w) => ({ prefix: opt.planName, text: w })),
   )
-  const SENSITIVE: Array<{ key: keyof HealthQuoteOption; label: string }> = [
-    { key: 'accommodation',    label: 'Acomodação'      },
-    { key: 'coparticipation',  label: 'Coparticipação'  },
-    { key: 'reimbursementMode',label: 'Reembolso'       },
-    { key: 'validUntil',       label: 'Validade'        },
-    { key: 'dental',           label: 'Odonto'          },
+
+  const optionObservations = draft.quoteOptions.flatMap((opt) =>
+    (opt.warnings ?? [])
+      .filter(isObservationWarning)
+      .map((w) => `${opt.planName} — ${w}`),
+  )
+
+  const SENSITIVE: Array<{ key: keyof HealthQuoteOption; label: string; dentalSkip?: boolean; medicalSkip?: boolean }> = [
+    { key: 'accommodation',     label: 'Acomodação',     medicalSkip: true },
+    { key: 'coparticipation',   label: 'Coparticipação', medicalSkip: true },
+    { key: 'reimbursementMode', label: 'Reembolso',      medicalSkip: true },
+    { key: 'validUntil',        label: 'Validade'        },
+    { key: 'dental',            label: 'Odonto',         dentalSkip: true  },
   ]
-  const needsReviewFields = draft.quoteOptions.flatMap((opt) =>
-    SENSITIVE.flatMap(({ key, label }) => {
+
+  const needsReviewFields = draft.quoteOptions.flatMap((opt) => {
+    const isDental = isDentalOnlyOption(opt)
+    return SENSITIVE.flatMap(({ key, label, dentalSkip, medicalSkip }) => {
       const field = opt[key] as DraftField<string>
       if (!field.needsReview) return []
+      // Não mostrar campos médicos para opções dental-only
+      if (isDental && MEDICAL_ONLY_FIELDS.has(key as string)) return []
+      // Não mostrar "Odonto não identificado" para planos médicos (dental é opcional)
+      if (dentalSkip && !isDental && field.source === 'not_found') return []
       const text = field.value
         ? `${label} inferido como "${field.value}" — confirmar`
         : `${label} não identificado`
       return [{ prefix: opt.planName, text }]
-    }),
-  )
+    })
+  })
 
   const allAlerts = [
-    ...draftWarnings.map((w) => ({ prefix: null as null | string, text: w })),
-    ...optionWarnings,
+    ...draftActionable.map((w) => ({ prefix: null as null | string, text: w })),
+    ...optionActionableWarnings,
     ...needsReviewFields,
   ]
 
-  if (allAlerts.length === 0) return null
+  const allObservations = [...draftObservations, ...optionObservations]
+
+  if (allAlerts.length === 0 && allObservations.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-amber-200">
-        <IconAlert size={14} />
-        <p className="text-sm font-semibold text-amber-800">
-          Revise os pontos destacados antes de gerar
-        </p>
-        <span className="ml-auto text-xs font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
-          {allAlerts.length}
-        </span>
-      </div>
-      <ul className="divide-y divide-amber-100">
-        {allAlerts.map((alert, i) => (
-          <li key={i} className="flex items-start gap-2.5 px-5 py-2.5">
-            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-            <p className="text-xs text-amber-800 leading-relaxed">
-              {alert.prefix && <span className="font-medium">{alert.prefix} — </span>}
-              {alert.text}
+    <div className="space-y-3">
+      {allAlerts.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-amber-200">
+            <IconAlert size={14} />
+            <p className="text-sm font-semibold text-amber-800">
+              Revise os pontos destacados antes de gerar
             </p>
-          </li>
-        ))}
-      </ul>
+            <span className="ml-auto text-xs font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+              {allAlerts.length}
+            </span>
+          </div>
+          <ul className="divide-y divide-amber-100">
+            {allAlerts.map((alert, i) => (
+              <li key={i} className="flex items-start gap-2.5 px-5 py-2.5">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  {alert.prefix && <span className="font-medium">{alert.prefix} — </span>}
+                  {alert.text}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {allObservations.length > 0 && (
+        <div className="rounded-xl border border-surface-strong bg-surface/40 overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-surface-strong">
+            <IconInfo size={14} className="text-ink-faint" />
+            <p className="text-sm font-medium text-ink-muted">Observações do contrato</p>
+          </div>
+          <ul className="divide-y divide-surface-strong">
+            {allObservations.map((obs, i) => (
+              <li key={i} className="flex items-start gap-2.5 px-5 py-2.5">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-faint/40" />
+                <p className="text-xs text-ink-muted leading-relaxed">{obs}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
@@ -547,6 +664,8 @@ const SENSITIVE_OPTION_FIELDS = [
  * - A origem técnica das vidas é preservada para auditoria.
  * - Warnings de composição de base são removidos do draft exportado.
  * - Pendências de campos de plano (reimbursementMode etc.) permanecem intactas.
+ * - quoteOptions é preservado integralmente — cada destino (PDF, XLSX, link) faz
+ *   seu próprio agrupamento de dental-only via isDentalOnlyOption.
  */
 function buildDraftForExport(draft: HealthQuoteDraft, livesConfirmed: boolean): HealthQuoteDraft {
   if (!livesConfirmed) return draft
@@ -559,7 +678,15 @@ function buildDraftForExport(draft: HealthQuoteDraft, livesConfirmed: boolean): 
 function countPendingItems(draft: HealthQuoteDraft, livesConfirmed: boolean): number {
   const pendingLives = livesConfirmed ? 0 : draft.lives.filter((l) => l.needsReview).length
   const pendingFields = draft.quoteOptions.reduce((acc, opt) => {
-    return acc + SENSITIVE_OPTION_FIELDS.filter((k) => (opt[k] as DraftField<string>).needsReview).length
+    const isDental = isDentalOnlyOption(opt)
+    return acc + SENSITIVE_OPTION_FIELDS.filter((k) => {
+      const field = opt[k] as DraftField<string>
+      if (!field.needsReview) return false
+      // Não conta campos médicos para dental-only nem dental para médico
+      if (isDental && MEDICAL_ONLY_FIELDS.has(k)) return false
+      if (!isDental && k === 'dental' && field.source === 'not_found') return false
+      return true
+    }).length
   }, 0)
   return pendingLives + pendingFields
 }
@@ -1096,7 +1223,9 @@ export default function HealthReviewPage() {
     lives,
     quoteOptions: [...baseDraft.quoteOptions, ...extraOptions],
   }
-  const optionsCount = draft.quoteOptions.length
+  const medicalOptions = draft.quoteOptions.filter((o) => !isDentalOnlyOption(o))
+  const dentalAddons = draft.quoteOptions.filter(isDentalOnlyOption)
+  const optionsCount = medicalOptions.length
   const isFixture = baseDraft === FIXTURE
 
   function handleUpdateLife(index: number, updated: HealthMemberLife) {
@@ -1143,16 +1272,28 @@ export default function HealthReviewPage() {
         onUnconfirm={() => setLivesConfirmed(false)}
       />
 
-      {/* Opções */}
+      {/* Opções médicas */}
       <div className="space-y-3">
         <p className="text-sm font-semibold text-ink">
-          {optionsCount} opções de plano
+          {optionsCount} opção{optionsCount !== 1 ? 'ões' : ''} de plano médico
         </p>
-        {draft.quoteOptions.map((opt, i) => (
+        {medicalOptions.map((opt, i) => (
           <OptionCard key={`${opt.carrierOrOperator}-${opt.planName}-${i}`} option={opt} />
         ))}
         <AddByTablePanel lives={lives} onAdd={handleAddOption} />
       </div>
+
+      {/* Adicionais odonto */}
+      {dentalAddons.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-ink">
+            {dentalAddons.length} adicional{dentalAddons.length !== 1 ? 'is' : ''} odonto
+          </p>
+          {dentalAddons.map((opt, i) => (
+            <DentalAddonCard key={`dental-${opt.carrierOrOperator}-${opt.planName}-${i}`} option={opt} />
+          ))}
+        </div>
+      )}
 
       {/* Matriz */}
       <ComparisonMatrix draft={draft} livesConfirmed={livesConfirmed} />
